@@ -1,3 +1,63 @@
+# To Implement
+- [ ] [CLI Interface](https://github.com/nanocurrency/nano-node/wiki/Command-line-interface)
+    - [ ] account_create
+    - [ ] account_get
+    - [ ] account_key
+    - [ ] clear_send_ids
+    - [ ] confirmation_height_clear
+    - [ ] daemon; wip
+    - [ ] data_path
+    - [ ] debug_account_count
+    - [ ] debug_block_count
+    - [ ] debug_bootstrap_generate
+    - [ ] debug_cemented_block_count
+    - [ ] debug_dump_online_weight
+    - [ ] debug_dump_representatives
+    - [ ] debug_mass_activity
+    - [ ] debug_profile_bootstrap
+    - [ ] debug_profile_generate
+    - [ ] debug_profile_verify
+    - [ ] debug_profile_votes
+    - [ ] debug_profile_kdf
+    - [ ] debug_validate_blocks
+    - [ ] debug_verify_profile
+    - [ ] debug_profile_sign
+    - [ ] debug_xorshift_profile
+    - [ ] debug_opencl
+    - [ ] delete_node_id
+    - [ ] diagnostics
+    - [ ] help
+    - [ ] key_create
+    - [ ] key_expand
+    - [ ] online_weight_clear
+    - [ ] peer_clear
+    - [ ] snapshot
+    - [ ] unchecked_clear
+    - [ ] vacuum
+    - [ ] version; wip; needs to be live code; read from config
+    - [ ] vote_dump
+    - [ ] wallet_add_adhoc
+    - [ ] wallet_create
+    - [ ] wallet_change_seed
+    - [ ] wallet_decrypt_unsafe
+    - [ ] wallet_destroy
+    - [ ] wallet_import
+    - [ ] wallet_list
+    - [ ] wallet_remove
+    - [ ] wallet_representative_get
+    - [ ] wallet_representative_set
+    - [ ] disable_backup
+    - [ ] disable_lazy_bootstrap
+    - [ ] disable_legacy_bootstrap
+    - [ ] disable_bootstrap_listener
+    - [ ] disable_unchecked_cleanup
+    - [ ] disable_unchecked_drop
+    - [ ] fast_bootstrap
+- [ ] [API](https://github.com/nanocurrency/nano-node/wiki/RPC-protocol)
+- [ ] NANO core node
+    - [ ] Peering
+    - [ ] Block propagation
+
 # Goals
 - [ ] Faster syncing
 - [ ] Current NANO node hangs during initial sync on t2.large or less

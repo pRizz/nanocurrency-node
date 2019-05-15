@@ -5,15 +5,20 @@ import version from './Version'
 program
     .version(version, '-V, --version')
     .option('-d, --daemon', 'Run in daemon mode')
+    .option('--account_create', 'Run in daemon mode')
     .parse(process.argv)
 
 export function handleCLI() {
-    if(!program.daemon) {
-        // FIXME
-        program.outputHelp((helpText: string) => { return helpText })
-    } else {
+    if(program.daemon) {
         startDaemon()
+        return
     }
+    if(program.account_create) {
+        handleAccountCreate()
+        return
+    }
+    // FIXME
+    program.outputHelp((helpText: string) => { return helpText })
 }
 
 function startDaemon() {
@@ -101,4 +106,8 @@ function startDaemon() {
             : 'port ' + addr.port;
         debug('Listening on ' + bind);
     }
+}
+
+function handleAccountCreate() {
+    console.log('handle account create')
 }

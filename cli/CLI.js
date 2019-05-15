@@ -6,15 +6,19 @@ var Version_1 = require("./Version");
 program
     .version(Version_1.default, '-V, --version')
     .option('-d, --daemon', 'Run in daemon mode')
+    .option('--account_create', 'Run in daemon mode')
     .parse(process.argv);
 function handleCLI() {
-    if (!program.daemon) {
-        // FIXME
-        program.outputHelp(function (helpText) { return helpText; });
-    }
-    else {
+    if (program.daemon) {
         startDaemon();
+        return;
     }
+    if (program.account_create) {
+        handleAccountCreate();
+        return;
+    }
+    // FIXME
+    program.outputHelp(function (helpText) { return helpText; });
 }
 exports.handleCLI = handleCLI;
 function startDaemon() {
@@ -85,5 +89,8 @@ function startDaemon() {
             : 'port ' + addr.port;
         debug('Listening on ' + bind);
     }
+}
+function handleAccountCreate() {
+    console.log('handle account create');
 }
 //# sourceMappingURL=CLI.js.map
