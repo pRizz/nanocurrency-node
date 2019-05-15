@@ -5,22 +5,30 @@
  */
 
 const program = require('commander')
+const version = require('../cli/Version').default
 
 program
-  .version('0.1.0')
+  .version(version, '-V, --version')
   .option('-d, --daemon', 'Run in daemon mode')
   .parse(process.argv)
 
-if(!program.daemon) {
-  // FIXME
-  // program.outputHelp(() => {
-  //   console.log('Help shown')
-  // })
-  console.log('no daemon')
-} else {
-  console.log('start daemon')
-  startDaemon()
+handleCLI()
+
+function handleCLI() {
+  if(!program.daemon) {
+    // FIXME
+    program.outputHelp((text) => {
+      console.log('Help shown')
+      return text
+    })
+    console.log('no daemon')
+  } else {
+    console.log('start daemon')
+    startDaemon()
+  }
 }
+
+
 
 console.log('after daemon')
 
