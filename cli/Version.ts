@@ -1,4 +1,3 @@
-
 export default JSON.stringify({
     "rpc_version" : "1",
     "store_version": "11",
