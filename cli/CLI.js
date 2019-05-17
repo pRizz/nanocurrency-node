@@ -5,7 +5,7 @@ var Version_1 = require("./Version");
 //FIXME: wrong help text: Usage: www [options]
 program
     .version(Version_1.default, '-V, --version')
-    .option('-d, --daemon', 'Run in daemon mode')
+    .option('-d, --daemon', 'Start node daemon')
     .option('--account_create', 'Run in daemon mode')
     .parse(process.argv);
 function handleCLI() {

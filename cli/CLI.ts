@@ -4,7 +4,7 @@ import version from './Version'
 //FIXME: wrong help text: Usage: www [options]
 program
     .version(version, '-V, --version')
-    .option('-d, --daemon', 'Run in daemon mode')
+    .option('-d, --daemon', 'Start node daemon')
     .option('--account_create', 'Run in daemon mode')
     .parse(process.argv)
 

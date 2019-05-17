@@ -57,8 +57,12 @@
 - [ ] NANO core node
     - [ ] Peering
     - [ ] Block propagation
+- [ ] Implement all `FIXME`'s and `TODO`'s
+- [ ] Create benchmarks for nodes
+- [ ] Prevent losing unchecked blocks on exit
 
 # Goals
 - [ ] Faster syncing
 - [ ] Current NANO node hangs during initial sync on t2.large or less
 - [ ] Figure out why the node uses many GB of virtual memory
+- [ ] Reduce the high unconfirmed block count on initial sync
