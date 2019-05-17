@@ -3,7 +3,7 @@ const blakejs = require('blakejs')
 const nanoAlphabet = '13456789abcdefghijkmnopqrstuwxyz'
 
 export default class UInt256 {
-    number: Buffer = Buffer.alloc(32)
+    value: Buffer = Buffer.alloc(32)
 
     constructor(props: any) {
         if(!props) {
@@ -11,14 +11,14 @@ export default class UInt256 {
         }
 
         if(props.hex) {
-            this.number = Buffer.from(props.hex, 'hex')
+            this.value = Buffer.from(props.hex, 'hex')
             return
         }
     }
 
     toAccount(): string {
-        const checksum = blakejs.blake2b(this.number, null, 5).reverse()
-        const bufferWithChecksum = Buffer.concat([this.number, checksum])
+        const checksum = blakejs.blake2b(this.value, null, 5).reverse()
+        const bufferWithChecksum = Buffer.concat([this.value, checksum])
         const encodedCharacterArray = []
         const bitsToExtract = 5
         const lowest5BitsMask = 0x1f
@@ -43,5 +43,9 @@ export default class UInt256 {
 
         const encodedString = `nano_${encodedCharacterArray.join('')}`
         return encodedString
+    }
+
+    asUint8Array(): Uint8Array {
+        return new Uint8Array(this.value)
     }
 }

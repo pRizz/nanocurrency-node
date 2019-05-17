@@ -4,18 +4,18 @@ var blakejs = require('blakejs');
 var nanoAlphabet = '13456789abcdefghijkmnopqrstuwxyz';
 var UInt256 = /** @class */ (function () {
     function UInt256(props) {
-        this.number = Buffer.alloc(32);
+        this.value = Buffer.alloc(32);
         if (!props) {
             return;
         }
         if (props.hex) {
-            this.number = Buffer.from(props.hex, 'hex');
+            this.value = Buffer.from(props.hex, 'hex');
             return;
         }
     }
     UInt256.prototype.toAccount = function () {
-        var checksum = blakejs.blake2b(this.number, null, 5).reverse();
-        var bufferWithChecksum = Buffer.concat([this.number, checksum]);
+        var checksum = blakejs.blake2b(this.value, null, 5).reverse();
+        var bufferWithChecksum = Buffer.concat([this.value, checksum]);
         var encodedCharacterArray = [];
         var bitsToExtract = 5;
         var lowest5BitsMask = 0x1f;
@@ -37,6 +37,9 @@ var UInt256 = /** @class */ (function () {
         }
         var encodedString = "nano_" + encodedCharacterArray.join('');
         return encodedString;
+    };
+    UInt256.prototype.asUint8Array = function () {
+        return new Uint8Array(this.value);
     };
     return UInt256;
 }());
