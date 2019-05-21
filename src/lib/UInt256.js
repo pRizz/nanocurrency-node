@@ -4,7 +4,7 @@ var blakejs = require('blakejs');
 var nanoAlphabet = '13456789abcdefghijkmnopqrstuwxyz';
 var UInt256 = /** @class */ (function () {
     function UInt256(props) {
-        this.value = Buffer.alloc(32);
+        this.value = Buffer.alloc(32); // Big Endian
         if (!props) {
             return;
         }

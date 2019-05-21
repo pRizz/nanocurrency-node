@@ -3,7 +3,7 @@ const blakejs = require('blakejs')
 const nanoAlphabet = '13456789abcdefghijkmnopqrstuwxyz'
 
 export default class UInt256 {
-    value: Buffer = Buffer.alloc(32)
+    value: Buffer = Buffer.alloc(32) // Big Endian
 
     constructor(props: any) {
         if(!props) {

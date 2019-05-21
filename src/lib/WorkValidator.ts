@@ -3,15 +3,20 @@ import UInt64 from './UInt64'
 import Config from './Config'
 const blakejs = require('blakejs')
 
-function workValue(blockHash: BlockHash, work: UInt64): UInt64 {
+// FIXME: might have to signify endianness
+function getWorkValue(blockHash: BlockHash, work: UInt64): UInt64 {
     const hashContext = blakejs.blake2bInit(8)
-    blakejs.blake2bUpdate(hashContext, work.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, work.asUint8Array().reverse())
     blakejs.blake2bUpdate(hashContext, blockHash.asUint8Array())
-    return blakejs.blake2bFinal(hashContext)
+    const result = blakejs.blake2bFinal(hashContext).reverse()
+    return new UInt64({ uint8Array: result })
 }
 
-export default function validate(blockHash: BlockHash, work: UInt64, difficulty: UInt64): boolean {
-    const value = workValue(blockHash, work)
-
-    return value.lessThan(Config.publishThreshold)
+namespace WorkValidator {
+    export function isWorkValid(blockHash: BlockHash, work: UInt64): boolean {
+        const workValue = getWorkValue(blockHash, work)
+        return workValue.greaterThanOrEqualTo(Config.publishThreshold)
+    }
 }
+
+export default WorkValidator
