@@ -15,7 +15,7 @@ function getWorkValue(blockHash: BlockHash, work: UInt64): UInt64 {
 namespace WorkValidator {
     export function isWorkValid(blockHash: BlockHash, work: UInt64): boolean {
         const workValue = getWorkValue(blockHash, work)
-        return workValue.greaterThanOrEqualTo(Config.publishThreshold)
+        return workValue.greaterThanOrEqualTo(Config.publishThresholdDifficulty)
     }
 }
 

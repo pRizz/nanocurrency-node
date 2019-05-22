@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var crypto = require("crypto");
 var UInt64 = /** @class */ (function () {
     function UInt64(props) {
         this.value = Buffer.alloc(8); // Big Endian
@@ -16,6 +17,9 @@ var UInt64 = /** @class */ (function () {
             return;
         }
     }
+    UInt64.getRandom = function () {
+        return new UInt64({ uint8Array: crypto.randomBytes(8) });
+    };
     UInt64.prototype.lessThan = function (other) {
         return this.value.compare(other.value) === -1;
     };

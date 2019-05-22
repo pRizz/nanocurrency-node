@@ -1,3 +1,4 @@
+import * as crypto from "crypto"
 
 export default class UInt64 {
     value: Buffer = Buffer.alloc(8) // Big Endian
@@ -15,6 +16,10 @@ export default class UInt64 {
             this.value = Buffer.from(props.uint8Array)
             return
         }
+    }
+
+    static getRandom(): UInt64 {
+        return new UInt64({ uint8Array: crypto.randomBytes(8) })
     }
 
     lessThan(other: UInt64): boolean {

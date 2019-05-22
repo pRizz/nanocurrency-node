@@ -6,7 +6,7 @@ var publishFullThresholdHex = 'ffffffc000000000';
 var Config = /** @class */ (function () {
     function Config() {
     }
-    Config.publishThreshold = new UInt64_1.default({ hex: publishFullThresholdHex });
+    Config.publishThresholdDifficulty = new UInt64_1.default({ hex: publishFullThresholdHex });
     return Config;
 }());
 exports.default = Config;

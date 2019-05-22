@@ -1,4 +1,3 @@
-
 import UInt256 from '../src/lib/UInt256'
 import UInt64 from '../src/lib/UInt64'
 import * as assert from 'assert'

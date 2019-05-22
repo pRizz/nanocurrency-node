@@ -1,8 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var UInt64_1 = require("./UInt64");
-function generate(hash, difficulty) {
-    return new UInt64_1.default({}); // FIXME
-}
-exports.default = generate;
+var WorkValidator_1 = require("./WorkValidator");
+var PowGenerator;
+(function (PowGenerator) {
+    function generate(hash) {
+        var validWorkUInt64;
+        do {
+            validWorkUInt64 = UInt64_1.default.getRandom();
+        } while (!WorkValidator_1.default.isWorkValid(hash, validWorkUInt64));
+        return validWorkUInt64;
+    }
+    PowGenerator.generate = generate;
+})(PowGenerator || (PowGenerator = {}));
+exports.default = PowGenerator;
 //# sourceMappingURL=PowGenerator.js.map

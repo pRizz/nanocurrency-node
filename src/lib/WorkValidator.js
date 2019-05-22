@@ -15,7 +15,7 @@ var WorkValidator;
 (function (WorkValidator) {
     function isWorkValid(blockHash, work) {
         var workValue = getWorkValue(blockHash, work);
-        return workValue.greaterThanOrEqualTo(Config_1.default.publishThreshold);
+        return workValue.greaterThanOrEqualTo(Config_1.default.publishThresholdDifficulty);
     }
     WorkValidator.isWorkValid = isWorkValid;
 })(WorkValidator || (WorkValidator = {}));
