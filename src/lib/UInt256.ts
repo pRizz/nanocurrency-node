@@ -3,7 +3,7 @@ const blakejs = require('blakejs')
 const nanoAlphabet = '13456789abcdefghijkmnopqrstuwxyz'
 
 export default class UInt256 {
-    value: Buffer = Buffer.alloc(32) // Big Endian
+    readonly value: Buffer = Buffer.alloc(32) // Big Endian
 
     constructor(props: any) {
         if(!props) {
@@ -14,8 +14,17 @@ export default class UInt256 {
             this.value = Buffer.from(props.hex, 'hex')
             return
         }
+
+        if(props.uint8Array) {
+            if(props.uint8Array.length !== 32) {
+                throw 'Uint8Array is an invalid size'
+            }
+            this.value = Buffer.from(props.uint8Array)
+            return
+        }
     }
 
+    // FIXME: does not belong in this class
     toAccount(): string {
         const checksum = blakejs.blake2b(this.value, null, 5).reverse()
         const bufferWithChecksum = Buffer.concat([this.value, checksum])

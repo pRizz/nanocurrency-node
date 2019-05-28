@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var UInt64_1 = require("./UInt64");
 var WorkValidator_1 = require("./WorkValidator");
+// TODO: optimize; use PowGeneratorWorkers
 var PowGenerator;
 (function (PowGenerator) {
     function generate(hash) {

@@ -60,6 +60,7 @@
 - [ ] Implement all `FIXME`'s and `TODO`'s
 - [ ] Create benchmarks for nodes
 - [ ] Prevent losing unchecked blocks on exit
+- [ ] Utilize [AssemblyScript](https://github.com/AssemblyScript/assemblyscript)
 
 # Goals
 - [ ] Faster syncing

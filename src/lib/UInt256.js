@@ -12,7 +12,15 @@ var UInt256 = /** @class */ (function () {
             this.value = Buffer.from(props.hex, 'hex');
             return;
         }
+        if (props.uint8Array) {
+            if (props.uint8Array.length !== 32) {
+                throw 'Uint8Array is an invalid size';
+            }
+            this.value = Buffer.from(props.uint8Array);
+            return;
+        }
     }
+    // FIXME: does not belong in this class
     UInt256.prototype.toAccount = function () {
         var checksum = blakejs.blake2b(this.value, null, 5).reverse();
         var bufferWithChecksum = Buffer.concat([this.value, checksum]);

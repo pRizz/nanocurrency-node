@@ -13,6 +13,9 @@ var UInt64 = /** @class */ (function () {
             return;
         }
         if (props.uint8Array) {
+            if (props.uint8Array.length !== 8) {
+                throw 'Uint8Array is an invalid size';
+            }
             this.value = Buffer.from(props.uint8Array);
             return;
         }
