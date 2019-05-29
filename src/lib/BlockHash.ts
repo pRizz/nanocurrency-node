@@ -1,4 +1,9 @@
 import UInt256 from './UInt256'
-type BlockHash = UInt256
 
-export default BlockHash
+export default class BlockHash {
+    readonly value: UInt256
+
+    constructor(hashValue: UInt256) {
+        this.value = hashValue
+    }
+}

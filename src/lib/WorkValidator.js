@@ -7,7 +7,7 @@ var blakejs = require('blakejs');
 function getWorkValue(blockHash, work) {
     var hashContext = blakejs.blake2bInit(8);
     blakejs.blake2bUpdate(hashContext, work.asUint8Array().reverse());
-    blakejs.blake2bUpdate(hashContext, blockHash.asUint8Array());
+    blakejs.blake2bUpdate(hashContext, blockHash.value.asUint8Array());
     var result = blakejs.blake2bFinal(hashContext).reverse();
     return new UInt64_1.default({ uint8Array: result });
 }
