@@ -61,6 +61,7 @@
 - [ ] Create benchmarks for nodes
 - [ ] Prevent losing unchecked blocks on exit
 - [ ] Utilize [AssemblyScript](https://github.com/AssemblyScript/assemblyscript)
+- [ ] Modify signing to use blake2b instead of sha512
 
 # Goals
 - [ ] Faster syncing
