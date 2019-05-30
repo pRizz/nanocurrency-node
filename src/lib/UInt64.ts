@@ -1,11 +1,14 @@
 import * as crypto from "crypto"
 
 export default class UInt64 {
-    readonly value: Buffer = Buffer.alloc(8) // Big Endian
+    private static bitCount = 64
+    private static byteCount = UInt64.bitCount / 8
+
+    readonly value: Buffer = Buffer.alloc(UInt64.byteCount) // Big Endian
 
     constructor(props: any) {
         if(!props) {
-            this.value = Buffer.alloc(8)
+            this.value = Buffer.alloc(UInt64.byteCount)
             return
         }
         if(props.hex) {
@@ -13,7 +16,7 @@ export default class UInt64 {
             return
         }
         if(props.uint8Array) {
-            if(props.uint8Array.length !== 8) {
+            if(props.uint8Array.length !== UInt64.byteCount) {
                 throw 'Uint8Array is an invalid size'
             }
             this.value = Buffer.from(props.uint8Array)

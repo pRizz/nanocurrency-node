@@ -3,9 +3,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var crypto = require("crypto");
 var UInt64 = /** @class */ (function () {
     function UInt64(props) {
-        this.value = Buffer.alloc(8); // Big Endian
+        this.value = Buffer.alloc(UInt64.byteCount); // Big Endian
         if (!props) {
-            this.value = Buffer.alloc(8);
+            this.value = Buffer.alloc(UInt64.byteCount);
             return;
         }
         if (props.hex) {
@@ -13,7 +13,7 @@ var UInt64 = /** @class */ (function () {
             return;
         }
         if (props.uint8Array) {
-            if (props.uint8Array.length !== 8) {
+            if (props.uint8Array.length !== UInt64.byteCount) {
                 throw 'Uint8Array is an invalid size';
             }
             this.value = Buffer.from(props.uint8Array);
@@ -32,6 +32,8 @@ var UInt64 = /** @class */ (function () {
     UInt64.prototype.asUint8Array = function () {
         return new Uint8Array(this.value);
     };
+    UInt64.bitCount = 64;
+    UInt64.byteCount = UInt64.bitCount / 8;
     return UInt64;
 }());
 exports.default = UInt64;
