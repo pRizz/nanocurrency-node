@@ -62,9 +62,12 @@
 - [ ] Prevent losing unchecked blocks on exit
 - [ ] Utilize [AssemblyScript](https://github.com/AssemblyScript/assemblyscript)
 - [ ] Modify signing to use blake2b instead of sha512
+- [ ] Multi-sig wallets
 
 # Goals
 - [ ] Faster syncing
 - [ ] Current NANO node hangs during initial sync on t2.large or less
 - [ ] Figure out why the node uses many GB of virtual memory
 - [ ] Reduce the high unconfirmed block count on initial sync
+- [ ] Fix degraded WiFi performance when syncing locally. Possibly due to an excess of network connections.
+- [ ] Implement multi sig wallets so that NANO can be adopted by exchanges that require it, like Coinbase.

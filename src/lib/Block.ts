@@ -1,10 +1,103 @@
 import BlockHash from "./BlockHash";
+import Account from "./Account";
+import Work from "./Work";
+import UInt64 from "./UInt64";
+import UInt256 from "./UInt256";
+import CurrencyAmount from "./CurrencyAmount";
+const blakejs = require('blakejs')
+
+interface SendBlockHashables {
+    previousBlockHash: BlockHash
+    destinationAccount: Account
+    balance: CurrencyAmount
+}
+
+// TODO: Test
+function produceSendBlockHash(sendBlockHashables: SendBlockHashables): BlockHash {
+    const hashContext = blakejs.blake2bInit(32)
+    blakejs.blake2bUpdate(hashContext, sendBlockHashables.previousBlockHash.value.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, sendBlockHashables.destinationAccount.publicKey.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, sendBlockHashables.balance.value.asUint8Array())
+    const result = blakejs.blake2bFinal(hashContext).reverse()
+    return new BlockHash(new UInt256({ uint8Array: result }))
+}
+
+
+interface ReceiveBlockHashables {
+    previousBlockHash: BlockHash
+    sourceBlockHash: BlockHash
+}
+
+// TODO: Test
+function produceReceiveBlockHash(receiveBlockHashables: ReceiveBlockHashables): BlockHash {
+    const hashContext = blakejs.blake2bInit(32)
+    blakejs.blake2bUpdate(hashContext, receiveBlockHashables.previousBlockHash.value.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, receiveBlockHashables.sourceBlockHash.value.asUint8Array())
+    const result = blakejs.blake2bFinal(hashContext).reverse()
+    return new BlockHash(new UInt256({ uint8Array: result }))
+}
+
+interface OpenBlockHashables {
+    sourceBlockHash: BlockHash
+    representativeAccount: Account
+    account: Account
+}
+
+// TODO: Test
+function produceOpenBlockHash(openBlockHashables: OpenBlockHashables): BlockHash {
+    const hashContext = blakejs.blake2bInit(32)
+    blakejs.blake2bUpdate(hashContext, openBlockHashables.sourceBlockHash.value.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, openBlockHashables.representativeAccount.publicKey.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, openBlockHashables.account.publicKey.asUint8Array())
+    const result = blakejs.blake2bFinal(hashContext).reverse()
+    return new BlockHash(new UInt256({ uint8Array: result }))
+}
+
+interface ChangeBlockHashables {
+    previousBlockHash: BlockHash
+    representativeAccount: Account
+}
+
+// TODO: Test
+function produceChangeBlockHash(changeBlockHashables: ChangeBlockHashables): BlockHash {
+    const hashContext = blakejs.blake2bInit(32)
+    blakejs.blake2bUpdate(hashContext, changeBlockHashables.previousBlockHash.value.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, changeBlockHashables.representativeAccount.publicKey.asUint8Array())
+    const result = blakejs.blake2bFinal(hashContext).reverse()
+    return new BlockHash(new UInt256({ uint8Array: result }))
+}
+
+interface StateBlockHashables {
+    account: Account
+    previousBlockHash: BlockHash
+    representativeAccount: Account
+    balance: CurrencyAmount
+    // Link field contains source block_hash if receiving, destination account if sending
+    link: UInt256
+}
+
+// TODO: Test
+function produceStateBlockHash(stateBlockHashables: StateBlockHashables): BlockHash {
+    const hashContext = blakejs.blake2bInit(32)
+    blakejs.blake2bUpdate(hashContext, stateBlockHashables.account.publicKey.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, stateBlockHashables.previousBlockHash.value.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, stateBlockHashables.representativeAccount.publicKey.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, stateBlockHashables.balance.value.asUint8Array())
+    blakejs.blake2bUpdate(hashContext, stateBlockHashables.link.asUint8Array())
+    const result = blakejs.blake2bFinal(hashContext).reverse()
+    return new BlockHash(new UInt256({ uint8Array: result }))
+}
 
 export default interface Block {
     getHash(): BlockHash
     getFullHash(): BlockHash
     toJSON(): string
-
+    getWork(): Work
+    getAccount(): Account
+    getPreviousHash(): BlockHash
+    getSourceHash(): BlockHash
+    getRootHash(): BlockHash
+    // getQualifiedRoot(): BlockHash
 
     /**
      virtual nano::account account () const;

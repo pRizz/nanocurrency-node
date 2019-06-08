@@ -1,7 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var UncheckedInfo = /** @class */ (function () {
-    function UncheckedInfo() {
+    function UncheckedInfo(props) {
+        this.block = props.block;
+        this.account = props.account;
+        this.modified = props.modified;
+        this.signatureVerification = props.signatureVerification;
     }
     return UncheckedInfo;
 }());

@@ -1,8 +1,27 @@
 import Account from "../lib/Account";
 import CurrencyAmount from "../lib/CurrencyAmount";
+import Block from "../lib/Block";
+import UInt64 from "../lib/UInt64";
+
+interface UncheckedInfoProps {
+    block: Block
+    account: Account
+    modified: UInt64
+    signatureVerification: SignatureVerification
+}
 
 export class UncheckedInfo {
+    block: Block
+    account: Account
+    modified: UInt64
+    signatureVerification: SignatureVerification
 
+    constructor(props: UncheckedInfoProps) {
+        this.block = props.block
+        this.account = props.account
+        this.modified = props.modified
+        this.signatureVerification = props.signatureVerification
+    }
 }
 
 export class ProcessReturn {
