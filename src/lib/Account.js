@@ -6,6 +6,9 @@ var Account = /** @class */ (function () {
     function Account(publicKey) {
         this.publicKey = publicKey;
     }
+    Account.prototype.isZero = function () {
+        return this.publicKey.isZero();
+    };
     Account.prototype.toNANOAddress = function () {
         if (this.computedAddress) {
             return this.computedAddress;

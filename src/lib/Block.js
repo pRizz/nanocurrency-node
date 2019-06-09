@@ -48,4 +48,14 @@ function produceStateBlockHash(stateBlockHashables) {
     var result = blakejs.blake2bFinal(hashContext).reverse();
     return new BlockHash_1.default(new UInt256_1.default({ uint8Array: result }));
 }
+var BlockType;
+(function (BlockType) {
+    BlockType[BlockType["invalid"] = 0] = "invalid";
+    BlockType[BlockType["not_a_block"] = 1] = "not_a_block";
+    BlockType[BlockType["send"] = 2] = "send";
+    BlockType[BlockType["receive"] = 3] = "receive";
+    BlockType[BlockType["open"] = 4] = "open";
+    BlockType[BlockType["change"] = 5] = "change";
+    BlockType[BlockType["state"] = 6] = "state";
+})(BlockType = exports.BlockType || (exports.BlockType = {}));
 //# sourceMappingURL=Block.js.map

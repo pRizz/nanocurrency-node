@@ -6,6 +6,8 @@ import UInt256 from "./UInt256";
 import CurrencyAmount from "./CurrencyAmount";
 const blakejs = require('blakejs')
 
+//TODO: consider memoizing all hashing functions to speed up the BlockProcessor
+
 interface SendBlockHashables {
     previousBlockHash: BlockHash
     destinationAccount: Account
@@ -88,6 +90,16 @@ function produceStateBlockHash(stateBlockHashables: StateBlockHashables): BlockH
     return new BlockHash(new UInt256({ uint8Array: result }))
 }
 
+export enum BlockType {
+    invalid = 0,
+    not_a_block = 1,
+    send = 2,
+    receive = 3,
+    open = 4,
+    change = 5,
+    state = 6
+}
+
 export default interface Block {
     getHash(): BlockHash
     getFullHash(): BlockHash
@@ -97,7 +109,7 @@ export default interface Block {
     getPreviousHash(): BlockHash
     getSourceHash(): BlockHash
     getRootHash(): BlockHash
-    // getQualifiedRoot(): BlockHash
+    getBlockType(): BlockType
 
     /**
      virtual nano::account account () const;
@@ -117,7 +129,6 @@ export default interface Block {
      virtual void serialize_json (boost::property_tree::ptree &) const = 0;
      virtual void visit (nano::block_visitor &) const = 0;
      virtual bool operator== (nano::block const &) const = 0;
-     virtual nano::block_type type () const = 0;
      virtual nano::signature block_signature () const = 0;
      virtual void signature_set (nano::uint512_union const &) = 0;
      virtual ~block () = default;

@@ -11,6 +11,10 @@ export default class Account {
         this.publicKey = publicKey
     }
 
+    isZero(): boolean {
+        return this.publicKey.isZero()
+    }
+
     toNANOAddress(): string {
         if(this.computedAddress) {
             return this.computedAddress

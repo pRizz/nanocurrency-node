@@ -1,14 +1,46 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Common_1 = require("../secure/Common");
+var Block_1 = require("../lib/Block");
 var Voting_1 = require("./Voting");
-var moment = require("moment");
 var Account_1 = require("../lib/Account");
 var UInt256_1 = require("../lib/UInt256");
 var WorkValidator_1 = require("../lib/WorkValidator");
+var moment = require("moment");
+// TODO: implement
+var RolledHashContainer = /** @class */ (function () {
+    function RolledHashContainer() {
+    }
+    RolledHashContainer.prototype.has = function (blockHash) {
+        return false;
+    };
+    return RolledHashContainer;
+}());
+// TODO: Optimize
+var BlockHashSet = /** @class */ (function () {
+    function BlockHashSet() {
+        this.set = new Set();
+    }
+    BlockHashSet.prototype.add = function (blockHash) {
+        this.set.add(blockHash.value.value.toString('hex'));
+    };
+    BlockHashSet.prototype.has = function (blockHash) {
+        return this.set.has(blockHash.value.value.toString('hex'));
+    };
+    return BlockHashSet;
+}());
+var RolledHash = /** @class */ (function () {
+    function RolledHash() {
+    }
+    return RolledHash;
+}());
 // FIXME: audit class
 var BlockProcessor = /** @class */ (function () {
     function BlockProcessor() {
+        this.blockHashSet = new BlockHashSet();
+        this.rolledBackHashes = new RolledHashContainer();
+        this.stateBlocks = new Array();
+        this.nonStateBlocks = new Array();
     }
     BlockProcessor.prototype.stop = function () {
     };
@@ -18,29 +50,28 @@ var BlockProcessor = /** @class */ (function () {
         return false;
     };
     BlockProcessor.prototype.add = function (uncheckedInfo) {
+        // TODO: Optimize; why not check the set first; checking if the work is valid is more expensive
         if (!WorkValidator_1.default.isWorkValid(uncheckedInfo.block.getHash(), uncheckedInfo.block.getWork())) {
             // TODO: log invalid attempt
             return;
         }
         var blockHash = uncheckedInfo.block.getHash();
-        /**
-         *
-         * 			auto hash (info_a.block->hash ());
-         std::lock_guard<std::mutex> lock (mutex);
-         if (blocks_hashes.find (hash) == blocks_hashes.end () && rolled_back.get<1> ().find (hash) == rolled_back.get<1> ().end ())
-         {
-                if (info_a.verified == nano::signature_verification::unknown && (info_a.block->type () == nano::block_type::state || info_a.block->type () == nano::block_type::open || !info_a.account.is_zero ()))
-                {
-                    state_blocks.push_back (info_a);
-                }
-                else
-                {
-                    blocks.push_back (info_a);
-                }
-                blocks_hashes.insert (hash);
-            }
-
-         */
+        if (this.blockHashSet.has(blockHash)) {
+            return;
+        }
+        if (this.rolledBackHashes.has(blockHash)) {
+            return;
+        }
+        if (uncheckedInfo.signatureVerification === Common_1.SignatureVerification.unknown &&
+            (uncheckedInfo.block.getBlockType() === Block_1.BlockType.state ||
+                uncheckedInfo.block.getBlockType() === Block_1.BlockType.open ||
+                !uncheckedInfo.account.isZero())) {
+            this.stateBlocks.push(uncheckedInfo);
+        }
+        else {
+            this.nonStateBlocks.push(uncheckedInfo);
+        }
+        this.blockHashSet.add(blockHash);
     };
     BlockProcessor.prototype.addBlock = function (block, origination) {
         var uncheckedInfo = new Common_1.UncheckedInfo({
@@ -70,6 +101,7 @@ var BlockProcessor = /** @class */ (function () {
     BlockProcessor.prototype.getVoteGenerator = function () {
         return new Voting_1.VoteGenerator();
     };
+    BlockProcessor.rolledBackMax = 1024;
     BlockProcessor.confirmationRequestDelay = moment.duration(500, 'ms');
     return BlockProcessor;
 }());
