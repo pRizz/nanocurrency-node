@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node ./bin/www",
     "test": "mocha",
-    "coverage": "nyc npm run test"
+    "coverage": "nyc npm run test",
+    "macCoverage": "npm run coverage; open coverage/index.html"
   },
   "dependencies": {
     "@types/node": "^12.0.2",
