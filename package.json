@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "test": "mocha"
+    "test": "mocha",
+    "coverage": "nyc npm run test"
   },
   "dependencies": {
     "@types/node": "^12.0.2",
@@ -20,6 +21,22 @@
   "devDependencies": {
     "@types/mocha": "^5.2.6",
     "mocha": "^6.1.4",
-    "source-map-support": "^0.5.12"
+    "nyc": "^14.1.1",
+    "source-map-support": "^0.5.12",
+    "ts-node": "^8.2.0",
+    "typescript": "^3.5.1"
+  },
+  "nyc": {
+    "extension": [
+      ".ts",
+      ".tsx"
+    ],
+    "exclude": [
+      "**/*.d.ts"
+    ],
+    "reporter": [
+      "html"
+    ],
+    "all": true
   }
 }
