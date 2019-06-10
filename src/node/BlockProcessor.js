@@ -1,4 +1,14 @@
 "use strict";
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var Common_1 = require("../secure/Common");
 var Block_1 = require("../lib/Block");
@@ -6,6 +16,7 @@ var Voting_1 = require("./Voting");
 var Account_1 = require("../lib/Account");
 var UInt256_1 = require("../lib/UInt256");
 var WorkValidator_1 = require("../lib/WorkValidator");
+var Signatures_1 = require("./Signatures");
 var moment = require("moment");
 // TODO: implement
 var RolledHashContainer = /** @class */ (function () {
@@ -34,13 +45,15 @@ var RolledHash = /** @class */ (function () {
     }
     return RolledHash;
 }());
-// FIXME: audit class
+// FIXME: audit class and make unit tests
 var BlockProcessor = /** @class */ (function () {
-    function BlockProcessor() {
+    function BlockProcessor(nanoNode) {
         this.blockHashSet = new BlockHashSet();
         this.rolledBackHashes = new RolledHashContainer();
         this.stateBlocks = new Array();
         this.nonStateBlocks = new Array();
+        this.isStopped = false;
+        this.nanoNode = nanoNode;
     }
     BlockProcessor.prototype.stop = function () {
     };
@@ -91,6 +104,96 @@ var BlockProcessor = /** @class */ (function () {
         return false;
     };
     BlockProcessor.prototype.processBlocks = function () {
+        if (this.isStopped) {
+            return;
+        }
+        this.processBatch();
+    };
+    BlockProcessor.prototype.processBatch = function () {
+        var maxVerificationBatchSize = 100; // FIXME: align with C++ project
+        if (this.stateBlocks.length === 0) {
+            return;
+        }
+        var readTransaction = this.nanoNode.blockStore.txBeginRead();
+        var stateBlockTimerDone = false;
+        setTimeout(function () { stateBlockTimerDone = true; }, 2000);
+        while (this.stateBlocks.length !== 0 && !stateBlockTimerDone) {
+            this.verifyStateBlocks(readTransaction, maxVerificationBatchSize);
+        }
+    };
+    BlockProcessor.prototype.verifyStateBlocks = function (readTransaction, maxVerificationBatchSize) {
+        var e_1, _a;
+        var uncheckedInfos = new Array();
+        for (var i = 0; i < maxVerificationBatchSize && this.stateBlocks.length !== 0; ++i) {
+            var stateBlockInfo = this.stateBlocks.shift();
+            if (this.nanoNode.ledger.blockStore.doesBlockExist(readTransaction, stateBlockInfo.block.getBlockType(), stateBlockInfo.block.getHash())) {
+                continue;
+            }
+            uncheckedInfos.push(stateBlockInfo);
+        }
+        var toVerify = this.uncheckedInfosToSignatureVerifiables(uncheckedInfos);
+        var verifications = this.verifySignatureVerifiables(toVerify);
+        try {
+            for (var verifications_1 = __values(verifications), verifications_1_1 = verifications_1.next(); !verifications_1_1.done; verifications_1_1 = verifications_1.next()) {
+                var verification = verifications_1_1.value;
+                var uncheckedInfo = uncheckedInfos.shift();
+                var signatureVerification = this.signatureVerificationForUncheckedInfo(uncheckedInfo, verification);
+                if (!signatureVerification) {
+                    continue;
+                }
+                var updatedUncheckedInfo = new Common_1.UncheckedInfo({
+                    block: uncheckedInfo.block,
+                    modified: uncheckedInfo.modified,
+                    account: uncheckedInfo.account,
+                    signatureVerification: signatureVerification
+                });
+                this.nonStateBlocks.push(updatedUncheckedInfo);
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (verifications_1_1 && !verifications_1_1.done && (_a = verifications_1.return)) _a.call(verifications_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+    };
+    BlockProcessor.prototype.signatureVerificationForUncheckedInfo = function (uncheckedInfo, verification) {
+        var signatureVerification;
+        if (!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
+            //TODO: audit
+            if (verification) {
+                signatureVerification = Common_1.SignatureVerification.valid_epoch;
+            }
+            else {
+                signatureVerification = Common_1.SignatureVerification.unknown;
+            }
+        }
+        else if (verification) {
+            signatureVerification = Common_1.SignatureVerification.valid;
+        }
+        return signatureVerification;
+    };
+    BlockProcessor.prototype.verifySignatureVerifiables = function (signatureVerifiables) {
+        return signatureVerifiables.map(Signatures_1.SignatureChecker.verify);
+    };
+    BlockProcessor.prototype.uncheckedInfosToSignatureVerifiables = function (uncheckedInfos) {
+        return uncheckedInfos.map(this.uncheckedInfoToSignatureVerifiable.bind(this));
+    };
+    BlockProcessor.prototype.uncheckedInfoToSignatureVerifiable = function (uncheckedInfo) {
+        var account = uncheckedInfo.block.getAccount();
+        if (!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
+            account = this.nanoNode.ledger.getEpochSigner();
+        }
+        else if (!uncheckedInfo.account.isZero()) {
+            account = uncheckedInfo.account;
+        }
+        var signatureVerifiable = {
+            message: uncheckedInfo.block.getHash().value.asUint8Array(),
+            signature: uncheckedInfo.block.getBlockSignature(),
+            publicKey: account.publicKey
+        };
+        return signatureVerifiable;
     };
     BlockProcessor.prototype.processOne = function (transaction, uncheckedInfo) {
         return new Common_1.ProcessReturn();

@@ -54,6 +54,10 @@ var UInt256 = /** @class */ (function () {
         }
         return this._isZero = true;
     };
+    // TODO: make generic
+    UInt256.prototype.equals = function (other) {
+        return this.value.equals(other.value);
+    };
     UInt256.bitCount = 256;
     UInt256.byteCount = UInt256.bitCount / 8;
     return UInt256;

@@ -6,4 +6,8 @@ export default class BlockHash {
     constructor(hashValue: UInt256) {
         this.value = hashValue
     }
+
+    isZero(): boolean {
+        return this.value.isZero()
+    }
 }

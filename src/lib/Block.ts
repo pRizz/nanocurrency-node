@@ -4,6 +4,7 @@ import Work from "./Work";
 import UInt64 from "./UInt64";
 import UInt256 from "./UInt256";
 import CurrencyAmount from "./CurrencyAmount";
+import {NanoSignature} from '../node/Signatures'
 const blakejs = require('blakejs')
 
 //TODO: consider memoizing all hashing functions to speed up the BlockProcessor
@@ -110,6 +111,8 @@ export default interface Block {
     getSourceHash(): BlockHash
     getRootHash(): BlockHash
     getBlockType(): BlockType
+    getBlockSignature(): NanoSignature
+    getLink(): BlockHash
 
     /**
      virtual nano::account account () const;
@@ -122,14 +125,12 @@ export default interface Block {
      // Qualified root value based on previous() and root()
      virtual nano::qualified_root qualified_root () const;
      // Link field for state blocks, zero otherwise.
-     virtual nano::block_hash link () const;
      virtual nano::account representative () const;
      virtual void serialize (nano::stream &) const = 0;
      virtual void serialize_json (std::string &) const = 0;
      virtual void serialize_json (boost::property_tree::ptree &) const = 0;
      virtual void visit (nano::block_visitor &) const = 0;
      virtual bool operator== (nano::block const &) const = 0;
-     virtual nano::signature block_signature () const = 0;
      virtual void signature_set (nano::uint512_union const &) = 0;
      virtual ~block () = default;
      virtual bool valid_predecessor (nano::block const &) const = 0;

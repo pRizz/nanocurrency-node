@@ -38,4 +38,9 @@ export default class UInt256 {
         }
         return this._isZero = true
     }
+
+    // TODO: make generic
+    equals(other: UInt256): boolean {
+        return this.value.equals(other.value)
+    }
 }

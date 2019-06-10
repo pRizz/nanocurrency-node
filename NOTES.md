@@ -63,6 +63,7 @@
 - [ ] Utilize [AssemblyScript](https://github.com/AssemblyScript/assemblyscript)
 - [ ] Modify signing to use blake2b instead of sha512
 - [ ] Multi-sig wallets
+- [ ] Unit test coverage
 
 # Goals
 - [ ] Faster syncing

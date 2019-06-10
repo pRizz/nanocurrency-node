@@ -4,17 +4,17 @@ import Block from "../lib/Block";
 import UInt64 from "../lib/UInt64";
 
 interface UncheckedInfoProps {
-    block: Block
-    account: Account
-    modified: UInt64
-    signatureVerification: SignatureVerification
+    readonly block: Block
+    readonly account: Account
+    readonly modified: UInt64
+    readonly signatureVerification: SignatureVerification
 }
 
 export class UncheckedInfo {
-    block: Block
-    account: Account
-    modified: UInt64
-    signatureVerification: SignatureVerification
+    readonly block: Block
+    readonly account: Account
+    readonly modified: UInt64
+    readonly signatureVerification: SignatureVerification
 
     constructor(props: UncheckedInfoProps) {
         this.block = props.block

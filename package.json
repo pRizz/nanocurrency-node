@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/mocha": "^5.2.6",
-    "mocha": "^6.1.4"
+    "mocha": "^6.1.4",
+    "source-map-support": "^0.5.12"
   }
 }
