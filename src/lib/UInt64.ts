@@ -1,42 +1,45 @@
 import * as crypto from "crypto"
+import {UnsignedInteger, UnsignedIntegerImpl, UnsignedIntegerProps} from './UnsignedInteger'
 
-export default class UInt64 {
-    private static bitCount = 64
-    private static byteCount = UInt64.bitCount / 8
+export default class UInt64 implements UnsignedInteger {
+    private static readonly bitCount = 64
+    private static readonly byteCount = UInt64.bitCount / 8
 
-    readonly value: Buffer = Buffer.alloc(UInt64.byteCount) // Big Endian
+    private readonly unsignedIntegerImpl: UnsignedIntegerImpl
 
-    constructor(props: any) {
-        if(!props) {
-            this.value = Buffer.alloc(UInt64.byteCount)
-            return
-        }
-        if(props.hex) {
-            this.value = Buffer.from(props.hex, 'hex')
-            return
-        }
-        if(props.uint8Array) {
-            if(props.uint8Array.length !== UInt64.byteCount) {
-                throw 'Uint8Array is an invalid size'
-            }
-            this.value = Buffer.from(props.uint8Array)
-            return
-        }
+    constructor(props: UnsignedIntegerProps) {
+        this.unsignedIntegerImpl = new UnsignedIntegerImpl(this, props)
+    }
+
+    getBitCount(): number {
+        return UInt64.bitCount
     }
 
     static getRandom(): UInt64 {
-        return new UInt64({ uint8Array: crypto.randomBytes(8) })
-    }
-
-    lessThan(other: UInt64): boolean {
-        return this.value.compare(other.value) === -1
-    }
-
-    greaterThanOrEqualTo(other: UInt64): boolean {
-        return !this.lessThan(other)
+        return new UInt64({ uint8Array: crypto.randomBytes(UInt64.byteCount) })
     }
 
     asUint8Array(): Uint8Array {
-        return new Uint8Array(this.value)
+        return this.unsignedIntegerImpl.asUint8Array()
+    }
+
+    asBuffer(): Buffer {
+        return this.unsignedIntegerImpl.asBuffer()
+    }
+
+    lessThan(other: UnsignedInteger): boolean {
+        return this.unsignedIntegerImpl.lessThan(other)
+    }
+
+    greaterThanOrEqualTo(other: UnsignedInteger): boolean {
+        return this.unsignedIntegerImpl.greaterThanOrEqualTo(other)
+    }
+
+    equals(other: UnsignedInteger): boolean {
+        return this.unsignedIntegerImpl.equals(other)
+    }
+
+    isZero(): boolean {
+        return this.unsignedIntegerImpl.isZero()
     }
 }

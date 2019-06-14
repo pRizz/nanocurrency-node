@@ -66,7 +66,9 @@
 - [ ] Unit test coverage
 
 # Goals
-- [ ] Faster syncing
+- [ ] Faster syncing.
+- [ ] Fix issue of losing unchecked blocks if the node shuts down
+- [ ] Fix node not pocketing incoming transactions after a long sync
 - [ ] Current NANO node hangs during initial sync on t2.large or less
 - [ ] Figure out why the node uses many GB of virtual memory
 - [ ] Reduce the high unconfirmed block count on initial sync
