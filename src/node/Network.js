@@ -37,7 +37,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // TODO: audit
 var MessageBuffer = /** @class */ (function () {
-    function MessageBuffer() {
+    function MessageBuffer(buffer, size, udpEndpoint) {
+        this.buffer = buffer;
+        this.size = size;
+        this.udpEndpoint = udpEndpoint;
     }
     return MessageBuffer;
 }());

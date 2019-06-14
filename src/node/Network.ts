@@ -9,6 +9,12 @@ export class MessageBuffer {
     buffer: Buffer
     size: number // TODO: audit; use int
     udpEndpoint: UDPEndpoint
+
+    constructor(buffer: Buffer, size: number, udpEndpoint: UDPEndpoint) {
+        this.buffer = buffer
+        this.size = size
+        this.udpEndpoint = udpEndpoint
+    }
 }
 
 // TODO: audit
