@@ -40,6 +40,7 @@ var BlockHashSet = /** @class */ (function () {
     };
     return BlockHashSet;
 }());
+//TODO: implement
 var RolledHash = /** @class */ (function () {
     function RolledHash() {
     }

@@ -32,6 +32,7 @@ class BlockHashSet {
     }
 }
 
+//TODO: implement
 class RolledHash {
     blockHash: BlockHash
     // timePoint

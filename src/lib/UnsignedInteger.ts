@@ -72,6 +72,5 @@ export class UnsignedIntegerImpl implements UnsignedInteger {
         const zeroBuffer = Buffer.alloc(this.byteCount)
         return this._isZero = this.asBuffer().equals(zeroBuffer)
     }
-
 }
 
