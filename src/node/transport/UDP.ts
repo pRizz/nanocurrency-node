@@ -2,6 +2,7 @@ import {MessageBuffer} from '../Network'
 import {Socket} from 'dgram'
 import * as dgram from 'dgram'
 import {KeepaliveMessage, Message, UDPEndpoint} from '../Common'
+import Timeout = NodeJS.Timeout
 
 // TODO: audit
 export class UDPChannels {
@@ -9,6 +10,7 @@ export class UDPChannels {
     private isStopped = false
     private readonly delegate: UDPChannelsDelegate
     private readonly wrappedUDPChannels = new Set<ChannelUDPWrapper>()
+    private ongoingKeepaliveTimout: Timeout | null
 
     constructor(port: number, messageReceivedCallback: (message: MessageBuffer) => void, delegate: UDPChannelsDelegate) {
         this.udpSocket = dgram.createSocket('udp6')
@@ -31,12 +33,16 @@ export class UDPChannels {
     }
 
     private startOngoingKeepalive() {
-        // get random
-        const keepaliveMessage = new KeepaliveMessage(this.delegate.getRandomPeers())
-        const sendList = this.getChannelsAboveCutoff(10000) // FIXME
-        for(const channel of sendList) {
-            channel.send(keepaliveMessage)
+        if(this.ongoingKeepaliveTimout) {
+            return
         }
+        this.ongoingKeepaliveTimout = setInterval(() => {
+            const keepaliveMessage = new KeepaliveMessage(this.delegate.getRandomPeers())
+            const sendList = this.getChannelsAboveCutoff(10000) // FIXME
+            for(const channel of sendList) {
+                channel.send(keepaliveMessage)
+            }
+        }, 100000) // FIXME
     }
 
     private getChannelsAboveCutoff(cutoffTime: number): Set<ChannelUDPWrapper> {
@@ -57,6 +63,7 @@ export interface UDPChannelsDelegate {
 }
 
 export class ChannelUDP {
+    // FIXME: async?
     send(message: Message) {
         // FIXME
     }

@@ -37,23 +37,28 @@ var UDPChannels = /** @class */ (function () {
         this.startOngoingKeepalive();
     };
     UDPChannels.prototype.startOngoingKeepalive = function () {
-        var e_1, _a;
-        // get random
-        var keepaliveMessage = new Common_1.KeepaliveMessage(this.delegate.getRandomPeers());
-        var sendList = this.getChannelsAboveCutoff(10000); // FIXME
-        try {
-            for (var sendList_1 = __values(sendList), sendList_1_1 = sendList_1.next(); !sendList_1_1.done; sendList_1_1 = sendList_1.next()) {
-                var channel = sendList_1_1.value;
-                channel.send(keepaliveMessage);
-            }
+        var _this = this;
+        if (this.ongoingKeepaliveTimout) {
+            return;
         }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
+        this.ongoingKeepaliveTimout = setInterval(function () {
+            var e_1, _a;
+            var keepaliveMessage = new Common_1.KeepaliveMessage(_this.delegate.getRandomPeers());
+            var sendList = _this.getChannelsAboveCutoff(10000); // FIXME
             try {
-                if (sendList_1_1 && !sendList_1_1.done && (_a = sendList_1.return)) _a.call(sendList_1);
+                for (var sendList_1 = __values(sendList), sendList_1_1 = sendList_1.next(); !sendList_1_1.done; sendList_1_1 = sendList_1.next()) {
+                    var channel = sendList_1_1.value;
+                    channel.send(keepaliveMessage);
+                }
             }
-            finally { if (e_1) throw e_1.error; }
-        }
+            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+            finally {
+                try {
+                    if (sendList_1_1 && !sendList_1_1.done && (_a = sendList_1.return)) _a.call(sendList_1);
+                }
+                finally { if (e_1) throw e_1.error; }
+            }
+        }, 100000); // FIXME
     };
     UDPChannels.prototype.getChannelsAboveCutoff = function (cutoffTime) {
         return new Set();
@@ -68,6 +73,7 @@ exports.UDPChannels = UDPChannels;
 var ChannelUDP = /** @class */ (function () {
     function ChannelUDP() {
     }
+    // FIXME: async?
     ChannelUDP.prototype.send = function (message) {
         // FIXME
     };
