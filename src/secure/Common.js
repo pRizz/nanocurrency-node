@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var UInt16_1 = require("../lib/UInt16");
 var UncheckedInfo = /** @class */ (function () {
     function UncheckedInfo(props) {
         this.block = props.block;
@@ -38,4 +39,11 @@ var SignatureVerification;
     SignatureVerification[SignatureVerification["valid"] = 2] = "valid";
     SignatureVerification[SignatureVerification["valid_epoch"] = 3] = "valid_epoch"; // Valid for epoch blocks
 })(SignatureVerification = exports.SignatureVerification || (exports.SignatureVerification = {}));
+var NetworkParams = /** @class */ (function () {
+    function NetworkParams() {
+    }
+    NetworkParams.headerMagicNumber = new UInt16_1.default({ buffer: Buffer.alloc(2) }); // FIXME
+    return NetworkParams;
+}());
+exports.NetworkParams = NetworkParams;
 //# sourceMappingURL=Common.js.map

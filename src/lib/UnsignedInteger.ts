@@ -10,7 +10,9 @@ export interface UnsignedInteger {
 
 export class UnsignedIntegerProps {
     hex?: string
+    buffer?: Buffer
     uint8Array?: Uint8Array
+    octetArray?: Array<number>
 }
 
 export class UnsignedIntegerImpl implements UnsignedInteger {
@@ -19,7 +21,7 @@ export class UnsignedIntegerImpl implements UnsignedInteger {
     private readonly buffer: Buffer // Big Endian
     private _isZero: boolean = null
 
-    constructor(unsignedInteger: UnsignedInteger, unsignedIntegerProps: UnsignedIntegerProps | null) {
+    constructor(unsignedInteger: UnsignedInteger, unsignedIntegerProps?: UnsignedIntegerProps | null) {
         this.bitCount = unsignedInteger.getBitCount()
         this.byteCount = this.bitCount / 8
 
@@ -31,11 +33,25 @@ export class UnsignedIntegerImpl implements UnsignedInteger {
             this.buffer = Buffer.from(unsignedIntegerProps.hex, 'hex')
             return
         }
+        if(unsignedIntegerProps.buffer) {
+            if(unsignedIntegerProps.buffer.length !== this.byteCount) {
+                throw `buffer prop is an invalid length. Expected ${this.byteCount} but was ${unsignedIntegerProps.buffer.length}`
+            }
+            this.buffer = Buffer.from(unsignedIntegerProps.buffer)
+            return
+        }
         if(unsignedIntegerProps.uint8Array) {
             if(unsignedIntegerProps.uint8Array.length !== this.byteCount) {
                 throw `Uint8Array prop is an invalid length. Expected ${this.byteCount} but was ${unsignedIntegerProps.uint8Array.length}`
             }
             this.buffer = Buffer.from(unsignedIntegerProps.uint8Array)
+            return
+        }
+        if(unsignedIntegerProps.octetArray) {
+            if(unsignedIntegerProps.octetArray.length !== this.byteCount) {
+                throw `octetArray prop is an invalid length. Expected ${this.byteCount} but was ${unsignedIntegerProps.octetArray.length}`
+            }
+            this.buffer = Buffer.from(unsignedIntegerProps.octetArray)
             return
         }
         this.buffer = Buffer.alloc(this.byteCount)

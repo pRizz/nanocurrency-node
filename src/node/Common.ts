@@ -1,9 +1,54 @@
-export class UDPEndpoint {
+import {SYNCookie} from './Network'
+import {NetworkParams} from '../secure/Common'
+import {Readable, Writable} from 'stream'
+import UInt8 from '../lib/UInt8'
+import UInt16 from '../lib/UInt16'
 
+export class IPAddress {
+    value: string
+
+    constructor(ipValue: string) {
+        this.value = ipValue
+    }
 }
 
-export class TCPEndpoint {
+export interface Endpoint {
+    getAddress(): IPAddress
+    getPort(): number
+}
 
+export class UDPEndpoint implements Endpoint {
+    readonly address: IPAddress
+    readonly port: number
+    constructor(address: IPAddress, port: number) {
+        this.address = address
+        this.port = port
+    }
+
+    getAddress(): IPAddress {
+        return this.address
+    }
+
+    getPort(): number {
+        return this.port
+    }
+}
+
+export class TCPEndpoint implements Endpoint {
+    readonly address: IPAddress
+    readonly port: number
+    constructor(address: IPAddress, port: number) {
+        this.address = address
+        this.port = port
+    }
+
+    getAddress(): IPAddress {
+        return this.address
+    }
+
+    getPort(): number {
+        return this.port
+    }
 }
 
 export interface Message {
@@ -29,14 +74,66 @@ export enum MessageType {
 }
 
 export class MessageHeader {
+    readonly versionMax: UInt8
+    readonly versionUsing: UInt8
+    readonly versionMin: UInt8
     readonly messageType: MessageType
-    constructor(messageType: MessageType) {
+    readonly extensions: UInt16
+
+    constructor(versionMax: UInt8, versionUsing: UInt8, versionMin: UInt8, messageType: MessageType, extensions: UInt16) {
+        this.versionMax = versionMax
+        this.versionUsing = versionUsing
+        this.versionMin = versionMin
         this.messageType = messageType
+        this.extensions = extensions
+    }
+
+    serialize(writableStream: NodeJS.WritableStream) {
+        writableStream.write(NetworkParams.headerMagicNumber.asBuffer())
+        writableStream.write(this.versionMax.asBuffer())
+        writableStream.write(this.versionUsing.asBuffer())
+        writableStream.write(this.versionMin.asBuffer())
+        writableStream.write(Buffer.from([this.messageType]))
+        writableStream.write(this.extensions.asBuffer())
+    }
+
+    static from(readableStream: NodeJS.ReadableStream): MessageHeader {
+        // FIXME
+        return new MessageHeader(
+            new UInt8(),
+            new UInt8(),
+            new UInt8(),
+            MessageType.bulk_pull,
+            new UInt16(),
+        )
     }
 }
 
 export class Stream {
+    private readonly readableStream: Readable
+    constructor(readableStream: Readable) {
+        this.readableStream = readableStream
+    }
 
+    async readUInt8(): Promise<UInt8> {
+        return new Promise((resolve) => {
+            this.readableStream.once('readable', () => {
+                resolve(new UInt8({ buffer: this.readableStream.read(1) as Buffer }))
+            })
+        })
+    }
+
+    async readUInt16(): Promise<UInt16> {
+        return new Promise((resolve, reject) => {
+            this.readableStream.once('readable', () => {
+                const buffer = this.readableStream.read(2) as Buffer
+                if(buffer.length !== 2) {
+                    return reject(new Error('Unexpected data from stream'))
+                }
+                resolve(new UInt16({ buffer }))
+            })
+        })
+    }
 }
 
 export interface MessageVisitor {
@@ -69,5 +166,71 @@ export class KeepaliveMessage implements Message {
 
     getMessageHeader(): MessageHeader {
         return this.messageHeader
+    }
+}
+
+export class NodeIDHandshakeMessage implements Message {
+    constructor(synCookie: SYNCookie) { // FIXME? better id?
+
+    }
+
+    asBuffer(): Buffer {
+        return undefined
+    }
+
+    getMessageHeader(): MessageHeader {
+        return undefined
+    }
+
+    serialize(stream: Stream): void {
+    }
+
+    visit(messageVisitor: MessageVisitor): void {
+    }
+}
+
+namespace Constants {
+    export const tcpRealtimeProtocolVersionMin = 0x11
+}
+
+export default Constants
+
+export class MessageDecoder {
+    private readonly stream: Stream
+    constructor(stream: Stream) {
+        this.stream = stream
+    }
+
+    async readMessageHeader(): Promise<MessageHeader> {
+        const magicNumber = await this.readMagicNumber()
+        if(!magicNumber.equals(NetworkParams.headerMagicNumber)) {
+            return Promise.reject(new Error('Invalid magic number'))
+        }
+
+        const versionMax = await this.readUInt8()
+        const versionUsing = await this.readUInt8()
+        const versionMin = await this.readUInt8()
+        const messageType: MessageType = (await this.readUInt8()).asUint8Array()[0] // TODO: verify
+        const extensions = await this.readUInt16()
+
+        return new MessageHeader(
+            versionMax,
+            versionUsing,
+            versionMin,
+            messageType,
+            extensions
+        )
+    }
+
+    private async readMagicNumber(): Promise<UInt16> {
+        return this.stream.readUInt16()
+    }
+
+    private async readUInt8(): Promise<UInt8> {
+        return this.stream.readUInt8()
+    }
+
+    private async readUInt16(): Promise<UInt16> {
+        return this.stream.readUInt16()
     }
 }

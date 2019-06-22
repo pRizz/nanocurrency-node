@@ -89,6 +89,18 @@ var SYNCookies = /** @class */ (function () {
     return SYNCookies;
 }());
 exports.SYNCookies = SYNCookies;
+var SYNCookie = /** @class */ (function () {
+    function SYNCookie() {
+    }
+    return SYNCookie;
+}());
+exports.SYNCookie = SYNCookie;
+var SYNCookieInfo = /** @class */ (function () {
+    function SYNCookieInfo() {
+    }
+    return SYNCookieInfo;
+}());
+exports.SYNCookieInfo = SYNCookieInfo;
 // TODO: audit
 var Network = /** @class */ (function () {
     function Network(props) {

@@ -19,11 +19,25 @@ var UnsignedIntegerImpl = /** @class */ (function () {
             this.buffer = Buffer.from(unsignedIntegerProps.hex, 'hex');
             return;
         }
+        if (unsignedIntegerProps.buffer) {
+            if (unsignedIntegerProps.buffer.length !== this.byteCount) {
+                throw "buffer prop is an invalid length. Expected " + this.byteCount + " but was " + unsignedIntegerProps.buffer.length;
+            }
+            this.buffer = Buffer.from(unsignedIntegerProps.buffer);
+            return;
+        }
         if (unsignedIntegerProps.uint8Array) {
             if (unsignedIntegerProps.uint8Array.length !== this.byteCount) {
                 throw "Uint8Array prop is an invalid length. Expected " + this.byteCount + " but was " + unsignedIntegerProps.uint8Array.length;
             }
             this.buffer = Buffer.from(unsignedIntegerProps.uint8Array);
+            return;
+        }
+        if (unsignedIntegerProps.octetArray) {
+            if (unsignedIntegerProps.octetArray.length !== this.byteCount) {
+                throw "octetArray prop is an invalid length. Expected " + this.byteCount + " but was " + unsignedIntegerProps.octetArray.length;
+            }
+            this.buffer = Buffer.from(unsignedIntegerProps.octetArray);
             return;
         }
         this.buffer = Buffer.alloc(this.byteCount);

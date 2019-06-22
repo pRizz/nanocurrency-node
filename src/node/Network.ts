@@ -3,6 +3,7 @@ import {Stat} from '../lib/Stats'
 import Timeout = NodeJS.Timeout
 import {UDPChannels} from './transport/UDP'
 import {TCPChannels} from './transport/TCP'
+import UInt256 from '../lib/UInt256'
 
 // TODO: audit
 export class MessageBuffer {
@@ -58,6 +59,15 @@ export class SYNCookies {
     purge(timePoint: number) {
 
     }
+}
+
+export class SYNCookie {
+    readonly value: UInt256
+}
+
+export class SYNCookieInfo {
+    readonly cookie: SYNCookie
+    readonly creationTime: number // FIXME
 }
 
 // TODO: audit

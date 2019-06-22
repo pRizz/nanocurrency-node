@@ -12,10 +12,6 @@ describe('Account', function () {
             var account = new Account_1.default(publicKey);
             assert.strictEqual(account.toNANOAddress(), 'nano_1iegcryusc1ig9145yrqf5i8mggosaoknjq8zhtbkh1w5wo5zrfwuq8r4fmj');
         });
-    });
-});
-describe('Account', function () {
-    describe('#toNANOAddress()', function () {
         it('should produce a nano address when called', function () {
             var publicKey = new UInt256_1.default({
                 hex: '9FA7BCF682CD1E683370E989D02F2A2BA99A738D2BBFDA04A5826F1D852D3992'

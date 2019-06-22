@@ -2,6 +2,7 @@ import Account from "../lib/Account";
 import CurrencyAmount from "../lib/CurrencyAmount";
 import Block from "../lib/Block";
 import UInt64 from "../lib/UInt64";
+import UInt16 from '../lib/UInt16'
 
 interface UncheckedInfoProps {
     readonly block: Block
@@ -53,4 +54,8 @@ export enum SignatureVerification {
     invalid = 1,
     valid = 2,
     valid_epoch = 3 // Valid for epoch blocks
+}
+
+export class NetworkParams {
+    static headerMagicNumber: UInt16 = new UInt16({ buffer: Buffer.alloc(2) }) // FIXME
 }
