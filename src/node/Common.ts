@@ -99,8 +99,7 @@ export class MessageHeader {
 
     static async from(readableStream: NodeJS.ReadableStream, timeout?: number): Promise<MessageHeader> {
         const messageStream = new ReadableMessageStream(readableStream)
-        const messageDecoder = new MessageDecoder(messageStream)
-        return messageDecoder.readMessageHeader(timeout)
+        return MessageDecoder.readMessageHeaderFromStream(messageStream, timeout)
     }
 }
 
@@ -158,7 +157,7 @@ export interface MessageVisitor {
 }
 
 export class KeepaliveMessage implements Message {
-    private messageHeader = new MessageHeader(MessageType.keepalive)
+    private messageHeader = new MessageHeader(MessageType.keepalive) // FIXME
     private readonly peers: Set<UDPEndpoint>
 
     constructor(peers: Set<UDPEndpoint>) {
@@ -192,7 +191,7 @@ export class NodeIDHandshakeMessage implements Message {
     }
 
     asBuffer(): Buffer {
-        return undefined
+        return Buffer.alloc(0) // FIXME
     }
 
     getMessageHeader(): MessageHeader {
@@ -212,29 +211,24 @@ namespace Constants {
 
 export default Constants
 
-export class MessageDecoder {
-    private readonly readableMessageStream: ReadableMessageStream
-    constructor(readableMessageStream: ReadableMessageStream) {
-        this.readableMessageStream = readableMessageStream
-    }
-
-    async readMessageHeader(timeoutMS?: number): Promise<MessageHeader> {
+namespace MessageDecoder {
+    export async function readMessageHeaderFromStream(stream: ReadableMessageStream, timeoutMS?: number): Promise<MessageHeader> {
         return new Promise(async (resolve, reject) => {
             if(timeoutMS) {
                 setTimeout(() => reject(), timeoutMS)
             }
 
             try {
-                const magicNumber = await this.readMagicNumber()
+                const magicNumber = await stream.readUInt16()
                 if(!magicNumber.equals(NetworkParams.headerMagicNumber)) {
                     return reject(new Error('Invalid magic number'))
                 }
 
-                const versionMax = await this.readUInt8()
-                const versionUsing = await this.readUInt8()
-                const versionMin = await this.readUInt8()
-                const messageType: MessageType = (await this.readUInt8()).asUint8Array()[0] // TODO: validate
-                const extensions = await this.readUInt16()
+                const versionMax = await stream.readUInt8()
+                const versionUsing = await stream.readUInt8()
+                const versionMin = await stream.readUInt8()
+                const messageType: MessageType = (await stream.readUInt8()).asUint8Array()[0] // TODO: validate
+                const extensions = await stream.readUInt16()
 
                 resolve(new MessageHeader(
                     versionMax,
@@ -247,17 +241,5 @@ export class MessageDecoder {
                 reject(error)
             }
         })
-    }
-
-    private async readMagicNumber(): Promise<UInt16> {
-        return this.readableMessageStream.readUInt16()
-    }
-
-    private async readUInt8(): Promise<UInt8> {
-        return this.readableMessageStream.readUInt8()
-    }
-
-    private async readUInt16(): Promise<UInt16> {
-        return this.readableMessageStream.readUInt16()
     }
 }

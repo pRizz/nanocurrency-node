@@ -172,7 +172,7 @@ export default class BlockProcessor {
     }
 
     private signatureVerificationForUncheckedInfo(uncheckedInfo: UncheckedInfo, verification: boolean): SignatureVerification | null {
-        let signatureVerification: SignatureVerification | null
+        let signatureVerification: SignatureVerification | null = null
         if(!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
             //TODO: audit
             if(verification) {

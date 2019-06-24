@@ -30,7 +30,7 @@ export class MessageBufferManager {
 
     async dequeue(): Promise<MessageBuffer> {
         return new Promise((resolve, reject) => {
-            return new MessageBuffer()
+            resolve(new MessageBuffer()) // FIXME
         })
     }
 }

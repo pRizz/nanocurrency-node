@@ -160,7 +160,7 @@ var BlockProcessor = /** @class */ (function () {
         }
     };
     BlockProcessor.prototype.signatureVerificationForUncheckedInfo = function (uncheckedInfo, verification) {
-        var signatureVerification;
+        var signatureVerification = null;
         if (!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
             //TODO: audit
             if (verification) {

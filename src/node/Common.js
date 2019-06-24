@@ -106,11 +106,10 @@ var MessageHeader = /** @class */ (function () {
     };
     MessageHeader.from = function (readableStream, timeout) {
         return __awaiter(this, void 0, void 0, function () {
-            var messageStream, messageDecoder;
+            var messageStream;
             return __generator(this, function (_a) {
                 messageStream = new ReadableMessageStream(readableStream);
-                messageDecoder = new MessageDecoder(messageStream);
-                return [2 /*return*/, messageDecoder.readMessageHeader(timeout)];
+                return [2 /*return*/, MessageDecoder.readMessageHeaderFromStream(messageStream, timeout)];
             });
         });
     };
@@ -176,7 +175,7 @@ var ReadableMessageStream = /** @class */ (function () {
 exports.ReadableMessageStream = ReadableMessageStream;
 var KeepaliveMessage = /** @class */ (function () {
     function KeepaliveMessage(peers) {
-        this.messageHeader = new MessageHeader(MessageType.keepalive);
+        this.messageHeader = new MessageHeader(MessageType.keepalive); // FIXME
         this.peers = peers;
     }
     KeepaliveMessage.prototype.serialize = function (stream) {
@@ -201,7 +200,7 @@ var NodeIDHandshakeMessage = /** @class */ (function () {
     function NodeIDHandshakeMessage(synCookie) {
     }
     NodeIDHandshakeMessage.prototype.asBuffer = function () {
-        return undefined;
+        return Buffer.alloc(0); // FIXME
     };
     NodeIDHandshakeMessage.prototype.getMessageHeader = function () {
         return undefined;
@@ -218,11 +217,9 @@ var Constants;
     Constants.tcpRealtimeProtocolVersionMin = 0x11;
 })(Constants || (Constants = {}));
 exports.default = Constants;
-var MessageDecoder = /** @class */ (function () {
-    function MessageDecoder(readableMessageStream) {
-        this.readableMessageStream = readableMessageStream;
-    }
-    MessageDecoder.prototype.readMessageHeader = function (timeoutMS) {
+var MessageDecoder;
+(function (MessageDecoder) {
+    function readMessageHeaderFromStream(stream, timeoutMS) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
@@ -237,26 +234,26 @@ var MessageDecoder = /** @class */ (function () {
                                     _a.label = 1;
                                 case 1:
                                     _a.trys.push([1, 8, , 9]);
-                                    return [4 /*yield*/, this.readMagicNumber()];
+                                    return [4 /*yield*/, stream.readUInt16()];
                                 case 2:
                                     magicNumber = _a.sent();
                                     if (!magicNumber.equals(Common_1.NetworkParams.headerMagicNumber)) {
                                         return [2 /*return*/, reject(new Error('Invalid magic number'))];
                                     }
-                                    return [4 /*yield*/, this.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt8()];
                                 case 3:
                                     versionMax = _a.sent();
-                                    return [4 /*yield*/, this.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt8()];
                                 case 4:
                                     versionUsing = _a.sent();
-                                    return [4 /*yield*/, this.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt8()];
                                 case 5:
                                     versionMin = _a.sent();
-                                    return [4 /*yield*/, this.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt8()];
                                 case 6:
                                     messageType = (_a.sent()).asUint8Array()[0] // TODO: validate
                                     ;
-                                    return [4 /*yield*/, this.readUInt16()];
+                                    return [4 /*yield*/, stream.readUInt16()];
                                 case 7:
                                     extensions = _a.sent();
                                     resolve(new MessageHeader(versionMax, versionUsing, versionMin, messageType, extensions));
@@ -271,29 +268,7 @@ var MessageDecoder = /** @class */ (function () {
                     }); })];
             });
         });
-    };
-    MessageDecoder.prototype.readMagicNumber = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.readableMessageStream.readUInt16()];
-            });
-        });
-    };
-    MessageDecoder.prototype.readUInt8 = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.readableMessageStream.readUInt8()];
-            });
-        });
-    };
-    MessageDecoder.prototype.readUInt16 = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.readableMessageStream.readUInt16()];
-            });
-        });
-    };
-    return MessageDecoder;
-}());
-exports.MessageDecoder = MessageDecoder;
+    }
+    MessageDecoder.readMessageHeaderFromStream = readMessageHeaderFromStream;
+})(MessageDecoder || (MessageDecoder = {}));
 //# sourceMappingURL=Common.js.map
