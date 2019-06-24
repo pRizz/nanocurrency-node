@@ -1,5 +1,5 @@
 import * as assert from 'assert'
-import {MessageDecoder, MessageType, Stream} from '../src/node/Common'
+import {MessageDecoder, MessageType, ReadableMessageStream} from '../src/node/Common'
 
 // describe('Account', () => {
 //     describe('#toNANOAddress()',() => {

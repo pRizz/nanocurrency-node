@@ -8,10 +8,9 @@ var UnsignedIntegerProps = /** @class */ (function () {
 exports.UnsignedIntegerProps = UnsignedIntegerProps;
 var UnsignedIntegerImpl = /** @class */ (function () {
     function UnsignedIntegerImpl(unsignedInteger, unsignedIntegerProps) {
-        this._isZero = null;
         this.bitCount = unsignedInteger.getBitCount();
         this.byteCount = this.bitCount / 8;
-        if (unsignedIntegerProps === null) {
+        if (unsignedIntegerProps === undefined) {
             this.buffer = Buffer.alloc(this.byteCount);
             return;
         }
@@ -61,7 +60,7 @@ var UnsignedIntegerImpl = /** @class */ (function () {
         return this.bitCount;
     };
     UnsignedIntegerImpl.prototype.isZero = function () {
-        if (this._isZero !== null) {
+        if (this._isZero !== undefined) {
             return this._isZero;
         }
         var zeroBuffer = Buffer.alloc(this.byteCount);

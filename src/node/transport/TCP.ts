@@ -14,7 +14,7 @@ import tcpRealtimeProtocolVersionMin = Constants.tcpRealtimeProtocolVersionMin
 import Transport from './Transport'
 
 export class TCPChannels {
-    private ongoingKeepaliveTimout: Timeout | null
+    private ongoingKeepaliveTimout?: Timeout
     private readonly delegate: TCPChannelsDelegate
 
     constructor(port: number, messageReceivedCallback: (message: MessageBuffer) => void, delegate: TCPChannelsDelegate) {

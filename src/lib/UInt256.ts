@@ -2,7 +2,7 @@ export default class UInt256 {
     private static bitCount = 256
     private static byteCount = UInt256.bitCount / 8
     readonly value: Buffer = Buffer.alloc(UInt256.byteCount) // Big Endian
-    private _isZero: boolean = null
+    private _isZero?: boolean
 
     constructor(props: any) {
         if(!props) {
@@ -28,7 +28,7 @@ export default class UInt256 {
     }
 
     isZero(): boolean {
-        if(this._isZero !== null) {
+        if(this._isZero !== undefined) {
             return this._isZero
         }
         for(const byte of this.value) {

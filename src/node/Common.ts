@@ -52,7 +52,7 @@ export class TCPEndpoint implements Endpoint {
 }
 
 export interface Message {
-    serialize(stream: Stream): void
+    serialize(stream: ReadableMessageStream): void
     visit(messageVisitor: MessageVisitor): void
     asBuffer(): Buffer
     getMessageHeader(): MessageHeader
@@ -97,28 +97,36 @@ export class MessageHeader {
         writableStream.write(this.extensions.asBuffer())
     }
 
-    static from(readableStream: NodeJS.ReadableStream): MessageHeader {
-        // FIXME
-        return new MessageHeader(
-            new UInt8(),
-            new UInt8(),
-            new UInt8(),
-            MessageType.bulk_pull,
-            new UInt16(),
-        )
+    static async from(readableStream: NodeJS.ReadableStream, timeout?: number): Promise<MessageHeader> {
+        const messageStream = new ReadableMessageStream(readableStream)
+        const messageDecoder = new MessageDecoder(messageStream)
+        return messageDecoder.readMessageHeader(timeout)
     }
 }
 
-export class Stream {
-    private readonly readableStream: Readable
-    constructor(readableStream: Readable) {
+export class ReadableMessageStream {
+    private readonly readableStream: NodeJS.ReadableStream
+    constructor(readableStream: NodeJS.ReadableStream) {
         this.readableStream = readableStream
     }
 
     async readUInt8(): Promise<UInt8> {
-        return new Promise((resolve) => {
+        return new Promise((resolve, reject) => {
             this.readableStream.once('readable', () => {
-                resolve(new UInt8({ buffer: this.readableStream.read(1) as Buffer }))
+                const buffer = this.readableStream.read(1) as Buffer
+                if(buffer === null) {
+                    return resolve(this.readUInt8())
+                }
+                if(buffer.length !== 1) {
+                    return reject(new Error('Unexpected data from stream'))
+                }
+                resolve(new UInt8({ buffer }))
+            })
+            this.readableStream.on('end', () => {
+                reject(new Error('Stream unexpectedly ended'))
+            })
+            this.readableStream.on('error', (error) => {
+                reject(error)
             })
         })
     }
@@ -127,10 +135,19 @@ export class Stream {
         return new Promise((resolve, reject) => {
             this.readableStream.once('readable', () => {
                 const buffer = this.readableStream.read(2) as Buffer
+                if(buffer === null) {
+                    return resolve(this.readUInt16())
+                }
                 if(buffer.length !== 2) {
                     return reject(new Error('Unexpected data from stream'))
                 }
                 resolve(new UInt16({ buffer }))
+            })
+            this.readableStream.on('end', () => {
+                reject(new Error('Stream unexpectedly ended'))
+            })
+            this.readableStream.on('error', (error) => {
+                reject(error)
             })
         })
     }
@@ -148,7 +165,7 @@ export class KeepaliveMessage implements Message {
         this.peers = peers
     }
 
-    serialize(stream: Stream): void {
+    serialize(stream: ReadableMessageStream): void {
         //TODO
     }
 
@@ -182,7 +199,7 @@ export class NodeIDHandshakeMessage implements Message {
         return undefined
     }
 
-    serialize(stream: Stream): void {
+    serialize(stream: ReadableMessageStream): void {
     }
 
     visit(messageVisitor: MessageVisitor): void {
@@ -196,41 +213,51 @@ namespace Constants {
 export default Constants
 
 export class MessageDecoder {
-    private readonly stream: Stream
-    constructor(stream: Stream) {
-        this.stream = stream
+    private readonly readableMessageStream: ReadableMessageStream
+    constructor(readableMessageStream: ReadableMessageStream) {
+        this.readableMessageStream = readableMessageStream
     }
 
-    async readMessageHeader(): Promise<MessageHeader> {
-        const magicNumber = await this.readMagicNumber()
-        if(!magicNumber.equals(NetworkParams.headerMagicNumber)) {
-            return Promise.reject(new Error('Invalid magic number'))
-        }
+    async readMessageHeader(timeoutMS?: number): Promise<MessageHeader> {
+        return new Promise(async (resolve, reject) => {
+            if(timeoutMS) {
+                setTimeout(() => reject(), timeoutMS)
+            }
 
-        const versionMax = await this.readUInt8()
-        const versionUsing = await this.readUInt8()
-        const versionMin = await this.readUInt8()
-        const messageType: MessageType = (await this.readUInt8()).asUint8Array()[0] // TODO: verify
-        const extensions = await this.readUInt16()
+            try {
+                const magicNumber = await this.readMagicNumber()
+                if(!magicNumber.equals(NetworkParams.headerMagicNumber)) {
+                    return reject(new Error('Invalid magic number'))
+                }
 
-        return new MessageHeader(
-            versionMax,
-            versionUsing,
-            versionMin,
-            messageType,
-            extensions
-        )
+                const versionMax = await this.readUInt8()
+                const versionUsing = await this.readUInt8()
+                const versionMin = await this.readUInt8()
+                const messageType: MessageType = (await this.readUInt8()).asUint8Array()[0] // TODO: validate
+                const extensions = await this.readUInt16()
+
+                resolve(new MessageHeader(
+                    versionMax,
+                    versionUsing,
+                    versionMin,
+                    messageType,
+                    extensions
+                ))
+            } catch(error) {
+                reject(error)
+            }
+        })
     }
 
     private async readMagicNumber(): Promise<UInt16> {
-        return this.stream.readUInt16()
+        return this.readableMessageStream.readUInt16()
     }
 
     private async readUInt8(): Promise<UInt8> {
-        return this.stream.readUInt8()
+        return this.readableMessageStream.readUInt8()
     }
 
     private async readUInt16(): Promise<UInt16> {
-        return this.stream.readUInt16()
+        return this.readableMessageStream.readUInt16()
     }
 }

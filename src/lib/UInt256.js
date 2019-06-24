@@ -13,7 +13,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var UInt256 = /** @class */ (function () {
     function UInt256(props) {
         this.value = Buffer.alloc(UInt256.byteCount); // Big Endian
-        this._isZero = null;
         if (!props) {
             return;
         }
@@ -34,7 +33,7 @@ var UInt256 = /** @class */ (function () {
     };
     UInt256.prototype.isZero = function () {
         var e_1, _a;
-        if (this._isZero !== null) {
+        if (this._isZero !== undefined) {
             return this._isZero;
         }
         try {

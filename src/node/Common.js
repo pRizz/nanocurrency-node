@@ -104,48 +104,76 @@ var MessageHeader = /** @class */ (function () {
         writableStream.write(Buffer.from([this.messageType]));
         writableStream.write(this.extensions.asBuffer());
     };
-    MessageHeader.from = function (readableStream) {
-        // FIXME
-        return new MessageHeader(new UInt8_1.default(), new UInt8_1.default(), new UInt8_1.default(), MessageType.bulk_pull, new UInt16_1.default());
+    MessageHeader.from = function (readableStream, timeout) {
+        return __awaiter(this, void 0, void 0, function () {
+            var messageStream, messageDecoder;
+            return __generator(this, function (_a) {
+                messageStream = new ReadableMessageStream(readableStream);
+                messageDecoder = new MessageDecoder(messageStream);
+                return [2 /*return*/, messageDecoder.readMessageHeader(timeout)];
+            });
+        });
     };
     return MessageHeader;
 }());
 exports.MessageHeader = MessageHeader;
-var Stream = /** @class */ (function () {
-    function Stream(readableStream) {
+var ReadableMessageStream = /** @class */ (function () {
+    function ReadableMessageStream(readableStream) {
         this.readableStream = readableStream;
     }
-    Stream.prototype.readUInt8 = function () {
+    ReadableMessageStream.prototype.readUInt8 = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve) {
+                return [2 /*return*/, new Promise(function (resolve, reject) {
                         _this.readableStream.once('readable', function () {
-                            resolve(new UInt8_1.default({ buffer: _this.readableStream.read(1) }));
+                            var buffer = _this.readableStream.read(1);
+                            if (buffer === null) {
+                                return resolve(_this.readUInt8());
+                            }
+                            if (buffer.length !== 1) {
+                                return reject(new Error('Unexpected data from stream'));
+                            }
+                            resolve(new UInt8_1.default({ buffer: buffer }));
+                        });
+                        _this.readableStream.on('end', function () {
+                            reject(new Error('Stream unexpectedly ended'));
+                        });
+                        _this.readableStream.on('error', function (error) {
+                            reject(error);
                         });
                     })];
             });
         });
     };
-    Stream.prototype.readUInt16 = function () {
+    ReadableMessageStream.prototype.readUInt16 = function () {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
                         _this.readableStream.once('readable', function () {
                             var buffer = _this.readableStream.read(2);
+                            if (buffer === null) {
+                                return resolve(_this.readUInt16());
+                            }
                             if (buffer.length !== 2) {
                                 return reject(new Error('Unexpected data from stream'));
                             }
                             resolve(new UInt16_1.default({ buffer: buffer }));
                         });
+                        _this.readableStream.on('end', function () {
+                            reject(new Error('Stream unexpectedly ended'));
+                        });
+                        _this.readableStream.on('error', function (error) {
+                            reject(error);
+                        });
                     })];
             });
         });
     };
-    return Stream;
+    return ReadableMessageStream;
 }());
-exports.Stream = Stream;
+exports.ReadableMessageStream = ReadableMessageStream;
 var KeepaliveMessage = /** @class */ (function () {
     function KeepaliveMessage(peers) {
         this.messageHeader = new MessageHeader(MessageType.keepalive);
@@ -191,59 +219,77 @@ var Constants;
 })(Constants || (Constants = {}));
 exports.default = Constants;
 var MessageDecoder = /** @class */ (function () {
-    function MessageDecoder(stream) {
-        this.stream = stream;
+    function MessageDecoder(readableMessageStream) {
+        this.readableMessageStream = readableMessageStream;
     }
-    MessageDecoder.prototype.readMessageHeader = function () {
+    MessageDecoder.prototype.readMessageHeader = function (timeoutMS) {
         return __awaiter(this, void 0, void 0, function () {
-            var magicNumber, versionMax, versionUsing, versionMin, messageType, extensions;
+            var _this = this;
             return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0: return [4 /*yield*/, this.readMagicNumber()];
-                    case 1:
-                        magicNumber = _a.sent();
-                        if (!magicNumber.equals(Common_1.NetworkParams.headerMagicNumber)) {
-                            return [2 /*return*/, Promise.reject(new Error('Invalid magic number'))];
-                        }
-                        return [4 /*yield*/, this.readUInt8()];
-                    case 2:
-                        versionMax = _a.sent();
-                        return [4 /*yield*/, this.readUInt8()];
-                    case 3:
-                        versionUsing = _a.sent();
-                        return [4 /*yield*/, this.readUInt8()];
-                    case 4:
-                        versionMin = _a.sent();
-                        return [4 /*yield*/, this.readUInt8()];
-                    case 5:
-                        messageType = (_a.sent()).asUint8Array()[0] // TODO: verify
-                        ;
-                        return [4 /*yield*/, this.readUInt16()];
-                    case 6:
-                        extensions = _a.sent();
-                        return [2 /*return*/, new MessageHeader(versionMax, versionUsing, versionMin, messageType, extensions)];
-                }
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var magicNumber, versionMax, versionUsing, versionMin, messageType, extensions, error_1;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (timeoutMS) {
+                                        setTimeout(function () { return reject(); }, timeoutMS);
+                                    }
+                                    _a.label = 1;
+                                case 1:
+                                    _a.trys.push([1, 8, , 9]);
+                                    return [4 /*yield*/, this.readMagicNumber()];
+                                case 2:
+                                    magicNumber = _a.sent();
+                                    if (!magicNumber.equals(Common_1.NetworkParams.headerMagicNumber)) {
+                                        return [2 /*return*/, reject(new Error('Invalid magic number'))];
+                                    }
+                                    return [4 /*yield*/, this.readUInt8()];
+                                case 3:
+                                    versionMax = _a.sent();
+                                    return [4 /*yield*/, this.readUInt8()];
+                                case 4:
+                                    versionUsing = _a.sent();
+                                    return [4 /*yield*/, this.readUInt8()];
+                                case 5:
+                                    versionMin = _a.sent();
+                                    return [4 /*yield*/, this.readUInt8()];
+                                case 6:
+                                    messageType = (_a.sent()).asUint8Array()[0] // TODO: validate
+                                    ;
+                                    return [4 /*yield*/, this.readUInt16()];
+                                case 7:
+                                    extensions = _a.sent();
+                                    resolve(new MessageHeader(versionMax, versionUsing, versionMin, messageType, extensions));
+                                    return [3 /*break*/, 9];
+                                case 8:
+                                    error_1 = _a.sent();
+                                    reject(error_1);
+                                    return [3 /*break*/, 9];
+                                case 9: return [2 /*return*/];
+                            }
+                        });
+                    }); })];
             });
         });
     };
     MessageDecoder.prototype.readMagicNumber = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, this.stream.readUInt16()];
+                return [2 /*return*/, this.readableMessageStream.readUInt16()];
             });
         });
     };
     MessageDecoder.prototype.readUInt8 = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, this.stream.readUInt8()];
+                return [2 /*return*/, this.readableMessageStream.readUInt8()];
             });
         });
     };
     MessageDecoder.prototype.readUInt16 = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, this.stream.readUInt16()];
+                return [2 /*return*/, this.readableMessageStream.readUInt16()];
             });
         });
     };

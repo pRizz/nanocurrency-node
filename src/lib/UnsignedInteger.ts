@@ -19,13 +19,13 @@ export class UnsignedIntegerImpl implements UnsignedInteger {
     private readonly bitCount: number
     private readonly byteCount: number
     private readonly buffer: Buffer // Big Endian
-    private _isZero: boolean = null
+    private _isZero?: boolean
 
-    constructor(unsignedInteger: UnsignedInteger, unsignedIntegerProps?: UnsignedIntegerProps | null) {
+    constructor(unsignedInteger: UnsignedInteger, unsignedIntegerProps?: UnsignedIntegerProps) {
         this.bitCount = unsignedInteger.getBitCount()
         this.byteCount = this.bitCount / 8
 
-        if(unsignedIntegerProps === null) {
+        if(unsignedIntegerProps === undefined) {
             this.buffer = Buffer.alloc(this.byteCount)
             return
         }
@@ -82,7 +82,7 @@ export class UnsignedIntegerImpl implements UnsignedInteger {
     }
 
     isZero(): boolean {
-        if(this._isZero !== null) {
+        if(this._isZero !== undefined) {
             return this._isZero
         }
         const zeroBuffer = Buffer.alloc(this.byteCount)

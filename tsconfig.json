@@ -4,7 +4,8 @@
     "target": "es5",
     "sourceMap": true,
     "noImplicitAny": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules"

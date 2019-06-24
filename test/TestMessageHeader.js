@@ -65,5 +65,180 @@ describe('MessageHeader', function () {
             });
         }); });
     });
+    describe('#from()', function () {
+        it('should create the message header from the stream', function () { return __awaiter(_this, void 0, void 0, function () {
+            var streamBuffer, messageStream, messageHeader, expectedMessageHeader;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        streamBuffer = Buffer.concat([
+                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06])
+                        ]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(streamBuffer);
+                        return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
+                    case 1:
+                        messageHeader = _a.sent();
+                        expectedMessageHeader = new Common_1.MessageHeader(new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }), Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }));
+                        assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
+                        assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
+                        assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));
+                        assert.strictEqual(messageHeader.messageType, expectedMessageHeader.messageType);
+                        assert(messageHeader.extensions.equals(expectedMessageHeader.extensions));
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('should create the message header from the stream asynchronously on UInt8 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+            var streamBuffer1, streamBuffer2, messageStream, messageHeader, expectedMessageHeader;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        streamBuffer1 = Buffer.concat([
+                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Buffer.from([0x01, 0x02, 0x03])
+                        ]);
+                        streamBuffer2 = Buffer.concat([
+                            Buffer.from([0x04, 0x05, 0x06])
+                        ]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(streamBuffer1);
+                        setTimeout(function () { messageStream.write(streamBuffer2); }, 5);
+                        return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
+                    case 1:
+                        messageHeader = _a.sent();
+                        expectedMessageHeader = new Common_1.MessageHeader(new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }), Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }));
+                        assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
+                        assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
+                        assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));
+                        assert.strictEqual(messageHeader.messageType, expectedMessageHeader.messageType);
+                        assert(messageHeader.extensions.equals(expectedMessageHeader.extensions));
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('should create the message header from the stream asynchronously on UInt16 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+            var streamBuffer1, streamBuffer2, messageStream, messageHeader, expectedMessageHeader;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        streamBuffer1 = Buffer.concat([
+                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
+                        ]);
+                        streamBuffer2 = Buffer.from([0x06]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(streamBuffer1);
+                        setTimeout(function () { messageStream.write(streamBuffer2); }, 5);
+                        return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
+                    case 1:
+                        messageHeader = _a.sent();
+                        expectedMessageHeader = new Common_1.MessageHeader(new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }), Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }));
+                        assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
+                        assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
+                        assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));
+                        assert.strictEqual(messageHeader.messageType, expectedMessageHeader.messageType);
+                        assert(messageHeader.extensions.equals(expectedMessageHeader.extensions));
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('should not create the message header from a short stream at UInt16 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+            var invalidStreamBuffer, messageStream;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        invalidStreamBuffer = Buffer.concat([
+                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
+                        ]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(invalidStreamBuffer);
+                        messageStream.end();
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('should not create the message header after a timeout', function () { return __awaiter(_this, void 0, void 0, function () {
+            var streamBuffer1, streamBuffer2, messageStream;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        streamBuffer1 = Buffer.concat([
+                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
+                        ]);
+                        streamBuffer2 = Buffer.from([0x06]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(streamBuffer1);
+                        setTimeout(function () { messageStream.write(streamBuffer2); }, 20);
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream, 10))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('should not create the message header after stream ends unexpectedly on UInt16 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+            var streamBuffer, messageStream;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        streamBuffer = Buffer.concat([
+                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
+                        ]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(streamBuffer);
+                        setTimeout(function () { messageStream.end(); }, 10);
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('should not create the message header after stream ends unexpectedly on UInt8 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+            var streamBuffer, messageStream;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        streamBuffer = Buffer.concat([
+                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Buffer.from([0x01, 0x02, 0x03])
+                        ]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(streamBuffer);
+                        setTimeout(function () { messageStream.end(); }, 10);
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        it('should not create the message header from an invalid magic number', function () { return __awaiter(_this, void 0, void 0, function () {
+            var invalidStreamBuffer, messageStream;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        invalidStreamBuffer = Buffer.concat([
+                            Buffer.from([0xbe, 0xef]),
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06])
+                        ]);
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(invalidStreamBuffer);
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                    case 1:
+                        _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+    });
 });
 //# sourceMappingURL=TestMessageHeader.js.map
