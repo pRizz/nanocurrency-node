@@ -3,12 +3,20 @@ import {UnsignedInteger, UnsignedIntegerImpl, UnsignedIntegerProps} from './Unsi
 
 export default class UInt64 implements UnsignedInteger {
     private static readonly bitCount = 64
-    private static readonly byteCount = UInt64.bitCount / 8
+    private static readonly byteCount = UInt64.bitCount >>> 3
 
     private readonly unsignedIntegerImpl: UnsignedIntegerImpl
 
     constructor(props: UnsignedIntegerProps) {
         this.unsignedIntegerImpl = new UnsignedIntegerImpl(this, props)
+    }
+
+    static getBitCount(): number {
+        return UInt64.bitCount
+    }
+
+    static getByteCount(): number {
+        return UInt64.byteCount
     }
 
     getBitCount(): number {

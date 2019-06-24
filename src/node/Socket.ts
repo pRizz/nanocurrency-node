@@ -1,5 +1,5 @@
 import { Socket as NetSocket } from 'net'
-import {Endpoint, TCPEndpoint} from './Common'
+import {Endpoint, MessageHeader, ReadableMessageStream, TCPEndpoint} from './Common'
 import {promisify} from 'util'
 import {Duplex} from 'stream'
 
@@ -7,6 +7,10 @@ import {Duplex} from 'stream'
 export enum SocketConcurrency {
     singleWriter,
     multiWriter
+}
+
+export interface Serializable {
+    serialize(stream: NodeJS.WritableStream): void // TODO: consider returning a Promise for asynchonous serialization
 }
 
 export class Socket {
@@ -18,20 +22,15 @@ export class Socket {
     constructor(concurrency: SocketConcurrency) {
         this.concurrency = concurrency
         this.tcpSocket = new NetSocket().setKeepAlive(true).pause()
-        // this.tcpSocket.on('data', (data) => {
-        //     // this.buffer = Buffer.concat([this.buffer, data])
-        // })
     }
 
-    // consumeBuffer(): Buffer {
-    //     const thisBuffer = this.buffer
-    //     this.buffer = Buffer.alloc(0)
-    //     return thisBuffer
-    // }
-    //
-    // unshiftBuffer(buffer: Buffer) {
-    //     this.buffer = Buffer.concat([buffer, this.buffer])
-    // }
+    serialize(serializable: Serializable) {
+        serializable.serialize(this.tcpSocket)
+    }
+
+    asReadableMessageStream(): ReadableMessageStream {
+        return new ReadableMessageStream(this.tcpSocket)
+    }
 
     async connect(tcpEndpoint: TCPEndpoint): Promise<void> {
         return new Promise((resolve) => {
@@ -81,5 +80,10 @@ export class Socket {
                 resolve()
             })
         })
+    }
+
+    // FIXME: doesn't belong in this class
+    async readMessageHeader(): Promise<MessageHeader> {
+        return MessageHeader.from(this.tcpSocket, 30000)
     }
 }

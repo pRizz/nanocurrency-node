@@ -38,6 +38,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Common_1 = require("../secure/Common");
 var UInt8_1 = require("../lib/UInt8");
 var UInt16_1 = require("../lib/UInt16");
+var UInt256_1 = require("../lib/UInt256");
+var Account_1 = require("../lib/Account");
+var UInt512_1 = require("../lib/UInt512");
+var Numbers_1 = require("../lib/Numbers");
 var IPAddress = /** @class */ (function () {
     function IPAddress(ipValue) {
         this.value = ipValue;
@@ -89,10 +93,10 @@ var MessageType;
     MessageType[MessageType["bulk_pull_account"] = 11] = "bulk_pull_account";
 })(MessageType = exports.MessageType || (exports.MessageType = {}));
 var MessageHeader = /** @class */ (function () {
-    function MessageHeader(versionMax, versionUsing, versionMin, messageType, extensions) {
-        this.versionMax = versionMax;
-        this.versionUsing = versionUsing;
-        this.versionMin = versionMin;
+    function MessageHeader(messageType, extensions, versionMax, versionUsing, versionMin) {
+        this.versionMax = versionMax || Constants.protocolVersion;
+        this.versionUsing = versionUsing || Constants.protocolVersion;
+        this.versionMin = versionMin || Constants.protocolVersionMin;
         this.messageType = messageType;
         this.extensions = extensions;
     }
@@ -113,6 +117,23 @@ var MessageHeader = /** @class */ (function () {
             });
         });
     };
+    MessageHeader.prototype.nodeIDHandshakeIsQuery = function () {
+        if (this.messageType !== MessageType.node_id_handshake) {
+            return false;
+        }
+        return this.hasFlag(MessageHeader.nodeIDHandshakeQueryFlagPosition);
+    };
+    MessageHeader.prototype.nodeIDHandshakeIsResponse = function () {
+        if (this.messageType !== MessageType.node_id_handshake) {
+            return false;
+        }
+        return this.hasFlag(MessageHeader.nodeIDHandshakeResponseFlagPosition);
+    };
+    MessageHeader.prototype.hasFlag = function (flagPosition) {
+        return (this.extensions.asBuffer().readUInt16BE(0) & (1 << flagPosition)) !== 0;
+    };
+    MessageHeader.nodeIDHandshakeQueryFlagPosition = 0;
+    MessageHeader.nodeIDHandshakeResponseFlagPosition = 1;
     return MessageHeader;
 }());
 exports.MessageHeader = MessageHeader;
@@ -120,50 +141,25 @@ var ReadableMessageStream = /** @class */ (function () {
     function ReadableMessageStream(readableStream) {
         this.readableStream = readableStream;
     }
-    ReadableMessageStream.prototype.readUInt8 = function () {
+    ReadableMessageStream.prototype.readUInt = function (uintType) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
                         _this.readableStream.once('readable', function () {
-                            var buffer = _this.readableStream.read(1);
+                            var buffer = _this.readableStream.read(uintType.getByteCount());
                             if (buffer === null) {
-                                return resolve(_this.readUInt8());
+                                return resolve(_this.readUInt(uintType));
                             }
-                            if (buffer.length !== 1) {
+                            if (buffer.length !== uintType.getByteCount()) {
                                 return reject(new Error('Unexpected data from stream'));
                             }
-                            resolve(new UInt8_1.default({ buffer: buffer }));
+                            resolve(new uintType({ buffer: buffer }));
                         });
-                        _this.readableStream.on('end', function () {
+                        _this.readableStream.once('end', function () {
                             reject(new Error('Stream unexpectedly ended'));
                         });
-                        _this.readableStream.on('error', function (error) {
-                            reject(error);
-                        });
-                    })];
-            });
-        });
-    };
-    ReadableMessageStream.prototype.readUInt16 = function () {
-        return __awaiter(this, void 0, void 0, function () {
-            var _this = this;
-            return __generator(this, function (_a) {
-                return [2 /*return*/, new Promise(function (resolve, reject) {
-                        _this.readableStream.once('readable', function () {
-                            var buffer = _this.readableStream.read(2);
-                            if (buffer === null) {
-                                return resolve(_this.readUInt16());
-                            }
-                            if (buffer.length !== 2) {
-                                return reject(new Error('Unexpected data from stream'));
-                            }
-                            resolve(new UInt16_1.default({ buffer: buffer }));
-                        });
-                        _this.readableStream.on('end', function () {
-                            reject(new Error('Stream unexpectedly ended'));
-                        });
-                        _this.readableStream.on('error', function (error) {
+                        _this.readableStream.once('error', function (error) {
                             reject(error);
                         });
                     })];
@@ -184,9 +180,6 @@ var KeepaliveMessage = /** @class */ (function () {
     KeepaliveMessage.prototype.visit = function (messageVisitor) {
         //TODO
     };
-    KeepaliveMessage.prototype.asBuffer = function () {
-        return new Buffer(0); // FIXME
-    };
     KeepaliveMessage.prototype.getPeers = function () {
         return this.peers;
     };
@@ -196,18 +189,95 @@ var KeepaliveMessage = /** @class */ (function () {
     return KeepaliveMessage;
 }());
 exports.KeepaliveMessage = KeepaliveMessage;
-var NodeIDHandshakeMessage = /** @class */ (function () {
-    function NodeIDHandshakeMessage(synCookie) {
+var NodeIDHandshakeMessageResponse = /** @class */ (function () {
+    function NodeIDHandshakeMessageResponse(account, signature) {
+        this.account = account;
+        this.signature = signature;
     }
-    NodeIDHandshakeMessage.prototype.asBuffer = function () {
-        return Buffer.alloc(0); // FIXME
+    NodeIDHandshakeMessageResponse.prototype.serialize = function (stream) {
+        stream.write(this.account.publicKey.asBuffer());
+        stream.write(this.signature.value.asBuffer());
+    };
+    return NodeIDHandshakeMessageResponse;
+}());
+var NodeIDHandshakeMessage = /** @class */ (function () {
+    function NodeIDHandshakeMessage(messageHeader, query, response) {
+        this.messageHeader = messageHeader;
+        this.query = query;
+        this.response = response;
+    }
+    NodeIDHandshakeMessage.fromQuery = function (query) {
+        var extensionsUInt = 1 << MessageHeader.nodeIDHandshakeQueryFlagPosition;
+        var extensionsBuffer = Buffer.alloc(2);
+        extensionsBuffer.writeUInt16BE(extensionsUInt, 0);
+        var extensions = new UInt16_1.default({ buffer: extensionsBuffer });
+        var messageHeader = new MessageHeader(MessageType.node_id_handshake, extensions);
+        return new NodeIDHandshakeMessage(messageHeader, query);
     };
     NodeIDHandshakeMessage.prototype.getMessageHeader = function () {
-        return undefined;
+        return this.messageHeader;
     };
     NodeIDHandshakeMessage.prototype.serialize = function (stream) {
+        this.messageHeader.serialize(stream);
+        if (this.query) {
+            stream.write(this.query.asBuffer());
+        }
+        if (this.response) {
+            this.response.serialize(stream);
+        }
     };
     NodeIDHandshakeMessage.prototype.visit = function (messageVisitor) {
+    };
+    NodeIDHandshakeMessage.from = function (header, stream, timeoutMS) {
+        return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
+            return __generator(this, function (_a) {
+                if (header.messageType !== MessageType.node_id_handshake) {
+                    return [2 /*return*/, Promise.reject(new Error("Unexpected message header"))];
+                }
+                return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
+                        var query, messageResponse, account, _a, signature, _b, error_1;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
+                                case 0:
+                                    if (timeoutMS) {
+                                        setTimeout(function () { return reject(new Error("Timeout while attempting to read NodeIDHandshakeMessage")); }, timeoutMS);
+                                    }
+                                    _c.label = 1;
+                                case 1:
+                                    _c.trys.push([1, 7, , 8]);
+                                    query = void 0;
+                                    if (!header.nodeIDHandshakeIsQuery()) return [3 /*break*/, 3];
+                                    return [4 /*yield*/, stream.readUInt(UInt256_1.default)];
+                                case 2:
+                                    query = _c.sent();
+                                    _c.label = 3;
+                                case 3:
+                                    messageResponse = void 0;
+                                    if (!header.nodeIDHandshakeIsResponse()) return [3 /*break*/, 6];
+                                    _a = Account_1.default.bind;
+                                    return [4 /*yield*/, stream.readUInt(UInt256_1.default)];
+                                case 4:
+                                    account = new (_a.apply(Account_1.default, [void 0, _c.sent()]))();
+                                    _b = Numbers_1.Signature.bind;
+                                    return [4 /*yield*/, stream.readUInt(UInt512_1.default)];
+                                case 5:
+                                    signature = new (_b.apply(Numbers_1.Signature, [void 0, _c.sent()]))();
+                                    messageResponse = new NodeIDHandshakeMessageResponse(account, signature);
+                                    _c.label = 6;
+                                case 6:
+                                    resolve(new NodeIDHandshakeMessage(header, query, messageResponse));
+                                    return [3 /*break*/, 8];
+                                case 7:
+                                    error_1 = _c.sent();
+                                    reject(error_1);
+                                    return [3 /*break*/, 8];
+                                case 8: return [2 /*return*/];
+                            }
+                        });
+                    }); })];
+            });
+        });
     };
     return NodeIDHandshakeMessage;
 }());
@@ -215,6 +285,8 @@ exports.NodeIDHandshakeMessage = NodeIDHandshakeMessage;
 var Constants;
 (function (Constants) {
     Constants.tcpRealtimeProtocolVersionMin = 0x11;
+    Constants.protocolVersion = new UInt8_1.default({ octetArray: [0x11] });
+    Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x0d] });
 })(Constants || (Constants = {}));
 exports.default = Constants;
 var MessageDecoder;
@@ -224,7 +296,7 @@ var MessageDecoder;
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var magicNumber, versionMax, versionUsing, versionMin, messageType, extensions, error_1;
+                        var magicNumber, versionMax, versionUsing, versionMin, messageType, extensions, error_2;
                         return __generator(this, function (_a) {
                             switch (_a.label) {
                                 case 0:
@@ -234,33 +306,33 @@ var MessageDecoder;
                                     _a.label = 1;
                                 case 1:
                                     _a.trys.push([1, 8, , 9]);
-                                    return [4 /*yield*/, stream.readUInt16()];
+                                    return [4 /*yield*/, stream.readUInt(UInt16_1.default)];
                                 case 2:
                                     magicNumber = _a.sent();
                                     if (!magicNumber.equals(Common_1.NetworkParams.headerMagicNumber)) {
                                         return [2 /*return*/, reject(new Error('Invalid magic number'))];
                                     }
-                                    return [4 /*yield*/, stream.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 3:
                                     versionMax = _a.sent();
-                                    return [4 /*yield*/, stream.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 4:
                                     versionUsing = _a.sent();
-                                    return [4 /*yield*/, stream.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 5:
                                     versionMin = _a.sent();
-                                    return [4 /*yield*/, stream.readUInt8()];
+                                    return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 6:
                                     messageType = (_a.sent()).asUint8Array()[0] // TODO: validate
                                     ;
-                                    return [4 /*yield*/, stream.readUInt16()];
+                                    return [4 /*yield*/, stream.readUInt(UInt16_1.default)];
                                 case 7:
                                     extensions = _a.sent();
-                                    resolve(new MessageHeader(versionMax, versionUsing, versionMin, messageType, extensions));
+                                    resolve(new MessageHeader(messageType, extensions, versionMax, versionUsing, versionMin));
                                     return [3 /*break*/, 9];
                                 case 8:
-                                    error_1 = _a.sent();
-                                    reject(error_1);
+                                    error_2 = _a.sent();
+                                    reject(error_2);
                                     return [3 /*break*/, 9];
                                 case 9: return [2 /*return*/];
                             }

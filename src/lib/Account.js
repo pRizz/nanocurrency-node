@@ -13,8 +13,8 @@ var Account = /** @class */ (function () {
         if (this.computedAddress) {
             return this.computedAddress;
         }
-        var checksum = blakejs.blake2b(this.publicKey.value, null, 5).reverse();
-        var bufferWithChecksum = Buffer.concat([this.publicKey.value, checksum]);
+        var checksum = blakejs.blake2b(this.publicKey.asBuffer(), null, 5).reverse();
+        var bufferWithChecksum = Buffer.concat([this.publicKey.asBuffer(), checksum]);
         var encodedCharacterArray = [];
         var bitsToExtract = 5;
         var lowest5BitsMask = 0x1f;

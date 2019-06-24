@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var net_1 = require("net");
+var Common_1 = require("./Common");
 var SocketConcurrency;
 (function (SocketConcurrency) {
     SocketConcurrency[SocketConcurrency["singleWriter"] = 0] = "singleWriter";
@@ -46,19 +47,13 @@ var Socket = /** @class */ (function () {
         this.isClosed = false;
         this.concurrency = concurrency;
         this.tcpSocket = new net_1.Socket().setKeepAlive(true).pause();
-        // this.tcpSocket.on('data', (data) => {
-        //     // this.buffer = Buffer.concat([this.buffer, data])
-        // })
     }
-    // consumeBuffer(): Buffer {
-    //     const thisBuffer = this.buffer
-    //     this.buffer = Buffer.alloc(0)
-    //     return thisBuffer
-    // }
-    //
-    // unshiftBuffer(buffer: Buffer) {
-    //     this.buffer = Buffer.concat([buffer, this.buffer])
-    // }
+    Socket.prototype.serialize = function (serializable) {
+        serializable.serialize(this.tcpSocket);
+    };
+    Socket.prototype.asReadableMessageStream = function () {
+        return new Common_1.ReadableMessageStream(this.tcpSocket);
+    };
     Socket.prototype.connect = function (tcpEndpoint) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;
@@ -124,6 +119,14 @@ var Socket = /** @class */ (function () {
                             resolve();
                         });
                     })];
+            });
+        });
+    };
+    // FIXME: doesn't belong in this class
+    Socket.prototype.readMessageHeader = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, Common_1.MessageHeader.from(this.tcpSocket, 30000)];
             });
         });
     };

@@ -9,11 +9,11 @@ describe('MessageHeader', () => {
     describe('#serialize()',() => {
         it('should serialize the message header to the stream', async () => {
             const messageHeader = new MessageHeader(
+                MessageType.confirm_req,
+                new UInt16({ octetArray: [0x05, 0x06]}),
                 new UInt8({ octetArray: [0x01]}),
                 new UInt8({ octetArray: [0x02]}),
                 new UInt8({ octetArray: [0x03]}),
-                MessageType.confirm_req,
-                new UInt16({ octetArray: [0x05, 0x06]}),
             )
 
             let actualBuffer = Buffer.alloc(0)
@@ -49,11 +49,11 @@ describe('MessageHeader', () => {
             const messageHeader = await MessageHeader.from(messageStream)
 
             const expectedMessageHeader = new MessageHeader(
+                MessageType.confirm_req,
+                new UInt16({ octetArray: [0x05, 0x06]}),
                 new UInt8({ octetArray: [0x01]}),
                 new UInt8({ octetArray: [0x02]}),
                 new UInt8({ octetArray: [0x03]}),
-                MessageType.confirm_req,
-                new UInt16({ octetArray: [0x05, 0x06]}),
             )
 
             assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax))
@@ -81,11 +81,11 @@ describe('MessageHeader', () => {
             const messageHeader = await MessageHeader.from(messageStream)
 
             const expectedMessageHeader = new MessageHeader(
+                MessageType.confirm_req,
+                new UInt16({ octetArray: [0x05, 0x06]}),
                 new UInt8({ octetArray: [0x01]}),
                 new UInt8({ octetArray: [0x02]}),
                 new UInt8({ octetArray: [0x03]}),
-                MessageType.confirm_req,
-                new UInt16({ octetArray: [0x05, 0x06]}),
             )
 
             assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax))
@@ -111,11 +111,11 @@ describe('MessageHeader', () => {
             const messageHeader = await MessageHeader.from(messageStream)
 
             const expectedMessageHeader = new MessageHeader(
+                MessageType.confirm_req,
+                new UInt16({ octetArray: [0x05, 0x06]}),
                 new UInt8({ octetArray: [0x01]}),
                 new UInt8({ octetArray: [0x02]}),
                 new UInt8({ octetArray: [0x03]}),
-                MessageType.confirm_req,
-                new UInt16({ octetArray: [0x05, 0x06]}),
             )
 
             assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax))

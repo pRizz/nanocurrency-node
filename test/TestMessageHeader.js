@@ -47,7 +47,7 @@ describe('MessageHeader', function () {
         it('should serialize the message header to the stream', function () { return __awaiter(_this, void 0, void 0, function () {
             var messageHeader, actualBuffer, writable, expectedBuffer;
             return __generator(this, function (_a) {
-                messageHeader = new Common_1.MessageHeader(new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }), Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }));
+                messageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
                 actualBuffer = Buffer.alloc(0);
                 writable = new stream_1.Writable({
                     write: function (chunk, encoding, callback) {
@@ -80,7 +80,7 @@ describe('MessageHeader', function () {
                         return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
                     case 1:
                         messageHeader = _a.sent();
-                        expectedMessageHeader = new Common_1.MessageHeader(new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }), Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }));
+                        expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
                         assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
                         assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
                         assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));
@@ -108,7 +108,7 @@ describe('MessageHeader', function () {
                         return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
                     case 1:
                         messageHeader = _a.sent();
-                        expectedMessageHeader = new Common_1.MessageHeader(new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }), Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }));
+                        expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
                         assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
                         assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
                         assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));
@@ -134,7 +134,7 @@ describe('MessageHeader', function () {
                         return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
                     case 1:
                         messageHeader = _a.sent();
-                        expectedMessageHeader = new Common_1.MessageHeader(new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }), Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }));
+                        expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
                         assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
                         assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
                         assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));

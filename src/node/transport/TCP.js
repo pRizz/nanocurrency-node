@@ -49,8 +49,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Common_1 = require("../Common");
 var Network_1 = require("../Network");
 var Socket_1 = require("../Socket");
-var tcpRealtimeProtocolVersionMin = Common_1.default.tcpRealtimeProtocolVersionMin;
 var Transport_1 = require("./Transport");
+var tcpRealtimeProtocolVersionMin = Common_1.default.tcpRealtimeProtocolVersionMin;
 var TCPChannels = /** @class */ (function () {
     function TCPChannels(port, messageReceivedCallback, delegate) {
         // this.udpSocket = dgram.createSocket('udp6')
@@ -116,7 +116,7 @@ var TCPChannels = /** @class */ (function () {
     };
     TCPChannels.prototype.startTCPConnection = function (endpoint) {
         return __awaiter(this, void 0, void 0, function () {
-            var socket, tcpChannel, tcpEndpoint, cookie, handshakeMessage;
+            var socket, tcpChannel, tcpEndpoint, accountCookie, handshakeMessage;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -126,10 +126,13 @@ var TCPChannels = /** @class */ (function () {
                         return [4 /*yield*/, tcpChannel.connect(tcpEndpoint)]; // TODO: refactor; encapsulate socket
                     case 1:
                         _a.sent(); // TODO: refactor; encapsulate socket
-                        cookie = this.delegate.getCookieForEndpoint(tcpEndpoint);
-                        handshakeMessage = new Common_1.NodeIDHandshakeMessage(cookie);
+                        accountCookie = this.delegate.getAccountCookieForEndpoint(tcpEndpoint);
+                        handshakeMessage = Common_1.NodeIDHandshakeMessage.fromQuery(accountCookie.publicKey);
                         return [4 /*yield*/, tcpChannel.sendMessage(handshakeMessage)];
                     case 2:
+                        _a.sent();
+                        return [4 /*yield*/, this.startTCPReceiveNodeID(tcpChannel, tcpEndpoint)];
+                    case 3:
                         _a.sent();
                         return [2 /*return*/];
                 }
@@ -138,8 +141,25 @@ var TCPChannels = /** @class */ (function () {
     };
     TCPChannels.prototype.startTCPReceiveNodeID = function (tcpChannel, endpoint) {
         return __awaiter(this, void 0, void 0, function () {
+            var messageHeader, handshakeMessage;
             return __generator(this, function (_a) {
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, tcpChannel.readMessageHeader()];
+                    case 1:
+                        messageHeader = _a.sent();
+                        if (messageHeader.messageType !== Common_1.MessageType.node_id_handshake) {
+                            return [2 /*return*/, Promise.reject(new Error("Unexpected messageType received from remote node"))];
+                        }
+                        if (messageHeader.versionUsing.lessThan(Common_1.default.protocolVersionMin)) {
+                            return [2 /*return*/, Promise.reject(new Error("Invalid versionUsing received from remote node"))];
+                        }
+                        return [4 /*yield*/, Common_1.NodeIDHandshakeMessage.from(messageHeader, tcpChannel.asReadableMessageStream())
+                            // TODO
+                        ];
+                    case 2:
+                        handshakeMessage = _a.sent();
+                        return [2 /*return*/];
+                }
             });
         });
     };
@@ -162,19 +182,8 @@ var ChannelTCP = /** @class */ (function () {
     function ChannelTCP(socket) {
         this.socket = socket;
     }
-    ChannelTCP.prototype.sendBuffer = function (buffer) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.socket.writeBuffer(buffer)];
-            });
-        });
-    };
     ChannelTCP.prototype.sendMessage = function (message) {
-        return __awaiter(this, void 0, void 0, function () {
-            return __generator(this, function (_a) {
-                return [2 /*return*/, this.sendBuffer(message.asBuffer())];
-            });
-        });
+        this.socket.serialize(message);
     };
     ChannelTCP.prototype.connect = function (tcpEndpoint) {
         return __awaiter(this, void 0, void 0, function () {
@@ -182,6 +191,16 @@ var ChannelTCP = /** @class */ (function () {
                 return [2 /*return*/, this.socket.connect(tcpEndpoint)];
             });
         });
+    };
+    ChannelTCP.prototype.readMessageHeader = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, this.socket.readMessageHeader()];
+            });
+        });
+    };
+    ChannelTCP.prototype.asReadableMessageStream = function () {
+        return this.socket.asReadableMessageStream();
     };
     return ChannelTCP;
 }());

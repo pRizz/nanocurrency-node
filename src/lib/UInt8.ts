@@ -3,11 +3,20 @@ import {UnsignedInteger, UnsignedIntegerImpl, UnsignedIntegerProps} from './Unsi
 
 export default class UInt8 implements UnsignedInteger {
     private static readonly bitCount = 8
+    private static readonly byteCount = UInt8.bitCount >>> 3
 
     private readonly unsignedIntegerImpl: UnsignedIntegerImpl
 
     constructor(props?: UnsignedIntegerProps) {
         this.unsignedIntegerImpl = new UnsignedIntegerImpl(this, props)
+    }
+
+    static getBitCount(): number {
+        return UInt8.bitCount
+    }
+
+    static getByteCount(): number {
+        return UInt8.byteCount
     }
 
     getBitCount(): number {

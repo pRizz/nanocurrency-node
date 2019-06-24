@@ -6,6 +6,12 @@ var UInt64 = /** @class */ (function () {
     function UInt64(props) {
         this.unsignedIntegerImpl = new UnsignedInteger_1.UnsignedIntegerImpl(this, props);
     }
+    UInt64.getBitCount = function () {
+        return UInt64.bitCount;
+    };
+    UInt64.getByteCount = function () {
+        return UInt64.byteCount;
+    };
     UInt64.prototype.getBitCount = function () {
         return UInt64.bitCount;
     };
@@ -31,7 +37,7 @@ var UInt64 = /** @class */ (function () {
         return this.unsignedIntegerImpl.isZero();
     };
     UInt64.bitCount = 64;
-    UInt64.byteCount = UInt64.bitCount / 8;
+    UInt64.byteCount = UInt64.bitCount >>> 3;
     return UInt64;
 }());
 exports.default = UInt64;

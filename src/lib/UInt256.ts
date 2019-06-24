@@ -1,46 +1,48 @@
-export default class UInt256 {
-    private static bitCount = 256
-    private static byteCount = UInt256.bitCount / 8
-    readonly value: Buffer = Buffer.alloc(UInt256.byteCount) // Big Endian
-    private _isZero?: boolean
+import {UnsignedInteger, UnsignedIntegerImpl, UnsignedIntegerProps} from './UnsignedInteger'
 
-    constructor(props: any) {
-        if(!props) {
-            return
-        }
+export default class UInt256 implements UnsignedInteger {
+    private static readonly bitCount = 256
+    private static readonly byteCount = UInt256.bitCount >>> 3
 
-        if(props.hex) {
-            this.value = Buffer.from(props.hex, 'hex')
-            return
-        }
+    private readonly unsignedIntegerImpl: UnsignedIntegerImpl
 
-        if(props.uint8Array) {
-            if(props.uint8Array.length !== UInt256.byteCount) {
-                throw 'Uint8Array is an invalid size'
-            }
-            this.value = Buffer.from(props.uint8Array)
-            return
-        }
+    constructor(props?: UnsignedIntegerProps) {
+        this.unsignedIntegerImpl = new UnsignedIntegerImpl(this, props)
+    }
+
+    static getBitCount(): number {
+        return UInt256.bitCount
+    }
+
+    static getByteCount(): number {
+        return UInt256.byteCount
+    }
+
+    getBitCount(): number {
+        return UInt256.bitCount
     }
 
     asUint8Array(): Uint8Array {
-        return new Uint8Array(this.value)
+        return this.unsignedIntegerImpl.asUint8Array()
+    }
+
+    asBuffer(): Buffer {
+        return this.unsignedIntegerImpl.asBuffer()
+    }
+
+    lessThan(other: UnsignedInteger): boolean {
+        return this.unsignedIntegerImpl.lessThan(other)
+    }
+
+    greaterThanOrEqualTo(other: UnsignedInteger): boolean {
+        return this.unsignedIntegerImpl.greaterThanOrEqualTo(other)
+    }
+
+    equals(other: UnsignedInteger): boolean {
+        return this.unsignedIntegerImpl.equals(other)
     }
 
     isZero(): boolean {
-        if(this._isZero !== undefined) {
-            return this._isZero
-        }
-        for(const byte of this.value) {
-            if(byte !== 0) {
-                return this._isZero = false
-            }
-        }
-        return this._isZero = true
-    }
-
-    // TODO: make generic
-    equals(other: UInt256): boolean {
-        return this.value.equals(other.value)
+        return this.unsignedIntegerImpl.isZero()
     }
 }

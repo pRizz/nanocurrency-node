@@ -5,6 +5,12 @@ var UInt16 = /** @class */ (function () {
     function UInt16(props) {
         this.unsignedIntegerImpl = new UnsignedInteger_1.UnsignedIntegerImpl(this, props);
     }
+    UInt16.getBitCount = function () {
+        return UInt16.bitCount;
+    };
+    UInt16.getByteCount = function () {
+        return UInt16.byteCount;
+    };
     UInt16.prototype.getBitCount = function () {
         return UInt16.bitCount;
     };
@@ -27,6 +33,7 @@ var UInt16 = /** @class */ (function () {
         return this.unsignedIntegerImpl.isZero();
     };
     UInt16.bitCount = 16;
+    UInt16.byteCount = UInt16.bitCount >>> 3;
     return UInt16;
 }());
 exports.default = UInt16;

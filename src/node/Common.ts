@@ -1,8 +1,12 @@
-import {SYNCookie} from './Network'
 import {NetworkParams} from '../secure/Common'
-import {Readable, Writable} from 'stream'
 import UInt8 from '../lib/UInt8'
 import UInt16 from '../lib/UInt16'
+import {UnsignedInteger, UnsignedIntegerType} from '../lib/UnsignedInteger'
+import UInt256 from '../lib/UInt256'
+import Account from '../lib/Account'
+import UInt512 from '../lib/UInt512'
+import {Signature} from '../lib/Numbers'
+import {Serializable} from './Socket'
 
 export class IPAddress {
     value: string
@@ -51,10 +55,8 @@ export class TCPEndpoint implements Endpoint {
     }
 }
 
-export interface Message {
-    serialize(stream: ReadableMessageStream): void
+export interface Message extends Serializable {
     visit(messageVisitor: MessageVisitor): void
-    asBuffer(): Buffer
     getMessageHeader(): MessageHeader
 }
 
@@ -73,17 +75,20 @@ export enum MessageType {
     bulk_pull_account = 0x0b
 }
 
-export class MessageHeader {
+export class MessageHeader implements Serializable {
+    static readonly nodeIDHandshakeQueryFlagPosition = 0
+    static readonly nodeIDHandshakeResponseFlagPosition = 1
+
     readonly versionMax: UInt8
     readonly versionUsing: UInt8
     readonly versionMin: UInt8
     readonly messageType: MessageType
     readonly extensions: UInt16
 
-    constructor(versionMax: UInt8, versionUsing: UInt8, versionMin: UInt8, messageType: MessageType, extensions: UInt16) {
-        this.versionMax = versionMax
-        this.versionUsing = versionUsing
-        this.versionMin = versionMin
+    constructor(messageType: MessageType, extensions: UInt16, versionMax?: UInt8, versionUsing?: UInt8, versionMin?: UInt8) {
+        this.versionMax = versionMax || Constants.protocolVersion
+        this.versionUsing = versionUsing || Constants.protocolVersion
+        this.versionMin = versionMin || Constants.protocolVersionMin
         this.messageType = messageType
         this.extensions = extensions
     }
@@ -101,6 +106,24 @@ export class MessageHeader {
         const messageStream = new ReadableMessageStream(readableStream)
         return MessageDecoder.readMessageHeaderFromStream(messageStream, timeout)
     }
+
+    nodeIDHandshakeIsQuery(): boolean {
+        if(this.messageType !== MessageType.node_id_handshake) {
+            return false
+        }
+        return this.hasFlag(MessageHeader.nodeIDHandshakeQueryFlagPosition)
+    }
+
+    nodeIDHandshakeIsResponse(): boolean {
+        if(this.messageType !== MessageType.node_id_handshake) {
+            return false
+        }
+        return this.hasFlag(MessageHeader.nodeIDHandshakeResponseFlagPosition)
+    }
+
+    private hasFlag(flagPosition: number): boolean {
+        return (this.extensions.asBuffer().readUInt16BE(0) & (1 << flagPosition)) !== 0
+    }
 }
 
 export class ReadableMessageStream {
@@ -109,43 +132,22 @@ export class ReadableMessageStream {
         this.readableStream = readableStream
     }
 
-    async readUInt8(): Promise<UInt8> {
+    async readUInt<UInt extends UnsignedInteger>(uintType: UnsignedIntegerType<UInt>): Promise<UInt> {
         return new Promise((resolve, reject) => {
             this.readableStream.once('readable', () => {
-                const buffer = this.readableStream.read(1) as Buffer
+                const buffer = this.readableStream.read(uintType.getByteCount()) as Buffer
                 if(buffer === null) {
-                    return resolve(this.readUInt8())
+                    return resolve(this.readUInt(uintType))
                 }
-                if(buffer.length !== 1) {
+                if(buffer.length !== uintType.getByteCount()) {
                     return reject(new Error('Unexpected data from stream'))
                 }
-                resolve(new UInt8({ buffer }))
+                resolve(new uintType({ buffer }))
             })
-            this.readableStream.on('end', () => {
+            this.readableStream.once('end', () => {
                 reject(new Error('Stream unexpectedly ended'))
             })
-            this.readableStream.on('error', (error) => {
-                reject(error)
-            })
-        })
-    }
-
-    async readUInt16(): Promise<UInt16> {
-        return new Promise((resolve, reject) => {
-            this.readableStream.once('readable', () => {
-                const buffer = this.readableStream.read(2) as Buffer
-                if(buffer === null) {
-                    return resolve(this.readUInt16())
-                }
-                if(buffer.length !== 2) {
-                    return reject(new Error('Unexpected data from stream'))
-                }
-                resolve(new UInt16({ buffer }))
-            })
-            this.readableStream.on('end', () => {
-                reject(new Error('Stream unexpectedly ended'))
-            })
-            this.readableStream.on('error', (error) => {
+            this.readableStream.once('error', (error) => {
                 reject(error)
             })
         })
@@ -164,16 +166,12 @@ export class KeepaliveMessage implements Message {
         this.peers = peers
     }
 
-    serialize(stream: ReadableMessageStream): void {
+    serialize(stream: NodeJS.WritableStream): void {
         //TODO
     }
 
     visit(messageVisitor: MessageVisitor): void {
         //TODO
-    }
-
-    asBuffer(): Buffer {
-        return new Buffer(0) // FIXME
     }
 
     getPeers(): Set<UDPEndpoint> {
@@ -185,28 +183,95 @@ export class KeepaliveMessage implements Message {
     }
 }
 
-export class NodeIDHandshakeMessage implements Message {
-    constructor(synCookie: SYNCookie) { // FIXME? better id?
+class NodeIDHandshakeMessageResponse {
+    readonly account: Account
+    readonly signature: Signature
 
+    constructor(account: Account, signature: Signature) {
+        this.account = account
+        this.signature = signature
     }
 
-    asBuffer(): Buffer {
-        return Buffer.alloc(0) // FIXME
+    serialize(stream: NodeJS.WritableStream): void {
+        stream.write(this.account.publicKey.asBuffer())
+        stream.write(this.signature.value.asBuffer())
+    }
+}
+
+export class NodeIDHandshakeMessage implements Message {
+    readonly messageHeader: MessageHeader
+    readonly query?: UInt256
+    readonly response?: NodeIDHandshakeMessageResponse
+
+    constructor(messageHeader: MessageHeader, query?: UInt256, response?: NodeIDHandshakeMessageResponse) {
+        this.messageHeader = messageHeader
+        this.query = query
+        this.response = response
+    }
+
+    static fromQuery(query: UInt256): NodeIDHandshakeMessage {
+        const extensionsUInt = 1 << MessageHeader.nodeIDHandshakeQueryFlagPosition
+        const extensionsBuffer = Buffer.alloc(2)
+        extensionsBuffer.writeUInt16BE(extensionsUInt, 0)
+        const extensions = new UInt16({ buffer: extensionsBuffer })
+
+        const messageHeader = new MessageHeader(MessageType.node_id_handshake, extensions)
+
+        return new NodeIDHandshakeMessage(messageHeader, query)
     }
 
     getMessageHeader(): MessageHeader {
-        return undefined
+        return this.messageHeader
     }
 
-    serialize(stream: ReadableMessageStream): void {
+    serialize(stream: NodeJS.WritableStream): void {
+        this.messageHeader.serialize(stream)
+        if(this.query) {
+            stream.write(this.query.asBuffer())
+        }
+        if(this.response) {
+            this.response.serialize(stream)
+        }
     }
 
     visit(messageVisitor: MessageVisitor): void {
+    }
+
+    static async from(header: MessageHeader, stream: ReadableMessageStream, timeoutMS?: number): Promise<NodeIDHandshakeMessage> {
+        if(header.messageType !== MessageType.node_id_handshake) {
+            return Promise.reject(new Error(`Unexpected message header`))
+        }
+
+        return new Promise(async (resolve, reject) => {
+            if(timeoutMS) {
+                setTimeout(() => reject(new Error(`Timeout while attempting to read NodeIDHandshakeMessage`)), timeoutMS)
+            }
+
+            try {
+                let query: UInt256 | undefined
+                if(header.nodeIDHandshakeIsQuery()) {
+                    query = await stream.readUInt(UInt256)
+                }
+
+                let messageResponse: NodeIDHandshakeMessageResponse | undefined
+                if(header.nodeIDHandshakeIsResponse()) {
+                    const account = new Account(await stream.readUInt(UInt256))
+                    const signature = new Signature(await stream.readUInt(UInt512))
+                    messageResponse = new NodeIDHandshakeMessageResponse(account, signature)
+                }
+
+                resolve(new NodeIDHandshakeMessage(header, query, messageResponse))
+            } catch(error) {
+                reject(error)
+            }
+        })
     }
 }
 
 namespace Constants {
     export const tcpRealtimeProtocolVersionMin = 0x11
+    export const protocolVersion = new UInt8({ octetArray: [0x11] })
+    export const protocolVersionMin = new UInt8({ octetArray: [0x0d] })
 }
 
 export default Constants
@@ -219,23 +284,23 @@ namespace MessageDecoder {
             }
 
             try {
-                const magicNumber = await stream.readUInt16()
+                const magicNumber = await stream.readUInt(UInt16)
                 if(!magicNumber.equals(NetworkParams.headerMagicNumber)) {
                     return reject(new Error('Invalid magic number'))
                 }
 
-                const versionMax = await stream.readUInt8()
-                const versionUsing = await stream.readUInt8()
-                const versionMin = await stream.readUInt8()
-                const messageType: MessageType = (await stream.readUInt8()).asUint8Array()[0] // TODO: validate
-                const extensions = await stream.readUInt16()
+                const versionMax = await stream.readUInt(UInt8)
+                const versionUsing = await stream.readUInt(UInt8)
+                const versionMin = await stream.readUInt(UInt8)
+                const messageType: MessageType = (await stream.readUInt(UInt8)).asUint8Array()[0] // TODO: validate
+                const extensions = await stream.readUInt(UInt16)
 
                 resolve(new MessageHeader(
+                    messageType,
+                    extensions,
                     versionMax,
                     versionUsing,
                     versionMin,
-                    messageType,
-                    extensions
                 ))
             } catch(error) {
                 reject(error)

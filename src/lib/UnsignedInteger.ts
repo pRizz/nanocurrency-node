@@ -8,6 +8,12 @@ export interface UnsignedInteger {
     greaterThanOrEqualTo(other: UnsignedInteger): boolean
 }
 
+export interface UnsignedIntegerType<UInt extends UnsignedInteger> {
+    new (unsignedIntegerProps?: UnsignedIntegerProps): UInt
+    getBitCount(): number
+    getByteCount(): number
+}
+
 export class UnsignedIntegerProps {
     hex?: string
     buffer?: Buffer

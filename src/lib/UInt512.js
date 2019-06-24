@@ -1,39 +1,39 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var blakejs = require('blakejs');
+var UnsignedInteger_1 = require("./UnsignedInteger");
 var UInt512 = /** @class */ (function () {
     function UInt512(props) {
-        this.value = Buffer.alloc(UInt512.byteCount); // Big Endian
-        if (!props) {
-            return;
-        }
-        if (props.hex) {
-            this.value = Buffer.from(props.hex, 'hex');
-            return;
-        }
-        if (props.buffer) {
-            if (props.buffer.length !== UInt512.byteCount) {
-                throw 'Buffer is an invalid size';
-            }
-            this.value = Buffer.from(props.buffer);
-            return;
-        }
-        if (props.uint8Array) {
-            if (props.uint8Array.length !== UInt512.byteCount) {
-                throw 'Uint8Array is an invalid size';
-            }
-            this.value = Buffer.from(props.uint8Array);
-            return;
-        }
+        this.unsignedIntegerImpl = new UnsignedInteger_1.UnsignedIntegerImpl(this, props);
     }
-    UInt512.prototype.asUint8Array = function () {
-        return new Uint8Array(this.value);
+    UInt512.getBitCount = function () {
+        return UInt512.bitCount;
     };
-    UInt512.prototype.toString = function () {
-        return this.value.toString('hex');
+    UInt512.getByteCount = function () {
+        return UInt512.byteCount;
+    };
+    UInt512.prototype.getBitCount = function () {
+        return UInt512.bitCount;
+    };
+    UInt512.prototype.asUint8Array = function () {
+        return this.unsignedIntegerImpl.asUint8Array();
+    };
+    UInt512.prototype.asBuffer = function () {
+        return this.unsignedIntegerImpl.asBuffer();
+    };
+    UInt512.prototype.lessThan = function (other) {
+        return this.unsignedIntegerImpl.lessThan(other);
+    };
+    UInt512.prototype.greaterThanOrEqualTo = function (other) {
+        return this.unsignedIntegerImpl.greaterThanOrEqualTo(other);
+    };
+    UInt512.prototype.equals = function (other) {
+        return this.unsignedIntegerImpl.equals(other);
+    };
+    UInt512.prototype.isZero = function () {
+        return this.unsignedIntegerImpl.isZero();
     };
     UInt512.bitCount = 512;
-    UInt512.byteCount = UInt512.bitCount / 8;
+    UInt512.byteCount = UInt512.bitCount >>> 3;
     return UInt512;
 }());
 exports.default = UInt512;

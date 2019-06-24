@@ -3,15 +3,18 @@ import Constants, {
     Endpoint,
     KeepaliveMessage,
     Message,
-    NodeIDHandshakeMessage,
+    MessageHeader,
+    MessageType,
+    NodeIDHandshakeMessage, ReadableMessageStream,
     TCPEndpoint,
     UDPEndpoint
 } from '../Common'
 import {MessageBuffer, SYNCookie, SYNCookieInfo} from '../Network'
 import {Socket, SocketConcurrency} from '../Socket'
+import Transport from './Transport'
 import Timeout = NodeJS.Timeout
 import tcpRealtimeProtocolVersionMin = Constants.tcpRealtimeProtocolVersionMin
-import Transport from './Transport'
+import Account from '../../lib/Account'
 
 export class TCPChannels {
     private ongoingKeepaliveTimout?: Timeout
@@ -77,14 +80,24 @@ export class TCPChannels {
         const tcpChannel = new ChannelTCP(socket)
         const tcpEndpoint = Transport.mapEndpointToTCP(endpoint)
         await tcpChannel.connect(tcpEndpoint) // TODO: refactor; encapsulate socket
-        const cookie = this.delegate.getCookieForEndpoint(tcpEndpoint)
-        const handshakeMessage = new NodeIDHandshakeMessage(cookie)
+        const accountCookie = this.delegate.getAccountCookieForEndpoint(tcpEndpoint)
+        const handshakeMessage = NodeIDHandshakeMessage.fromQuery(accountCookie.publicKey)
         await tcpChannel.sendMessage(handshakeMessage)
-
+        await this.startTCPReceiveNodeID(tcpChannel, tcpEndpoint)
     }
 
     private async startTCPReceiveNodeID(tcpChannel: ChannelTCP, endpoint: TCPEndpoint): Promise<void> {
+        const messageHeader = await tcpChannel.readMessageHeader()
+        if(messageHeader.messageType !== MessageType.node_id_handshake) {
+            return Promise.reject(new Error(`Unexpected messageType received from remote node`))
+        }
+        if(messageHeader.versionUsing.lessThan(Constants.protocolVersionMin)) {
+            return Promise.reject(new Error(`Invalid versionUsing received from remote node`))
+        }
 
+        const handshakeMessage = await NodeIDHandshakeMessage.from(messageHeader, tcpChannel.asReadableMessageStream())
+
+        // TODO
     }
 
     // TODO
@@ -112,7 +125,7 @@ export interface TCPChannelsDelegate {
     bootstrapPeer(protocolVersionMin: number): TCPEndpoint
     startTCPReceiveNodeID(channel: ChannelTCP, endpoint: Endpoint, receiveBuffer: Buffer, callback: () => void): void
     tcpSocketConnectionFailed(): void
-    getCookieForEndpoint(endpoint: Endpoint): SYNCookie
+    getAccountCookieForEndpoint(endpoint: Endpoint): Account
 }
 
 export class ChannelTCP {
@@ -122,19 +135,19 @@ export class ChannelTCP {
         this.socket = socket
     }
 
-    private async sendBuffer(buffer: Buffer): Promise<void> {
-        return this.socket.writeBuffer(buffer)
-    }
-
-    async sendMessage(message: Message): Promise<void> {
-        return this.sendBuffer(message.asBuffer())
+    sendMessage(message: Message): void {
+        this.socket.serialize(message)
     }
 
     async connect(tcpEndpoint: TCPEndpoint): Promise<void> {
         return this.socket.connect(tcpEndpoint)
     }
 
-    // consumeBuffer(): Buffer {
-    //     return this.socket.consumeBuffer()
-    // }
+    async readMessageHeader(): Promise<MessageHeader> {
+        return this.socket.readMessageHeader()
+    }
+
+    asReadableMessageStream(): ReadableMessageStream {
+        return this.socket.asReadableMessageStream()
+    }
 }

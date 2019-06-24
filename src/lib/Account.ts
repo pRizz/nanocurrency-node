@@ -20,8 +20,8 @@ export default class Account {
             return this.computedAddress
         }
 
-        const checksum = blakejs.blake2b(this.publicKey.value, null, 5).reverse()
-        const bufferWithChecksum = Buffer.concat([this.publicKey.value, checksum])
+        const checksum = blakejs.blake2b(this.publicKey.asBuffer(), null, 5).reverse()
+        const bufferWithChecksum = Buffer.concat([this.publicKey.asBuffer(), checksum])
         const encodedCharacterArray = []
         const bitsToExtract = 5
         const lowest5BitsMask = 0x1f
