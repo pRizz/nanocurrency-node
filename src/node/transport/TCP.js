@@ -55,6 +55,7 @@ var moment = require("moment");
 var MessageSigner_1 = require("../../lib/MessageSigner");
 var TCPChannels = /** @class */ (function () {
     function TCPChannels(port, messageReceivedCallback, delegate) {
+        this.channels = new Set();
         // this.udpSocket = dgram.createSocket('udp6')
         // this.udpSocket.bind(port)
         // this.udpSocket.on('error', (error) => {
@@ -173,22 +174,39 @@ var TCPChannels = /** @class */ (function () {
                         signature = MessageSigner_1.default.sign(this.delegate.getPrivateKey(), handshakeMessage.query.asBuffer());
                         response = new Common_1.NodeIDHandshakeMessageResponse(this.delegate.getNodeID(), signature);
                         handshakeMessageResponse = Common_1.NodeIDHandshakeMessage.fromResponse(response);
-                        return [4 /*yield*/, tcpChannel.sendMessage(handshakeMessageResponse)
-                            // TODO
-                        ];
+                        return [4 /*yield*/, tcpChannel.sendMessage(handshakeMessageResponse)];
                     case 3:
                         _a.sent();
+                        tcpChannel.setLastPacketReceived(moment());
+                        this.insertChannel(tcpChannel);
                         return [2 /*return*/];
                 }
             });
         });
     };
+    TCPChannels.prototype.hasChannelWithEndpoint = function (tcpEndpoint) {
+        // TODO
+        return false;
+    };
+    TCPChannels.prototype.insertChannel = function (tcpChannel) {
+        if (!this.delegate.hasPeer(tcpChannel.getTCPEndpoint(), this.delegate.isLocalPeersAllowed())) {
+            return true;
+        }
+        if (this.hasChannelWithEndpoint(tcpChannel.getTCPEndpoint())) {
+            return true;
+        }
+        this.channels.add(tcpChannel);
+        // FIXME: parity code needed?
+        return false;
+    };
     // TODO
     TCPChannels.prototype.getChannelsAboveCutoff = function (cutoffTime) {
         return new Set();
     };
+    // TODO
     TCPChannels.prototype.stop = function () {
     };
+    // TODO
     TCPChannels.prototype.purge = function (cutoffTime) {
     };
     // TODO
@@ -202,6 +220,9 @@ var ChannelTCP = /** @class */ (function () {
     function ChannelTCP(socket) {
         this.socket = socket;
     }
+    ChannelTCP.prototype.getTCPEndpoint = function () {
+        return this.tcpEndpoint;
+    };
     ChannelTCP.prototype.setLastPacketReceived = function (moment) {
         this.lastPacketReceivedMoment = moment;
     };

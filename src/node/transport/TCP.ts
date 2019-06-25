@@ -28,6 +28,7 @@ import {PassThrough} from 'stream'
 export class TCPChannels {
     private ongoingKeepaliveTimout?: Timeout
     private readonly delegate: TCPChannelsDelegate
+    private readonly channels = new Set<ChannelTCP>()
 
     constructor(port: number, messageReceivedCallback: (message: MessageBuffer) => void, delegate: TCPChannelsDelegate) {
         // this.udpSocket = dgram.createSocket('udp6')
@@ -132,7 +133,27 @@ export class TCPChannels {
 
         await tcpChannel.sendMessage(handshakeMessageResponse)
 
+        tcpChannel.setLastPacketReceived(moment())
+        this.insertChannel(tcpChannel)
+    }
+
+    private hasChannelWithEndpoint(tcpEndpoint: TCPEndpoint | undefined): boolean {
         // TODO
+        return false
+    }
+
+    private insertChannel(tcpChannel: ChannelTCP): boolean {
+        if(!this.delegate.hasPeer(tcpChannel.getTCPEndpoint(), this.delegate.isLocalPeersAllowed())) {
+            return true
+        }
+
+        if(this.hasChannelWithEndpoint(tcpChannel.getTCPEndpoint())) {
+            return true
+        }
+
+        this.channels.add(tcpChannel)
+        // FIXME: parity code needed?
+        return false
     }
 
     // TODO
@@ -140,10 +161,12 @@ export class TCPChannels {
         return new Set()
     }
 
+    // TODO
     stop() {
 
     }
 
+    // TODO
     purge(cutoffTime: number) {
 
     }
@@ -165,6 +188,8 @@ export interface TCPChannelsDelegate {
     getNodeID(): Account
     hasNode(nodeID: Account): boolean
     getPrivateKey(): UInt512
+    isLocalPeersAllowed(): boolean
+    hasPeer(endpoint: UDPEndpoint | undefined, allowLocalPeers: boolean): boolean
 }
 
 export class ChannelTCP {
@@ -172,9 +197,14 @@ export class ChannelTCP {
     private networkVersion?: UInt8
     private nodeID?: Account
     private lastPacketReceivedMoment?: Moment
+    private tcpEndpoint?: TCPEndpoint
 
     constructor(socket: Socket) {
         this.socket = socket
+    }
+
+    getTCPEndpoint(): TCPEndpoint | undefined {
+        return this.tcpEndpoint
     }
 
     setLastPacketReceived(moment: Moment) {
