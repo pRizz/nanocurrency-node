@@ -5,7 +5,8 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "downlevelIteration": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "noFallthroughCasesInSwitch": true
   },
   "exclude": [
     "node_modules"
