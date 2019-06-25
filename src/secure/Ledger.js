@@ -10,10 +10,10 @@ var Ledger = /** @class */ (function () {
         return link.equals(this.getEpochLink());
     };
     Ledger.prototype.getEpochLink = function () {
-        return new UInt256_1.default(null); // FIXME
+        return new UInt256_1.default(); // FIXME
     };
     Ledger.prototype.getEpochSigner = function () {
-        return new Account_1.default(new UInt256_1.default(null)); // FIXME
+        return new Account_1.default(new UInt256_1.default()); // FIXME
     };
     return Ledger;
 }());

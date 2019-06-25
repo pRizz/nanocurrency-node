@@ -172,7 +172,7 @@ var ReadableMessageStream = /** @class */ (function () {
 exports.ReadableMessageStream = ReadableMessageStream;
 var KeepaliveMessage = /** @class */ (function () {
     function KeepaliveMessage(peers) {
-        this.messageHeader = new MessageHeader(MessageType.keepalive); // FIXME
+        this.messageHeader = new MessageHeader(MessageType.keepalive, new UInt16_1.default()); // FIXME
         this.peers = peers;
     }
     KeepaliveMessage.prototype.serialize = function (stream) {

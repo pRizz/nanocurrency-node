@@ -33,10 +33,10 @@ var BlockHashSet = /** @class */ (function () {
         this.set = new Set();
     }
     BlockHashSet.prototype.add = function (blockHash) {
-        this.set.add(blockHash.value.value.toString('hex'));
+        this.set.add(blockHash.value.asBuffer().toString('hex'));
     };
     BlockHashSet.prototype.has = function (blockHash) {
-        return this.set.has(blockHash.value.value.toString('hex'));
+        return this.set.has(blockHash.value.asBuffer().toString('hex'));
     };
     return BlockHashSet;
 }());
@@ -48,13 +48,13 @@ var RolledHash = /** @class */ (function () {
 }());
 // FIXME: audit class and make unit tests
 var BlockProcessor = /** @class */ (function () {
-    function BlockProcessor(nanoNode) {
+    function BlockProcessor(delegate) {
         this.blockHashSet = new BlockHashSet();
         this.rolledBackHashes = new RolledHashContainer();
         this.stateBlocks = new Array();
         this.nonStateBlocks = new Array();
         this.isStopped = false;
-        this.nanoNode = nanoNode;
+        this.delegate = delegate;
     }
     BlockProcessor.prototype.stop = function () {
     };
@@ -77,9 +77,9 @@ var BlockProcessor = /** @class */ (function () {
             return;
         }
         if (uncheckedInfo.signatureVerification === Common_1.SignatureVerification.unknown &&
-            (uncheckedInfo.block.getBlockType() === Block_1.BlockType.state ||
-                uncheckedInfo.block.getBlockType() === Block_1.BlockType.open ||
-                !uncheckedInfo.account.isZero())) {
+            (uncheckedInfo.block.getBlockType() === Block_1.BlockType.state
+                || uncheckedInfo.block.getBlockType() === Block_1.BlockType.open
+                || !uncheckedInfo.account.isZero())) {
             this.stateBlocks.push(uncheckedInfo);
         }
         else {
@@ -90,7 +90,7 @@ var BlockProcessor = /** @class */ (function () {
     BlockProcessor.prototype.addBlock = function (block, origination) {
         var uncheckedInfo = new Common_1.UncheckedInfo({
             block: block,
-            account: new Account_1.default(new UInt256_1.default(null)),
+            account: new Account_1.default(new UInt256_1.default()),
             modified: origination,
             signatureVerification: Common_1.SignatureVerification.unknown
         });
@@ -115,7 +115,7 @@ var BlockProcessor = /** @class */ (function () {
         if (this.stateBlocks.length === 0) {
             return;
         }
-        var readTransaction = this.nanoNode.blockStore.txBeginRead();
+        var readTransaction = this.delegate.txBeginRead();
         var stateBlockTimerDone = false;
         setTimeout(function () { stateBlockTimerDone = true; }, 2000);
         while (this.stateBlocks.length !== 0 && !stateBlockTimerDone) {
@@ -127,7 +127,10 @@ var BlockProcessor = /** @class */ (function () {
         var uncheckedInfos = new Array();
         for (var i = 0; i < maxVerificationBatchSize && this.stateBlocks.length !== 0; ++i) {
             var stateBlockInfo = this.stateBlocks.shift();
-            if (this.nanoNode.ledger.blockStore.doesBlockExist(readTransaction, stateBlockInfo.block.getBlockType(), stateBlockInfo.block.getHash())) {
+            if (!stateBlockInfo) {
+                continue;
+            }
+            if (this.delegate.doesBlockExist(readTransaction, stateBlockInfo.block.getBlockType(), stateBlockInfo.block.getHash())) {
                 continue;
             }
             uncheckedInfos.push(stateBlockInfo);
@@ -138,6 +141,9 @@ var BlockProcessor = /** @class */ (function () {
             for (var verifications_1 = __values(verifications), verifications_1_1 = verifications_1.next(); !verifications_1_1.done; verifications_1_1 = verifications_1.next()) {
                 var verification = verifications_1_1.value;
                 var uncheckedInfo = uncheckedInfos.shift();
+                if (!uncheckedInfo) {
+                    continue;
+                }
                 var signatureVerification = this.signatureVerificationForUncheckedInfo(uncheckedInfo, verification);
                 if (!signatureVerification) {
                     continue;
@@ -161,7 +167,7 @@ var BlockProcessor = /** @class */ (function () {
     };
     BlockProcessor.prototype.signatureVerificationForUncheckedInfo = function (uncheckedInfo, verification) {
         var signatureVerification = null;
-        if (!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
+        if (!uncheckedInfo.block.getLink().isZero() && this.delegate.isEpochLink(uncheckedInfo.block.getLink().value)) {
             //TODO: audit
             if (verification) {
                 signatureVerification = Common_1.SignatureVerification.valid_epoch;
@@ -183,8 +189,8 @@ var BlockProcessor = /** @class */ (function () {
     };
     BlockProcessor.prototype.uncheckedInfoToSignatureVerifiable = function (uncheckedInfo) {
         var account = uncheckedInfo.block.getAccount();
-        if (!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
-            account = this.nanoNode.ledger.getEpochSigner();
+        if (!uncheckedInfo.block.getLink().isZero() && this.delegate.isEpochLink(uncheckedInfo.block.getLink().value)) {
+            account = this.delegate.getEpochSigner();
         }
         else if (!uncheckedInfo.account.isZero()) {
             account = uncheckedInfo.account;

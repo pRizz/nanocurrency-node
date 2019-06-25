@@ -14,10 +14,10 @@ export default class Ledger {
     }
 
     getEpochLink(): UInt256 {
-        return new UInt256(null) // FIXME
+        return new UInt256() // FIXME
     }
 
     getEpochSigner(): Account {
-        return new Account(new UInt256(null)) // FIXME
+        return new Account(new UInt256()) // FIXME
     }
 }

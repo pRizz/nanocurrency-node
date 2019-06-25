@@ -12,7 +12,7 @@ export class UDPChannels {
     private readonly wrappedUDPChannels = new Set<ChannelUDPWrapper>()
     private ongoingKeepaliveTimout: Timeout | null
 
-    constructor(port: number, messageReceivedCallback: (message: MessageBuffer) => void, delegate: UDPChannelsDelegate) {
+    constructor(port: number, delegate: UDPChannelsDelegate) {
         this.udpSocket = dgram.createSocket('udp6')
         this.udpSocket.bind(port)
         this.udpSocket.on('error', (error) => {
@@ -22,8 +22,6 @@ export class UDPChannels {
             if(this.isStopped) {
                 return
             }
-            const udpEndpoint = new UDPEndpoint() // FIXME
-            messageReceivedCallback(new MessageBuffer(message, receiveInfo.size, udpEndpoint))
         })
         this.delegate = delegate
     }

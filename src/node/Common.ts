@@ -160,7 +160,7 @@ export interface MessageVisitor {
 }
 
 export class KeepaliveMessage implements Message {
-    private messageHeader = new MessageHeader(MessageType.keepalive) // FIXME
+    private messageHeader = new MessageHeader(MessageType.keepalive, new UInt16()) // FIXME
     private readonly peers: Set<UDPEndpoint>
 
     constructor(peers: Set<UDPEndpoint>) {

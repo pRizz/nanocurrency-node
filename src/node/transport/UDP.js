@@ -10,12 +10,11 @@ var __values = (this && this.__values) || function (o) {
     };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-var Network_1 = require("../Network");
 var dgram = require("dgram");
 var Common_1 = require("../Common");
 // TODO: audit
 var UDPChannels = /** @class */ (function () {
-    function UDPChannels(port, messageReceivedCallback, delegate) {
+    function UDPChannels(port, delegate) {
         var _this = this;
         this.isStopped = false;
         this.wrappedUDPChannels = new Set();
@@ -28,8 +27,6 @@ var UDPChannels = /** @class */ (function () {
             if (_this.isStopped) {
                 return;
             }
-            var udpEndpoint = new Common_1.UDPEndpoint(); // FIXME
-            messageReceivedCallback(new Network_1.MessageBuffer(message, receiveInfo.size, udpEndpoint));
         });
         this.delegate = delegate;
     }

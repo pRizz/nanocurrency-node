@@ -1,20 +1,20 @@
 import Account from "../lib/Account";
 import CurrencyAmount from "../lib/CurrencyAmount";
 import Block from "../lib/Block";
-import UInt64 from "../lib/UInt64";
 import UInt16 from '../lib/UInt16'
+import {Moment} from 'moment'
 
 interface UncheckedInfoProps {
     readonly block: Block
     readonly account: Account
-    readonly modified: UInt64
+    readonly modified: Moment
     readonly signatureVerification: SignatureVerification
 }
 
 export class UncheckedInfo {
     readonly block: Block
     readonly account: Account
-    readonly modified: UInt64
+    readonly modified: Moment
     readonly signatureVerification: SignatureVerification
 
     constructor(props: UncheckedInfoProps) {

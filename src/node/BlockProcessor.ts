@@ -3,12 +3,11 @@ import UInt64 from "../lib/UInt64";
 import Block, {BlockType} from "../lib/Block";
 import {ReadTransaction, Transaction} from "../secure/BlockStore";
 import {VoteGenerator} from "./Voting";
-import {Duration} from "moment";
+import {Duration, Moment} from "moment";
 import Account from "../lib/Account";
 import UInt256 from "../lib/UInt256";
 import WorkValidator from "../lib/WorkValidator";
 import BlockHash from "../lib/BlockHash";
-import NanoNode from "./NanoNode";
 import {SignatureChecker, SignatureVerifiable} from './Signatures'
 import moment = require("moment")
 
@@ -24,11 +23,11 @@ class BlockHashSet {
     private set = new Set<string>()
 
     add(blockHash: BlockHash) {
-        this.set.add(blockHash.value.value.toString('hex'))
+        this.set.add(blockHash.value.asBuffer().toString('hex'))
     }
 
     has(blockHash: BlockHash): boolean {
-        return this.set.has(blockHash.value.value.toString('hex'))
+        return this.set.has(blockHash.value.asBuffer().toString('hex'))
     }
 }
 
@@ -36,6 +35,13 @@ class BlockHashSet {
 class RolledHash {
     blockHash: BlockHash
     // timePoint
+}
+
+export interface BlockProcessorDelegate {
+    txBeginRead(): ReadTransaction
+    doesBlockExist(transaction: Transaction, blockType: BlockType, blockHash: BlockHash): boolean
+    isEpochLink(link: UInt256): boolean
+    getEpochSigner(): Account
 }
 
 // FIXME: audit class and make unit tests
@@ -49,11 +55,10 @@ export default class BlockProcessor {
     readonly nonStateBlocks = new Array<UncheckedInfo>()
     readonly isStopped = false
 
-    // FIXME: creates circular dependency
-    private readonly nanoNode: NanoNode
+    private readonly delegate: BlockProcessorDelegate
 
-    constructor(nanoNode: NanoNode) {
-        this.nanoNode = nanoNode
+    constructor(delegate: BlockProcessorDelegate) {
+        this.delegate = delegate
     }
 
     stop() {
@@ -87,9 +92,9 @@ export default class BlockProcessor {
 
         if(uncheckedInfo.signatureVerification === SignatureVerification.unknown &&
             (
-                uncheckedInfo.block.getBlockType() === BlockType.state ||
-                    uncheckedInfo.block.getBlockType() === BlockType.open ||
-                    !uncheckedInfo.account.isZero()
+                uncheckedInfo.block.getBlockType() === BlockType.state
+                || uncheckedInfo.block.getBlockType() === BlockType.open
+                || !uncheckedInfo.account.isZero()
             )
         ) {
             this.stateBlocks.push(uncheckedInfo)
@@ -99,10 +104,10 @@ export default class BlockProcessor {
         this.blockHashSet.add(blockHash)
     }
 
-    addBlock(block: Block, origination: UInt64) {
+    addBlock(block: Block, origination: Moment) {
         const uncheckedInfo = new UncheckedInfo({
             block,
-            account: new Account(new UInt256(null)), // FIXME: seems dirty
+            account: new Account(new UInt256()), // FIXME: seems dirty
             modified: origination,
             signatureVerification: SignatureVerification.unknown
         })
@@ -133,7 +138,7 @@ export default class BlockProcessor {
         if(this.stateBlocks.length === 0) {
             return
         }
-        const readTransaction = this.nanoNode.blockStore.txBeginRead()
+        const readTransaction = this.delegate.txBeginRead()
         let stateBlockTimerDone = false
         setTimeout(() => { stateBlockTimerDone = true }, 2000)
         while(this.stateBlocks.length !== 0 && !stateBlockTimerDone) {
@@ -146,7 +151,10 @@ export default class BlockProcessor {
 
         for(let i = 0; i < maxVerificationBatchSize && this.stateBlocks.length !== 0; ++i) {
             const stateBlockInfo = this.stateBlocks.shift()
-            if(this.nanoNode.ledger.blockStore.doesBlockExist(readTransaction, stateBlockInfo.block.getBlockType(), stateBlockInfo.block.getHash())) {
+            if(!stateBlockInfo) {
+                continue
+            }
+            if(this.delegate.doesBlockExist(readTransaction, stateBlockInfo.block.getBlockType(), stateBlockInfo.block.getHash())) {
                 continue
             }
             uncheckedInfos.push(stateBlockInfo)
@@ -157,6 +165,9 @@ export default class BlockProcessor {
 
         for(const verification of verifications) {
             const uncheckedInfo = uncheckedInfos.shift()
+            if(!uncheckedInfo) {
+                continue
+            }
             const signatureVerification = this.signatureVerificationForUncheckedInfo(uncheckedInfo, verification)
             if(!signatureVerification) {
                 continue
@@ -173,7 +184,7 @@ export default class BlockProcessor {
 
     private signatureVerificationForUncheckedInfo(uncheckedInfo: UncheckedInfo, verification: boolean): SignatureVerification | null {
         let signatureVerification: SignatureVerification | null = null
-        if(!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
+        if(!uncheckedInfo.block.getLink().isZero() && this.delegate.isEpochLink(uncheckedInfo.block.getLink().value)) {
             //TODO: audit
             if(verification) {
                 signatureVerification = SignatureVerification.valid_epoch
@@ -197,8 +208,8 @@ export default class BlockProcessor {
 
     private uncheckedInfoToSignatureVerifiable(uncheckedInfo: UncheckedInfo): SignatureVerifiable {
         let account = uncheckedInfo.block.getAccount()
-        if(!uncheckedInfo.block.getLink().isZero() && this.nanoNode.ledger.isEpochLink(uncheckedInfo.block.getLink().value)) {
-            account = this.nanoNode.ledger.getEpochSigner()
+        if(!uncheckedInfo.block.getLink().isZero() && this.delegate.isEpochLink(uncheckedInfo.block.getLink().value)) {
+            account = this.delegate.getEpochSigner()
         } else if(!uncheckedInfo.account.isZero()) {
             account = uncheckedInfo.account
         }
