@@ -9,6 +9,9 @@ var Account = /** @class */ (function () {
     Account.prototype.isZero = function () {
         return this.publicKey.isZero();
     };
+    Account.prototype.equals = function (other) {
+        return this.publicKey.equals(other.publicKey);
+    };
     Account.prototype.toNANOAddress = function () {
         if (this.computedAddress) {
             return this.computedAddress;

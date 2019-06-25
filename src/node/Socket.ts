@@ -3,7 +3,6 @@ import {Endpoint, MessageHeader, ReadableMessageStream, TCPEndpoint} from './Com
 import {promisify} from 'util'
 import {Duplex} from 'stream'
 
-
 export enum SocketConcurrency {
     singleWriter,
     multiWriter

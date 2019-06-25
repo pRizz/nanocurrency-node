@@ -15,6 +15,10 @@ export default class Account {
         return this.publicKey.isZero()
     }
 
+    equals(other: Account): boolean {
+        return this.publicKey.equals(other.publicKey)
+    }
+
     toNANOAddress(): string {
         if(this.computedAddress) {
             return this.computedAddress

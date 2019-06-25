@@ -42,6 +42,7 @@ var UInt256_1 = require("../lib/UInt256");
 var Account_1 = require("../lib/Account");
 var UInt512_1 = require("../lib/UInt512");
 var Numbers_1 = require("../lib/Numbers");
+var stream_1 = require("stream");
 var IPAddress = /** @class */ (function () {
     function IPAddress(ipValue) {
         this.value = ipValue;
@@ -200,6 +201,7 @@ var NodeIDHandshakeMessageResponse = /** @class */ (function () {
     };
     return NodeIDHandshakeMessageResponse;
 }());
+exports.NodeIDHandshakeMessageResponse = NodeIDHandshakeMessageResponse;
 var NodeIDHandshakeMessage = /** @class */ (function () {
     function NodeIDHandshakeMessage(messageHeader, query, response) {
         this.messageHeader = messageHeader;
@@ -213,6 +215,14 @@ var NodeIDHandshakeMessage = /** @class */ (function () {
         var extensions = new UInt16_1.default({ buffer: extensionsBuffer });
         var messageHeader = new MessageHeader(MessageType.node_id_handshake, extensions);
         return new NodeIDHandshakeMessage(messageHeader, query);
+    };
+    NodeIDHandshakeMessage.fromResponse = function (response) {
+        var extensionsUInt = 1 << MessageHeader.nodeIDHandshakeResponseFlagPosition;
+        var extensionsBuffer = Buffer.alloc(2);
+        extensionsBuffer.writeUInt16BE(extensionsUInt, 0);
+        var extensions = new UInt16_1.default({ buffer: extensionsBuffer });
+        var messageHeader = new MessageHeader(MessageType.node_id_handshake, extensions);
+        return new NodeIDHandshakeMessage(messageHeader, undefined, response);
     };
     NodeIDHandshakeMessage.prototype.getMessageHeader = function () {
         return this.messageHeader;
@@ -343,4 +353,30 @@ var MessageDecoder;
     }
     MessageDecoder.readMessageHeaderFromStream = readMessageHeaderFromStream;
 })(MessageDecoder || (MessageDecoder = {}));
+function bufferFromSerializable(serializable) {
+    return __awaiter(this, void 0, void 0, function () {
+        var passThroughStream;
+        return __generator(this, function (_a) {
+            passThroughStream = new stream_1.PassThrough();
+            serializable.serialize(passThroughStream);
+            passThroughStream.end();
+            return [2 /*return*/, new Promise(function (resolve, reject) {
+                    var messageBuffer = Buffer.alloc(0);
+                    passThroughStream.on('readable', function () {
+                        var buffer;
+                        while (buffer = passThroughStream.read()) {
+                            messageBuffer = Buffer.concat([messageBuffer, buffer]);
+                        }
+                    });
+                    passThroughStream.once('end', function () {
+                        resolve(messageBuffer);
+                    });
+                    passThroughStream.once('error', function (error) {
+                        reject(error);
+                    });
+                })];
+        });
+    });
+}
+exports.bufferFromSerializable = bufferFromSerializable;
 //# sourceMappingURL=Common.js.map

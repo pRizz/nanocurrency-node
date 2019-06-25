@@ -7,6 +7,7 @@ import Account from '../lib/Account'
 import UInt512 from '../lib/UInt512'
 import {Signature} from '../lib/Numbers'
 import {Serializable} from './Socket'
+import {PassThrough} from "stream"
 
 export class IPAddress {
     value: string
@@ -183,7 +184,7 @@ export class KeepaliveMessage implements Message {
     }
 }
 
-class NodeIDHandshakeMessageResponse {
+export class NodeIDHandshakeMessageResponse {
     readonly account: Account
     readonly signature: Signature
 
@@ -203,7 +204,7 @@ export class NodeIDHandshakeMessage implements Message {
     readonly query?: UInt256
     readonly response?: NodeIDHandshakeMessageResponse
 
-    constructor(messageHeader: MessageHeader, query?: UInt256, response?: NodeIDHandshakeMessageResponse) {
+    private constructor(messageHeader: MessageHeader, query?: UInt256, response?: NodeIDHandshakeMessageResponse) {
         this.messageHeader = messageHeader
         this.query = query
         this.response = response
@@ -218,6 +219,17 @@ export class NodeIDHandshakeMessage implements Message {
         const messageHeader = new MessageHeader(MessageType.node_id_handshake, extensions)
 
         return new NodeIDHandshakeMessage(messageHeader, query)
+    }
+
+    static fromResponse(response: NodeIDHandshakeMessageResponse) {
+        const extensionsUInt = 1 << MessageHeader.nodeIDHandshakeResponseFlagPosition
+        const extensionsBuffer = Buffer.alloc(2)
+        extensionsBuffer.writeUInt16BE(extensionsUInt, 0)
+        const extensions = new UInt16({ buffer: extensionsBuffer })
+
+        const messageHeader = new MessageHeader(MessageType.node_id_handshake, extensions)
+
+        return new NodeIDHandshakeMessage(messageHeader, undefined, response)
     }
 
     getMessageHeader(): MessageHeader {
@@ -307,4 +319,26 @@ namespace MessageDecoder {
             }
         })
     }
+}
+
+export async function bufferFromSerializable(serializable: Serializable): Promise<Buffer> {
+    const passThroughStream = new PassThrough()
+    serializable.serialize(passThroughStream)
+    passThroughStream.end()
+
+    return new Promise((resolve, reject) => {
+        let messageBuffer = Buffer.alloc(0)
+        passThroughStream.on('readable', () => {
+            let buffer: Buffer
+            while(buffer = passThroughStream.read()) {
+                messageBuffer = Buffer.concat([messageBuffer, buffer])
+            }
+        })
+        passThroughStream.once('end', () => {
+            resolve(messageBuffer)
+        })
+        passThroughStream.once('error', (error) => {
+            reject(error)
+        })
+    })
 }

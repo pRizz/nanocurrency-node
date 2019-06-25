@@ -51,6 +51,8 @@ var Network_1 = require("../Network");
 var Socket_1 = require("../Socket");
 var Transport_1 = require("./Transport");
 var tcpRealtimeProtocolVersionMin = Common_1.default.tcpRealtimeProtocolVersionMin;
+var moment = require("moment");
+var MessageSigner_1 = require("../../lib/MessageSigner");
 var TCPChannels = /** @class */ (function () {
     function TCPChannels(port, messageReceivedCallback, delegate) {
         // this.udpSocket = dgram.createSocket('udp6')
@@ -141,23 +143,41 @@ var TCPChannels = /** @class */ (function () {
     };
     TCPChannels.prototype.startTCPReceiveNodeID = function (tcpChannel, endpoint) {
         return __awaiter(this, void 0, void 0, function () {
-            var messageHeader, handshakeMessage;
+            var messageHeader, handshakeMessage, nodeID, signature, response, handshakeMessageResponse;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, tcpChannel.readMessageHeader()];
                     case 1:
                         messageHeader = _a.sent();
                         if (messageHeader.messageType !== Common_1.MessageType.node_id_handshake) {
-                            return [2 /*return*/, Promise.reject(new Error("Unexpected messageType received from remote node"))];
+                            throw new Error("Unexpected messageType received from remote node");
                         }
                         if (messageHeader.versionUsing.lessThan(Common_1.default.protocolVersionMin)) {
-                            return [2 /*return*/, Promise.reject(new Error("Invalid versionUsing received from remote node"))];
+                            throw new Error("Invalid versionUsing received from remote node");
                         }
-                        return [4 /*yield*/, Common_1.NodeIDHandshakeMessage.from(messageHeader, tcpChannel.asReadableMessageStream())
-                            // TODO
-                        ];
+                        return [4 /*yield*/, Common_1.NodeIDHandshakeMessage.from(messageHeader, tcpChannel.asReadableMessageStream())];
                     case 2:
                         handshakeMessage = _a.sent();
+                        if (!handshakeMessage.response || !handshakeMessage.query) {
+                            throw new Error("Missing response or query in TCP connection");
+                        }
+                        tcpChannel.setNetworkVersion(messageHeader.versionUsing);
+                        nodeID = handshakeMessage.response.account;
+                        if (!this.delegate.isNodeValid(endpoint, nodeID, handshakeMessage.response.signature)
+                            || this.delegate.getNodeID().equals(nodeID)
+                            || this.delegate.hasNode(nodeID)) {
+                            return [2 /*return*/];
+                        }
+                        tcpChannel.setNodeID(nodeID);
+                        tcpChannel.setLastPacketReceived(moment());
+                        signature = MessageSigner_1.default.sign(this.delegate.getPrivateKey(), handshakeMessage.query.asBuffer());
+                        response = new Common_1.NodeIDHandshakeMessageResponse(this.delegate.getNodeID(), signature);
+                        handshakeMessageResponse = Common_1.NodeIDHandshakeMessage.fromResponse(response);
+                        return [4 /*yield*/, tcpChannel.sendMessage(handshakeMessageResponse)
+                            // TODO
+                        ];
+                    case 3:
+                        _a.sent();
                         return [2 /*return*/];
                 }
             });
@@ -182,8 +202,27 @@ var ChannelTCP = /** @class */ (function () {
     function ChannelTCP(socket) {
         this.socket = socket;
     }
+    ChannelTCP.prototype.setLastPacketReceived = function (moment) {
+        this.lastPacketReceivedMoment = moment;
+    };
+    ChannelTCP.prototype.setNodeID = function (nodeID) {
+        this.nodeID = nodeID;
+    };
+    ChannelTCP.prototype.setNetworkVersion = function (version) {
+        this.networkVersion = version;
+    };
     ChannelTCP.prototype.sendMessage = function (message) {
-        this.socket.serialize(message);
+        return __awaiter(this, void 0, void 0, function () {
+            var messageBuffer;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, Common_1.bufferFromSerializable(message)];
+                    case 1:
+                        messageBuffer = _a.sent();
+                        return [2 /*return*/, this.socket.writeBuffer(messageBuffer)];
+                }
+            });
+        });
     };
     ChannelTCP.prototype.connect = function (tcpEndpoint) {
         return __awaiter(this, void 0, void 0, function () {

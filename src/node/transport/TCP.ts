@@ -1,11 +1,12 @@
 // TODO: audit
 import Constants, {
+    bufferFromSerializable,
     Endpoint,
     KeepaliveMessage,
     Message,
     MessageHeader,
     MessageType,
-    NodeIDHandshakeMessage, ReadableMessageStream,
+    NodeIDHandshakeMessage, NodeIDHandshakeMessageResponse, ReadableMessageStream,
     TCPEndpoint,
     UDPEndpoint
 } from '../Common'
@@ -15,6 +16,14 @@ import Transport from './Transport'
 import Timeout = NodeJS.Timeout
 import tcpRealtimeProtocolVersionMin = Constants.tcpRealtimeProtocolVersionMin
 import Account from '../../lib/Account'
+import UInt256 from '../../lib/UInt256'
+import {Signature} from '../../lib/Numbers'
+import UInt8 from '../../lib/UInt8'
+import moment = require('moment')
+import MessageSigner from '../../lib/MessageSigner'
+import {Moment} from 'moment'
+import UInt512 from '../../lib/UInt512'
+import {PassThrough} from 'stream'
 
 export class TCPChannels {
     private ongoingKeepaliveTimout?: Timeout
@@ -89,13 +98,39 @@ export class TCPChannels {
     private async startTCPReceiveNodeID(tcpChannel: ChannelTCP, endpoint: TCPEndpoint): Promise<void> {
         const messageHeader = await tcpChannel.readMessageHeader()
         if(messageHeader.messageType !== MessageType.node_id_handshake) {
-            return Promise.reject(new Error(`Unexpected messageType received from remote node`))
+            throw new Error(`Unexpected messageType received from remote node`)
         }
         if(messageHeader.versionUsing.lessThan(Constants.protocolVersionMin)) {
-            return Promise.reject(new Error(`Invalid versionUsing received from remote node`))
+            throw new Error(`Invalid versionUsing received from remote node`)
         }
 
         const handshakeMessage = await NodeIDHandshakeMessage.from(messageHeader, tcpChannel.asReadableMessageStream())
+
+        if(!handshakeMessage.response || !handshakeMessage.query) {
+            throw new Error(`Missing response or query in TCP connection`)
+        }
+
+        tcpChannel.setNetworkVersion(messageHeader.versionUsing)
+        const nodeID = handshakeMessage.response.account
+
+        if(!this.delegate.isNodeValid(endpoint, nodeID, handshakeMessage.response.signature)
+            || this.delegate.getNodeID().equals(nodeID)
+            || this.delegate.hasNode(nodeID)
+        ) {
+            return
+        }
+
+        tcpChannel.setNodeID(nodeID)
+        tcpChannel.setLastPacketReceived(moment())
+
+        const signature = MessageSigner.sign(
+            this.delegate.getPrivateKey(),
+            handshakeMessage.query.asBuffer()
+        )
+        const response = new NodeIDHandshakeMessageResponse(this.delegate.getNodeID(), signature)
+        const handshakeMessageResponse = NodeIDHandshakeMessage.fromResponse(response)
+
+        await tcpChannel.sendMessage(handshakeMessageResponse)
 
         // TODO
     }
@@ -126,17 +161,37 @@ export interface TCPChannelsDelegate {
     startTCPReceiveNodeID(channel: ChannelTCP, endpoint: Endpoint, receiveBuffer: Buffer, callback: () => void): void
     tcpSocketConnectionFailed(): void
     getAccountCookieForEndpoint(endpoint: Endpoint): Account
+    isNodeValid(endpoint: TCPEndpoint, nodeID: Account, signature: Signature): boolean
+    getNodeID(): Account
+    hasNode(nodeID: Account): boolean
+    getPrivateKey(): UInt512
 }
 
 export class ChannelTCP {
     private readonly socket: Socket
+    private networkVersion?: UInt8
+    private nodeID?: Account
+    private lastPacketReceivedMoment?: Moment
 
     constructor(socket: Socket) {
         this.socket = socket
     }
 
-    sendMessage(message: Message): void {
-        this.socket.serialize(message)
+    setLastPacketReceived(moment: Moment) {
+        this.lastPacketReceivedMoment = moment
+    }
+
+    setNodeID(nodeID: Account) {
+        this.nodeID = nodeID
+    }
+
+    setNetworkVersion(version: UInt8) {
+        this.networkVersion = version
+    }
+
+    async sendMessage(message: Message): Promise<void> {
+        const messageBuffer = await bufferFromSerializable(message)
+        return this.socket.writeBuffer(messageBuffer)
     }
 
     async connect(tcpEndpoint: TCPEndpoint): Promise<void> {
