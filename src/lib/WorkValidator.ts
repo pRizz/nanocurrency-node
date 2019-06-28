@@ -2,6 +2,7 @@ import BlockHash from './BlockHash'
 import UInt64 from './UInt64'
 import Config from './Config'
 import Work from "./Work";
+import {UncheckedInfo} from '../secure/Common'
 const blakejs = require('blakejs')
 
 // FIXME: might have to signify endianness
@@ -17,6 +18,10 @@ namespace WorkValidator {
     export function isWorkValid(blockHash: BlockHash, work: Work): boolean {
         const workValue = getWorkValue(blockHash, work)
         return workValue.greaterThanOrEqualTo(Config.publishThresholdDifficulty)
+    }
+
+    export function isUncheckedInfoValid(uncheckedInfo: UncheckedInfo) {
+        return isWorkValid(uncheckedInfo.block.getHash(), uncheckedInfo.block.getWork())
     }
 }
 

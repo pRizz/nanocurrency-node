@@ -284,6 +284,7 @@ namespace Constants {
     export const tcpRealtimeProtocolVersionMin = 0x11
     export const protocolVersion = new UInt8({ octetArray: [0x11] })
     export const protocolVersionMin = new UInt8({ octetArray: [0x0d] })
+    export const blockProcessorBatchSize = 10000 // FIXME
 }
 
 export default Constants

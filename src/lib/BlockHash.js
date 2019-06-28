@@ -7,6 +7,12 @@ var BlockHash = /** @class */ (function () {
     BlockHash.prototype.isZero = function () {
         return this.value.isZero();
     };
+    BlockHash.prototype.toString = function () {
+        return this.value.asBuffer().toString('hex');
+    };
+    BlockHash.prototype.equals = function (other) {
+        return this.value.equals(other.value);
+    };
     return BlockHash;
 }());
 exports.default = BlockHash;

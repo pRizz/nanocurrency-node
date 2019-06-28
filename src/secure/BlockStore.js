@@ -7,6 +7,9 @@ var BlockStore = /** @class */ (function () {
     BlockStore.prototype.txBeginRead = function () {
         return {};
     };
+    BlockStore.prototype.txBeginWrite = function () {
+        return {}; // FIXME
+    };
     //TODO: implement
     BlockStore.prototype.doesBlockExist = function (transaction, blockType, blockHash) {
         return false;

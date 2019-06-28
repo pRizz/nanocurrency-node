@@ -6,14 +6,14 @@ import {Moment} from 'moment'
 
 interface UncheckedInfoProps {
     readonly block: Block
-    readonly account: Account
+    readonly account?: Account
     readonly modified: Moment
     readonly signatureVerification: SignatureVerification
 }
 
 export class UncheckedInfo {
     readonly block: Block
-    readonly account: Account
+    readonly account?: Account
     readonly modified: Moment
     readonly signatureVerification: SignatureVerification
 

@@ -10,4 +10,12 @@ export default class BlockHash {
     isZero(): boolean {
         return this.value.isZero()
     }
+
+    toString(): string {
+        return this.value.asBuffer().toString('hex')
+    }
+
+    equals(other: BlockHash): boolean {
+        return this.value.equals(other.value)
+    }
 }

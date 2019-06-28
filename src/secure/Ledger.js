@@ -15,6 +15,12 @@ var Ledger = /** @class */ (function () {
     Ledger.prototype.getEpochSigner = function () {
         return new Account_1.default(new UInt256_1.default()); // FIXME
     };
+    Ledger.prototype.successorFrom = function (transaction, qualifiedRoot) {
+        return; // FIXME
+    };
+    Ledger.prototype.rollback = function (transaction, blockHash, rollbackList) {
+        // TODO
+    };
     return Ledger;
 }());
 exports.default = Ledger;

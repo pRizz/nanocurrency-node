@@ -5,6 +5,7 @@ import UInt64 from "./UInt64";
 import UInt256 from "./UInt256";
 import CurrencyAmount from "./CurrencyAmount";
 import {NanoSignature} from '../node/Signatures'
+import {QualifiedRoot} from './Numbers'
 const blakejs = require('blakejs')
 
 //TODO: consider memoizing all hashing functions to speed up the BlockProcessor
@@ -113,6 +114,7 @@ export default interface Block {
     getBlockType(): BlockType
     getBlockSignature(): NanoSignature
     getLink(): BlockHash
+    getQualifiedRoot(): QualifiedRoot
 
     /**
      virtual nano::account account () const;

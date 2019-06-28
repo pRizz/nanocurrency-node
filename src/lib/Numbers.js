@@ -7,4 +7,11 @@ var Signature = /** @class */ (function () {
     return Signature;
 }());
 exports.Signature = Signature;
+var QualifiedRoot = /** @class */ (function () {
+    function QualifiedRoot(value) {
+        this.value = value;
+    }
+    return QualifiedRoot;
+}());
+exports.QualifiedRoot = QualifiedRoot;
 //# sourceMappingURL=Numbers.js.map

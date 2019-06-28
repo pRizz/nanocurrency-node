@@ -1,7 +1,6 @@
 import {ProcessReturn, SignatureVerification, UncheckedInfo} from "../secure/Common";
-import UInt64 from "../lib/UInt64";
 import Block, {BlockType} from "../lib/Block";
-import {ReadTransaction, Transaction} from "../secure/BlockStore";
+import {ReadTransaction, Transaction, WriteTransaction} from "../secure/BlockStore";
 import {VoteGenerator} from "./Voting";
 import {Duration, Moment} from "moment";
 import Account from "../lib/Account";
@@ -9,12 +8,37 @@ import UInt256 from "../lib/UInt256";
 import WorkValidator from "../lib/WorkValidator";
 import BlockHash from "../lib/BlockHash";
 import {SignatureChecker, SignatureVerifiable} from './Signatures'
+import Constants from './Common'
 import moment = require("moment")
+import {QualifiedRoot} from '../lib/Numbers'
 
 // TODO: implement
 class RolledHashContainer {
     has(blockHash: BlockHash): boolean {
+        return false // FIXME
+    }
+
+    // returns success
+    insert(rolledHash: RolledHash): boolean {
+        // TODO
         return false
+    }
+
+    removeBlockHash(blockHash: BlockHash) {
+        // TODO
+    }
+
+    removeRolledHash(rolledHash: RolledHash) {
+        // TODO
+    }
+
+    getSize(): number {
+        return 0 // FIXME
+    }
+
+    getFirst(): RolledHash {
+        // FIXME
+        return new RolledHash(new BlockHash(new UInt256()), moment())
     }
 }
 
@@ -23,18 +47,27 @@ class BlockHashSet {
     private set = new Set<string>()
 
     add(blockHash: BlockHash) {
-        this.set.add(blockHash.value.asBuffer().toString('hex'))
+        this.set.add(blockHash.toString())
     }
 
     has(blockHash: BlockHash): boolean {
-        return this.set.has(blockHash.value.asBuffer().toString('hex'))
+        return this.set.has(blockHash.toString())
+    }
+
+    delete(blockHash: BlockHash) {
+        this.set.delete(blockHash.toString())
     }
 }
 
 //TODO: implement
 class RolledHash {
-    blockHash: BlockHash
-    // timePoint
+    readonly blockHash: BlockHash
+    readonly timePoint: Moment
+
+    constructor(blockHash: BlockHash, timePoint: Moment) {
+        this.blockHash = blockHash
+        this.timePoint = timePoint
+    }
 }
 
 export interface BlockProcessorDelegate {
@@ -42,6 +75,10 @@ export interface BlockProcessorDelegate {
     doesBlockExist(transaction: Transaction, blockType: BlockType, blockHash: BlockHash): boolean
     isEpochLink(link: UInt256): boolean
     getEpochSigner(): Account
+    txBeginWrite(): WriteTransaction
+    successorFrom(transaction: Transaction, qualifiedRoot: QualifiedRoot): Block | undefined
+    rollback(transaction: Transaction, blockHash: BlockHash, rollbackList: Array<Block>): void
+    removeRollbackList(rollbackList: Array<Block>): void
 }
 
 // FIXME: audit class and make unit tests
@@ -51,8 +88,9 @@ export default class BlockProcessor {
 
     readonly blockHashSet = new BlockHashSet()
     readonly rolledBackHashes = new RolledHashContainer()
-    readonly stateBlocks = new Array<UncheckedInfo>()
-    readonly nonStateBlocks = new Array<UncheckedInfo>()
+    readonly stateBlockInfos = new Array<UncheckedInfo>()
+    readonly nonStateBlockInfos = new Array<UncheckedInfo>()
+    readonly forcedBlocks = new Array<Block>()
     readonly isStopped = false
 
     private readonly delegate: BlockProcessorDelegate
@@ -75,7 +113,7 @@ export default class BlockProcessor {
 
     add(uncheckedInfo: UncheckedInfo) {
         // TODO: Optimize; why not check the set first; checking if the work is valid is more expensive
-        if(!WorkValidator.isWorkValid(uncheckedInfo.block.getHash(), uncheckedInfo.block.getWork())) {
+        if(!WorkValidator.isUncheckedInfoValid(uncheckedInfo)) {
             // TODO: log invalid attempt
             return
         }
@@ -94,12 +132,12 @@ export default class BlockProcessor {
             (
                 uncheckedInfo.block.getBlockType() === BlockType.state
                 || uncheckedInfo.block.getBlockType() === BlockType.open
-                || !uncheckedInfo.account.isZero()
+                || (uncheckedInfo.account && uncheckedInfo.account.isZero())
             )
         ) {
-            this.stateBlocks.push(uncheckedInfo)
+            this.stateBlockInfos.push(uncheckedInfo)
         } else {
-            this.nonStateBlocks.push(uncheckedInfo)
+            this.nonStateBlockInfos.push(uncheckedInfo)
         }
         this.blockHashSet.add(blockHash)
     }
@@ -107,7 +145,6 @@ export default class BlockProcessor {
     addBlock(block: Block, origination: Moment) {
         const uncheckedInfo = new UncheckedInfo({
             block,
-            account: new Account(new UInt256()), // FIXME: seems dirty
             modified: origination,
             signatureVerification: SignatureVerification.unknown
         })
@@ -123,38 +160,107 @@ export default class BlockProcessor {
     }
 
     haveBlocks(): boolean {
-        return false
+        return this.nonStateBlockInfos.length !== 0 || this.stateBlockInfos.length !== 0 || this.forcedBlocks.length !== 0
     }
 
     processBlocks() {
-        if(this.isStopped) {
-            return
+        while(!this.isStopped) {
+            if(!this.haveBlocks()) {
+                break
+            }
+            this.processBatch()
         }
-        this.processBatch()
     }
 
     private processBatch() {
         const maxVerificationBatchSize = 100 // FIXME: align with C++ project
-        if(this.stateBlocks.length === 0) {
-            return
+        if(this.stateBlockInfos.length !== 0) {
+            const readTransaction = this.delegate.txBeginRead()
+            let stateBlockTimerDone = false
+            setTimeout(() => { stateBlockTimerDone = true }, 2000)
+            while(this.stateBlockInfos.length !== 0 && !stateBlockTimerDone) {
+                this.verifyStateBlocks(readTransaction, maxVerificationBatchSize)
+            }
         }
-        const readTransaction = this.delegate.txBeginRead()
-        let stateBlockTimerDone = false
-        setTimeout(() => { stateBlockTimerDone = true }, 2000)
-        while(this.stateBlocks.length !== 0 && !stateBlockTimerDone) {
-            this.verifyStateBlocks(readTransaction, maxVerificationBatchSize)
+
+        const writeTransaction = this.delegate.txBeginWrite()
+
+        let firstTime = true
+        let processedBlockCount = 0
+        let processedForcedBlockCount = 0
+
+        let processingBlocksTimerDone = false
+        setTimeout(() => { processingBlocksTimerDone = true }, 5000)
+
+        while(
+            (this.nonStateBlockInfos.length !== 0 || this.forcedBlocks.length !== 0)
+            && (!processingBlocksTimerDone || processedBlockCount < Constants.blockProcessorBatchSize)
+            ) {
+            let uncheckedInfo: UncheckedInfo
+            let force = false
+            if(this.forcedBlocks.length === 0) {
+                uncheckedInfo = this.nonStateBlockInfos.shift() as UncheckedInfo
+                this.blockHashSet.delete(uncheckedInfo.block.getHash())
+            } else {
+                const firstForcedBlock = this.forcedBlocks.shift() as Block
+                uncheckedInfo = new UncheckedInfo({
+                    signatureVerification: SignatureVerification.unknown,
+                    block: firstForcedBlock,
+                    account: undefined,
+                    modified: moment()
+                })
+                force = true
+                ++processedForcedBlockCount
+            }
+
+            const hash = uncheckedInfo.block.getHash()
+            if(force) {
+                this.processForcedBatch(writeTransaction, uncheckedInfo, hash)
+            }
+
+            ++processedBlockCount
+            this.processOne(writeTransaction, uncheckedInfo)
+
+            if(this.nonStateBlockInfos.length === 0 && this.stateBlockInfos.length !== 0) {
+                this.verifyStateBlocks(writeTransaction, 256) // FIXME batch size
+            }
         }
     }
 
-    private verifyStateBlocks(readTransaction: ReadTransaction, maxVerificationBatchSize: number) {
+    private processForcedBatch(transaction: WriteTransaction, uncheckedInfo: UncheckedInfo, blockHash: BlockHash) {
+        const successor = this.delegate.successorFrom(transaction, uncheckedInfo.block.getQualifiedRoot())
+        if(!successor) {
+            return
+        }
+        if(successor.getHash().equals(blockHash)) {
+            return
+        }
+
+        const rollbackList = new Array<Block>()
+
+        this.delegate.rollback(transaction, successor.getHash(), rollbackList)
+
+        const successfulInsertion = this.rolledBackHashes.insert(new RolledHash(successor.getHash(), moment()))
+
+        if(successfulInsertion) {
+            this.rolledBackHashes.removeBlockHash(blockHash)
+            if(this.rolledBackHashes.getSize() > BlockProcessor.rolledBackMax) {
+                this.rolledBackHashes.removeRolledHash(this.rolledBackHashes.getFirst())
+            }
+        }
+
+        this.delegate.removeRollbackList(rollbackList)
+    }
+
+    private verifyStateBlocks(transaction: Transaction, maxVerificationBatchSize: number) {
         const uncheckedInfos = new Array<UncheckedInfo>()
 
-        for(let i = 0; i < maxVerificationBatchSize && this.stateBlocks.length !== 0; ++i) {
-            const stateBlockInfo = this.stateBlocks.shift()
+        for(let i = 0; i < maxVerificationBatchSize && this.stateBlockInfos.length !== 0; ++i) {
+            const stateBlockInfo = this.stateBlockInfos.shift()
             if(!stateBlockInfo) {
-                continue
+                break
             }
-            if(this.delegate.doesBlockExist(readTransaction, stateBlockInfo.block.getBlockType(), stateBlockInfo.block.getHash())) {
+            if(this.delegate.doesBlockExist(transaction, stateBlockInfo.block.getBlockType(), stateBlockInfo.block.getHash())) {
                 continue
             }
             uncheckedInfos.push(stateBlockInfo)
@@ -166,7 +272,7 @@ export default class BlockProcessor {
         for(const verification of verifications) {
             const uncheckedInfo = uncheckedInfos.shift()
             if(!uncheckedInfo) {
-                continue
+                break
             }
             const signatureVerification = this.signatureVerificationForUncheckedInfo(uncheckedInfo, verification)
             if(!signatureVerification) {
@@ -178,7 +284,7 @@ export default class BlockProcessor {
                 account: uncheckedInfo.account,
                 signatureVerification
             })
-            this.nonStateBlocks.push(updatedUncheckedInfo)
+            this.nonStateBlockInfos.push(updatedUncheckedInfo)
         }
     }
 
@@ -210,7 +316,7 @@ export default class BlockProcessor {
         let account = uncheckedInfo.block.getAccount()
         if(!uncheckedInfo.block.getLink().isZero() && this.delegate.isEpochLink(uncheckedInfo.block.getLink().value)) {
             account = this.delegate.getEpochSigner()
-        } else if(!uncheckedInfo.account.isZero()) {
+        } else if(uncheckedInfo.account !== undefined && !uncheckedInfo.account.isZero()) {
             account = uncheckedInfo.account
         }
 

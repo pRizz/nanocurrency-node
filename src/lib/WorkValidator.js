@@ -18,6 +18,10 @@ var WorkValidator;
         return workValue.greaterThanOrEqualTo(Config_1.default.publishThresholdDifficulty);
     }
     WorkValidator.isWorkValid = isWorkValid;
+    function isUncheckedInfoValid(uncheckedInfo) {
+        return isWorkValid(uncheckedInfo.block.getHash(), uncheckedInfo.block.getWork());
+    }
+    WorkValidator.isUncheckedInfoValid = isUncheckedInfoValid;
 })(WorkValidator || (WorkValidator = {}));
 exports.default = WorkValidator;
 //# sourceMappingURL=WorkValidator.js.map

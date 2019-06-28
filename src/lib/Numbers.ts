@@ -7,3 +7,11 @@ export class Signature {
         this.value = value
     }
 }
+
+export class QualifiedRoot {
+    readonly value: UInt512
+
+    constructor(value: UInt512) {
+        this.value = value
+    }
+}

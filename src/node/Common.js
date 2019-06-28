@@ -297,6 +297,7 @@ var Constants;
     Constants.tcpRealtimeProtocolVersionMin = 0x11;
     Constants.protocolVersion = new UInt8_1.default({ octetArray: [0x11] });
     Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x0d] });
+    Constants.blockProcessorBatchSize = 10000; // FIXME
 })(Constants || (Constants = {}));
 exports.default = Constants;
 var MessageDecoder;

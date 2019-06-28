@@ -1,6 +1,9 @@
-import {BlockStoreInterface} from "./BlockStore";
+import {BlockStoreInterface, Transaction} from "./BlockStore";
 import UInt256 from '../lib/UInt256'
 import Account from '../lib/Account'
+import {QualifiedRoot} from '../lib/Numbers'
+import Block from '../lib/Block'
+import BlockHash from '../lib/BlockHash'
 
 export default class Ledger {
     readonly blockStore: BlockStoreInterface
@@ -19,5 +22,13 @@ export default class Ledger {
 
     getEpochSigner(): Account {
         return new Account(new UInt256()) // FIXME
+    }
+
+    successorFrom(transaction: Transaction, qualifiedRoot: QualifiedRoot): Block | undefined {
+        return // FIXME
+    }
+
+    rollback(transaction: Transaction, blockHash: BlockHash, rollbackList: Array<Block>) {
+        // TODO
     }
 }
