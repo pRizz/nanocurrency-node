@@ -285,6 +285,10 @@ namespace Constants {
     export const protocolVersion = new UInt8({ octetArray: [0x11] })
     export const protocolVersionMin = new UInt8({ octetArray: [0x0d] })
     export const blockProcessorBatchSize = 10000 // FIXME
+
+    export function getVersion(): string {
+        return '1.0.0' // FIXME
+    }
 }
 
 export default Constants

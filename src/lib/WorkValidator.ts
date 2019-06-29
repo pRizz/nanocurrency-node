@@ -1,8 +1,8 @@
 import BlockHash from './BlockHash'
 import UInt64 from './UInt64'
-import Config from './Config'
 import Work from "./Work";
 import {UncheckedInfo} from '../secure/Common'
+import {NetworkConstants} from './Config'
 const blakejs = require('blakejs')
 
 // FIXME: might have to signify endianness
@@ -17,7 +17,7 @@ function getWorkValue(blockHash: BlockHash, work: Work): UInt64 {
 namespace WorkValidator {
     export function isWorkValid(blockHash: BlockHash, work: Work): boolean {
         const workValue = getWorkValue(blockHash, work)
-        return workValue.greaterThanOrEqualTo(Config.publishThresholdDifficulty)
+        return workValue.greaterThanOrEqualTo(NetworkConstants.publishThresholdDifficulty)
     }
 
     export function isUncheckedInfoValid(uncheckedInfo: UncheckedInfo) {

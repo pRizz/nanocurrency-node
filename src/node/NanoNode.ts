@@ -25,10 +25,18 @@ export default class NanoNode implements BlockProcessorDelegate {
     private readonly wallets = new Wallets()
     private readonly activeTransactions = new ActiveTransactions()
 
-    constructor() {
+    readonly applicationPath: string
+
+    constructor(applicationPath: string) {
         this.blockProcessor = new BlockProcessor(this)
         this.blockStore = new BlockStore()
         this.ledger = new Ledger(this.blockStore)
+
+        this.applicationPath = applicationPath
+    }
+
+    async start(): Promise<void> {
+
     }
 
     processBlock(block: Block) {

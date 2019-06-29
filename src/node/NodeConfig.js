@@ -1,0 +1,24 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+var NodeFlags = /** @class */ (function () {
+    function NodeFlags() {
+        this.disableBackup = false;
+        this.disableLazyBoostrap = false;
+        this.disableLegacyBootstrap = false;
+        this.disableWalletBootstrap = false;
+        this.disableBoostrapListener = false;
+        this.disableTCPRealtime = false;
+        this.disableUDP = false;
+        this.disableUncheckedCleanup = false;
+        this.disableUncheckedDrop = true;
+        this.fastBootstrap = false;
+        this.delayConfirmationHeightUpdating = false;
+        this.sidebandBatchSize = 512;
+        this.blockProcessorBatchSize = 0;
+        this.blockProcessorFullSize = 65536;
+        this.blockProcessorVerificationSize = 0;
+    }
+    return NodeFlags;
+}());
+exports.NodeFlags = NodeFlags;
+//# sourceMappingURL=NodeConfig.js.map

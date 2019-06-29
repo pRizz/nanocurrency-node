@@ -298,6 +298,10 @@ var Constants;
     Constants.protocolVersion = new UInt8_1.default({ octetArray: [0x11] });
     Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x0d] });
     Constants.blockProcessorBatchSize = 10000; // FIXME
+    function getVersion() {
+        return '1.0.0'; // FIXME
+    }
+    Constants.getVersion = getVersion;
 })(Constants || (Constants = {}));
 exports.default = Constants;
 var MessageDecoder;

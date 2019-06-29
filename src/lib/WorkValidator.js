@@ -15,7 +15,7 @@ var WorkValidator;
 (function (WorkValidator) {
     function isWorkValid(blockHash, work) {
         var workValue = getWorkValue(blockHash, work);
-        return workValue.greaterThanOrEqualTo(Config_1.default.publishThresholdDifficulty);
+        return workValue.greaterThanOrEqualTo(Config_1.NetworkConstants.publishThresholdDifficulty);
     }
     WorkValidator.isWorkValid = isWorkValid;
     function isUncheckedInfoValid(uncheckedInfo) {
