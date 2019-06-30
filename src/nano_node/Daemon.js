@@ -40,6 +40,7 @@ var DaemonConfig_1 = require("../node/DaemonConfig");
 var NanoNode_1 = require("../node/NanoNode");
 var Config_1 = require("../lib/Config");
 var Common_1 = require("../node/Common");
+var IPC_1 = require("../node/IPC");
 var debug = require('debug')('Daemon');
 function readAndUpdateDaemonConfig(dataPath, daemonConfig) {
     return __awaiter(this, void 0, void 0, function () {
@@ -52,7 +53,7 @@ var Daemon;
 (function (Daemon) {
     function start(dataPath, nodeFlags) {
         return __awaiter(this, void 0, void 0, function () {
-            var daemonConfig, node;
+            var daemonConfig, node, ipcServer;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, fs_1.promises.mkdir(dataPath, {
@@ -65,11 +66,11 @@ var Daemon;
                         node = new NanoNode_1.default(daemonConfig.dataPath);
                         debug("Network: " + Config_1.NetworkConstants.activeNetworkToString() + ", version: " + Common_1.default.getVersion());
                         debug("Path: " + node.applicationPath);
-                        return [4 /*yield*/, node.start()
-                            // TODO; wip
-                        ];
+                        return [4 /*yield*/, node.start()];
                     case 2:
                         _a.sent();
+                        ipcServer = new IPC_1.default(true, true) // FIXME
+                        ;
                         return [2 /*return*/];
                 }
             });

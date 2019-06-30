@@ -5,6 +5,7 @@ import {DaemonConfig} from '../node/DaemonConfig'
 import NanoNode from '../node/NanoNode'
 import {NetworkConstants} from '../lib/Config'
 import Constants from '../node/Common'
+import IPCServer from '../node/IPC'
 const debug = require('debug')('Daemon')
 
 async function readAndUpdateDaemonConfig(dataPath: string, daemonConfig: DaemonConfig): Promise<void> {
@@ -24,6 +25,8 @@ namespace Daemon {
         debug(`Path: ${node.applicationPath}`)
 
         await node.start()
+
+        const ipcServer = new IPCServer(true, true) // FIXME
         // TODO; wip
     }
 }
