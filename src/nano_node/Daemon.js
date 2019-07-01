@@ -41,6 +41,7 @@ var NanoNode_1 = require("../node/NanoNode");
 var Config_1 = require("../lib/Config");
 var Common_1 = require("../node/Common");
 var IPC_1 = require("../node/IPC");
+var RPC_1 = require("../rpc/RPC");
 var debug = require('debug')('Daemon');
 function readAndUpdateDaemonConfig(dataPath, daemonConfig) {
     return __awaiter(this, void 0, void 0, function () {
@@ -49,9 +50,13 @@ function readAndUpdateDaemonConfig(dataPath, daemonConfig) {
         });
     });
 }
+function startRPCServer() {
+    var rpcServer = new RPC_1.default();
+    // TODO
+}
 var Daemon;
 (function (Daemon) {
-    function start(dataPath, nodeFlags) {
+    function start(dataPath, nodeFlags, isRPCEnabled) {
         return __awaiter(this, void 0, void 0, function () {
             var daemonConfig, node, ipcServer;
             return __generator(this, function (_a) {
@@ -71,6 +76,9 @@ var Daemon;
                         _a.sent();
                         ipcServer = new IPC_1.default(true, true) // FIXME
                         ;
+                        if (isRPCEnabled) {
+                            startRPCServer();
+                        }
                         return [2 /*return*/];
                 }
             });
