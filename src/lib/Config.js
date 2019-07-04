@@ -24,6 +24,13 @@ var NetworkConstants = /** @class */ (function () {
         }
         return 'test';
     };
+    NetworkConstants.isLiveNetwork = function () {
+        switch (NetworkConstants.activeNetwork) {
+            case NANONetworks.nanoLiveNetwork: return true;
+            case NANONetworks.nanoBetaNetwork: return false;
+            case NANONetworks.nanoTestNetwork: return false;
+        }
+    };
     NetworkConstants.publishThresholdDifficulty = new UInt64_1.default({ hex: publishFullThresholdHex });
     NetworkConstants.activeNetwork = NANONetworks.nanoLiveNetwork;
     return NetworkConstants;

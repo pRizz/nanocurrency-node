@@ -47,6 +47,18 @@ var IPAddress = /** @class */ (function () {
     function IPAddress(ipValue) {
         this.value = ipValue;
     }
+    IPAddress.prototype.isUnspecified = function () {
+        return this.value.range() === 'unspecified';
+    };
+    IPAddress.prototype.isReserved = function () {
+        return this.value.range() === 'reserved';
+    };
+    IPAddress.prototype.equals = function (other) {
+        return this.value.match(other.value, 128);
+    };
+    IPAddress.prototype.toString = function () {
+        return this.value.toString();
+    };
     return IPAddress;
 }());
 exports.IPAddress = IPAddress;
@@ -61,6 +73,9 @@ var UDPEndpoint = /** @class */ (function () {
     UDPEndpoint.prototype.getPort = function () {
         return this.port;
     };
+    UDPEndpoint.prototype.equals = function (other) {
+        return this.address.equals(other.getAddress()) && this.port === other.getPort();
+    };
     return UDPEndpoint;
 }());
 exports.UDPEndpoint = UDPEndpoint;
@@ -74,6 +89,9 @@ var TCPEndpoint = /** @class */ (function () {
     };
     TCPEndpoint.prototype.getPort = function () {
         return this.port;
+    };
+    TCPEndpoint.prototype.equals = function (other) {
+        return this.address.equals(other.getAddress()) && this.port === other.getPort();
     };
     return TCPEndpoint;
 }());

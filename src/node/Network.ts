@@ -1,9 +1,11 @@
-import {Message, TCPEndpoint, UDPEndpoint} from './Common'
+import {Endpoint, IPAddress, Message, TCPEndpoint, UDPEndpoint} from './Common'
 import {Stat} from '../lib/Stats'
 import Timeout = NodeJS.Timeout
-import {UDPChannels} from './transport/UDP'
-import {TCPChannels} from './transport/TCP'
+import {UDPChannels, UDPChannelsDelegate} from './transport/UDP'
+import {TCPChannels, TCPChannelsDelegate} from './transport/TCP'
 import UInt256 from '../lib/UInt256'
+import Transport from './transport/Transport'
+import {IPv6} from 'ipaddr.js'
 
 // TODO: audit
 export class MessageBuffer {
@@ -70,18 +72,23 @@ export class SYNCookieInfo {
     readonly creationTime: number // FIXME
 }
 
+export interface NetworkDelegate {
+}
+
 // TODO: audit
 export class Network {
     private cleanupInterval: Timeout | null
     private synCookieCleanupInterval: Timeout | null
     private keepaliveInterval: Timeout | null
-    private udpChannels: UDPChannels
-    private tcpChannels: TCPChannels
+    readonly udpChannels: UDPChannels
+    readonly tcpChannels: TCPChannels
     private synCookies: SYNCookies
     private readonly disableUDP: boolean
 
-    constructor(props: any) {
-        this.disableUDP = props.disableUDP || false
+    constructor(disableUDP: boolean, port: number, udpChannelsDelegate: UDPChannelsDelegate, tcpChannelsDelegate: TCPChannelsDelegate) {
+        this.disableUDP = disableUDP
+        this.udpChannels = new UDPChannels(port, udpChannelsDelegate)
+        this.tcpChannels = new TCPChannels(tcpChannelsDelegate)
     }
 
     start() {
@@ -92,6 +99,40 @@ export class Network {
         }
         this.tcpChannels.start()
         this.startOngoingKeepaliveInterval()
+    }
+
+    private isNotAPeer(endpoint: Endpoint, allowLocalPeers: boolean): boolean {
+        if(endpoint.getAddress().isUnspecified()) {
+            return true
+        }
+        if(endpoint.getAddress().isReserved()) {
+            return true
+        }
+        if(Transport.isReserved(endpoint.getAddress(), allowLocalPeers)) {
+            return true
+        }
+        if(endpoint.equals(this.getLocalUDPEndpoint())) {
+            return true
+        }
+
+        return false
+    }
+
+    private getLocalUDPEndpoint(): UDPEndpoint {
+        return this.udpChannels.getLocalEndpoint()
+    }
+
+    hasReachoutError(endpoint: Endpoint, allowLocalPeers: boolean): boolean {
+        if(this.isNotAPeer(endpoint, allowLocalPeers)) {
+            return true
+        }
+
+        let error = false
+
+        error = error || this.udpChannels.hasReachoutError(endpoint)
+        error = error || this.tcpChannels.hasReachoutError(endpoint)
+
+        return error
     }
 
     private startOngoingKeepaliveInterval() {

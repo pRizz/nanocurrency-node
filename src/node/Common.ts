@@ -8,23 +8,42 @@ import UInt512 from '../lib/UInt512'
 import {Signature} from '../lib/Numbers'
 import {Serializable} from './Socket'
 import {PassThrough} from "stream"
+import * as ipaddr from 'ipaddr.js'
 
 export class IPAddress {
-    value: string
+    readonly value: ipaddr.IPv6
 
-    constructor(ipValue: string) {
+    constructor(ipValue: ipaddr.IPv6) {
         this.value = ipValue
+    }
+
+    isUnspecified(): boolean {
+        return this.value.range() === 'unspecified'
+    }
+
+    isReserved(): boolean {
+        return this.value.range() === 'reserved'
+    }
+
+    equals(other: IPAddress): boolean {
+        return this.value.match(other.value, 128)
+    }
+
+    toString(): string {
+        return this.value.toString()
     }
 }
 
 export interface Endpoint {
     getAddress(): IPAddress
     getPort(): number
+    equals(other: Endpoint): boolean
 }
 
 export class UDPEndpoint implements Endpoint {
     readonly address: IPAddress
     readonly port: number
+
     constructor(address: IPAddress, port: number) {
         this.address = address
         this.port = port
@@ -36,6 +55,10 @@ export class UDPEndpoint implements Endpoint {
 
     getPort(): number {
         return this.port
+    }
+
+    equals(other: Endpoint): boolean {
+        return this.address.equals(other.getAddress()) && this.port === other.getPort()
     }
 }
 
@@ -53,6 +76,10 @@ export class TCPEndpoint implements Endpoint {
 
     getPort(): number {
         return this.port
+    }
+
+    equals(other: Endpoint): boolean {
+        return this.address.equals(other.getAddress()) && this.port === other.getPort()
     }
 }
 

@@ -48,9 +48,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var BlockProcessor_1 = require("./BlockProcessor");
 var BlockStore_1 = require("../secure/BlockStore");
 var Ledger_1 = require("../secure/Ledger");
+var Account_1 = require("../lib/Account");
+var UInt256_1 = require("../lib/UInt256");
 var moment = require("moment");
 var Voting_1 = require("./Voting");
 var Wallet_1 = require("./Wallet");
+var Network_1 = require("./Network");
+var NodeConfig_1 = require("./NodeConfig");
+var Common_1 = require("./Common");
+var ipaddr_js_1 = require("ipaddr.js");
+var UInt512_1 = require("../lib/UInt512");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -60,22 +67,90 @@ var BlockArrival = /** @class */ (function () {
     return BlockArrival;
 }());
 var NanoNode = /** @class */ (function () {
-    function NanoNode(applicationPath) {
+    function NanoNode(applicationPath, flags) {
+        if (flags === void 0) { flags = new NodeConfig_1.NodeFlags(); }
         this.blockArrival = new BlockArrival();
         this.votesCache = new Voting_1.VotesCache();
         this.wallets = new Wallet_1.Wallets();
         this.activeTransactions = new ActiveTransactions();
+        this.nodeConfig = new NodeConfig_1.NodeConfig();
         this.blockProcessor = new BlockProcessor_1.default(this);
         this.blockStore = new BlockStore_1.BlockStore();
         this.ledger = new Ledger_1.default(this.blockStore);
+        this.flags = flags;
         this.applicationPath = applicationPath;
+        this.network = new Network_1.Network(flags.disableUDP, this.nodeConfig.peeringPort, this, this);
     }
     NanoNode.prototype.start = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/];
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, this.network.start()];
+                    case 1:
+                        _a.sent();
+                        this.addInitialPeers();
+                        return [2 /*return*/];
+                }
             });
         });
+    };
+    NanoNode.prototype.addInitialPeers = function () {
+        var e_1, _a;
+        var transaction = this.blockStore.txBeginRead();
+        var peers = this.blockStore.peersFromTransaction(transaction);
+        try {
+            for (var peers_1 = __values(peers), peers_1_1 = peers_1.next(); !peers_1_1.done; peers_1_1 = peers_1.next()) {
+                var peer = peers_1_1.value;
+                if (this.network.hasReachoutError(peer, this.nodeConfig.allowLocalPeers)) {
+                    continue;
+                }
+                // TODO: WIP
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (peers_1_1 && !peers_1_1.done && (_a = peers_1.return)) _a.call(peers_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+    };
+    NanoNode.prototype.getRandomPeers = function () {
+        return new Set(); // FIXME
+    };
+    NanoNode.prototype.getUDPChannelCount = function () {
+        return this.network.udpChannels.getChannelCount();
+    };
+    NanoNode.prototype.bootstrapPeer = function (protocolVersionMin) {
+        // FIXME
+        return new Common_1.TCPEndpoint(new Common_1.IPAddress(ipaddr_js_1.IPv6.parse('')), 0);
+    };
+    NanoNode.prototype.startTCPReceiveNodeID = function (channel, endpoint, receiveBuffer, callback) {
+        // TODO
+    };
+    NanoNode.prototype.tcpSocketConnectionFailed = function () {
+        // TODO
+    };
+    NanoNode.prototype.getAccountCookieForEndpoint = function (endpoint) {
+        return new Account_1.default(new UInt256_1.default()); // FIXME
+    };
+    NanoNode.prototype.isNodeValid = function (endpoint, nodeID, signature) {
+        return false; // FIXME
+    };
+    NanoNode.prototype.getNodeID = function () {
+        return new Account_1.default(new UInt256_1.default()); // FIXME
+    };
+    NanoNode.prototype.hasNode = function (nodeID) {
+        return false; // FIXME
+    };
+    NanoNode.prototype.hasPeer = function (endpoint, allowLocalPeers) {
+        return false; // FIXME
+    };
+    NanoNode.prototype.getPrivateKey = function () {
+        return new UInt512_1.default(); // FIXME
+    };
+    NanoNode.prototype.isLocalPeersAllowed = function () {
+        return this.nodeConfig.allowLocalPeers;
     };
     NanoNode.prototype.processBlock = function (block) {
         this.blockArrival.add(block);
@@ -103,7 +178,7 @@ var NanoNode = /** @class */ (function () {
         this.ledger.rollback(transaction, blockHash, rollbackList);
     };
     NanoNode.prototype.removeRollbackList = function (rollbackList) {
-        var e_1, _a;
+        var e_2, _a;
         try {
             for (var rollbackList_1 = __values(rollbackList), rollbackList_1_1 = rollbackList_1.next(); !rollbackList_1_1.done; rollbackList_1_1 = rollbackList_1.next()) {
                 var block = rollbackList_1_1.value;
@@ -112,12 +187,12 @@ var NanoNode = /** @class */ (function () {
                 this.activeTransactions.erase(block);
             }
         }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
         finally {
             try {
                 if (rollbackList_1_1 && !rollbackList_1_1.done && (_a = rollbackList_1.return)) _a.call(rollbackList_1);
             }
-            finally { if (e_1) throw e_1.error; }
+            finally { if (e_2) throw e_2.error; }
         }
     };
     return NanoNode;

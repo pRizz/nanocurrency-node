@@ -35,6 +35,9 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var UDP_1 = require("./transport/UDP");
+var TCP_1 = require("./transport/TCP");
+var Transport_1 = require("./transport/Transport");
 // TODO: audit
 var MessageBuffer = /** @class */ (function () {
     function MessageBuffer(buffer, size, udpEndpoint) {
@@ -103,8 +106,10 @@ var SYNCookieInfo = /** @class */ (function () {
 exports.SYNCookieInfo = SYNCookieInfo;
 // TODO: audit
 var Network = /** @class */ (function () {
-    function Network(props) {
-        this.disableUDP = props.disableUDP || false;
+    function Network(disableUDP, port, udpChannelsDelegate, tcpChannelsDelegate) {
+        this.disableUDP = disableUDP;
+        this.udpChannels = new UDP_1.UDPChannels(port, udpChannelsDelegate);
+        this.tcpChannels = new TCP_1.TCPChannels(tcpChannelsDelegate);
     }
     Network.prototype.start = function () {
         this.startCleanupInterval();
@@ -114,6 +119,33 @@ var Network = /** @class */ (function () {
         }
         this.tcpChannels.start();
         this.startOngoingKeepaliveInterval();
+    };
+    Network.prototype.isNotAPeer = function (endpoint, allowLocalPeers) {
+        if (endpoint.getAddress().isUnspecified()) {
+            return true;
+        }
+        if (endpoint.getAddress().isReserved()) {
+            return true;
+        }
+        if (Transport_1.default.isReserved(endpoint.getAddress(), allowLocalPeers)) {
+            return true;
+        }
+        if (endpoint.equals(this.getLocalUDPEndpoint())) {
+            return true;
+        }
+        return false;
+    };
+    Network.prototype.getLocalUDPEndpoint = function () {
+        return this.udpChannels.getLocalEndpoint();
+    };
+    Network.prototype.hasReachoutError = function (endpoint, allowLocalPeers) {
+        if (this.isNotAPeer(endpoint, allowLocalPeers)) {
+            return true;
+        }
+        var error = false;
+        error = error || this.udpChannels.hasReachoutError(endpoint);
+        error = error || this.tcpChannels.hasReachoutError(endpoint);
+        return error;
     };
     Network.prototype.startOngoingKeepaliveInterval = function () {
         var _this = this;

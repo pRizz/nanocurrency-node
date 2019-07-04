@@ -12,12 +12,32 @@ var __values = (this && this.__values) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var dgram = require("dgram");
 var Common_1 = require("../Common");
+var ipaddr_js_1 = require("ipaddr.js");
+var Transport_1 = require("./Transport");
+var EndpointConnectionAttempt = /** @class */ (function () {
+    function EndpointConnectionAttempt(endpoint, moment) {
+        this.endpoint = endpoint;
+        this.moment = moment;
+    }
+    return EndpointConnectionAttempt;
+}());
+exports.EndpointConnectionAttempt = EndpointConnectionAttempt;
+var EndpointConnectionAttempts = /** @class */ (function () {
+    function EndpointConnectionAttempts() {
+    }
+    EndpointConnectionAttempts.prototype.has = function (endpoint) {
+        return false; // FIXME
+    };
+    return EndpointConnectionAttempts;
+}());
+exports.EndpointConnectionAttempts = EndpointConnectionAttempts;
 // TODO: audit
 var UDPChannels = /** @class */ (function () {
     function UDPChannels(port, delegate) {
         var _this = this;
         this.isStopped = false;
         this.wrappedUDPChannels = new Set();
+        this.attempts = new EndpointConnectionAttempts();
         this.udpSocket = dgram.createSocket('udp6');
         this.udpSocket.bind(port);
         this.udpSocket.on('error', function (error) {
@@ -28,8 +48,37 @@ var UDPChannels = /** @class */ (function () {
                 return;
             }
         });
+        this.localEndpoint = new Common_1.UDPEndpoint(new Common_1.IPAddress(ipaddr_js_1.IPv6.parse('::1')), port);
         this.delegate = delegate;
     }
+    UDPChannels.prototype.getChannelCount = function () {
+        return 0; // FIXME
+    };
+    UDPChannels.prototype.hasReachoutError = function (endpoint) {
+        if (this.isEndpointOverloaded(endpoint)) {
+            return true;
+        }
+        if (this.getChannelFor(endpoint) !== undefined) {
+            return true;
+        }
+        if (this.attempts.has(endpoint)) {
+            return true;
+        }
+        // TODO: figure out if attempts.insert is needed here
+        return false;
+    };
+    UDPChannels.prototype.getChannelFor = function (endpoint) {
+        return undefined; // FIXME
+    };
+    UDPChannels.prototype.isEndpointOverloaded = function (endpoint) {
+        return this.connectionCountFor(endpoint) >= Transport_1.default.maxPeersPerIP;
+    };
+    UDPChannels.prototype.connectionCountFor = function (endpoint) {
+        return 0; // FIXME
+    };
+    UDPChannels.prototype.getLocalEndpoint = function () {
+        return this.localEndpoint;
+    };
     UDPChannels.prototype.start = function () {
         this.startOngoingKeepalive();
     };

@@ -27,7 +27,7 @@ function handleCLI() {
 exports.handleCLI = handleCLI;
 function startDaemon() {
     var workingDirectory = Utility_1.default.getWorkingPath(false);
-    Daemon_1.default.start(workingDirectory, new NodeConfig_1.NodeFlags()).catch(debug);
+    Daemon_1.default.start(workingDirectory, new NodeConfig_1.NodeFlags(), true).catch(debug); // FIXME
 }
 function handleAccountCreate() {
     console.log('handle account create');

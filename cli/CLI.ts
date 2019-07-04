@@ -27,7 +27,7 @@ export function handleCLI() {
 
 function startDaemon() {
     const workingDirectory = Utility.getWorkingPath(false)
-    Daemon.start(workingDirectory, new NodeFlags()).catch(debug)
+    Daemon.start(workingDirectory, new NodeFlags(), true).catch(debug) // FIXME
 }
 
 function handleAccountCreate() {

@@ -12,4 +12,4 @@ var RPCServer = /** @class */ (function () {
     return RPCServer;
 }());
 exports.default = RPCServer;
-//# sourceMappingURL=rpc.js.map
+//# sourceMappingURL=RPC.js.map

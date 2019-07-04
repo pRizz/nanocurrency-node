@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var Config_1 = require("../lib/Config");
 var NodeFlags = /** @class */ (function () {
     function NodeFlags() {
         this.disableBackup = false;
@@ -21,4 +22,12 @@ var NodeFlags = /** @class */ (function () {
     return NodeFlags;
 }());
 exports.NodeFlags = NodeFlags;
+var NodeConfig = /** @class */ (function () {
+    function NodeConfig() {
+        this.allowLocalPeers = !Config_1.NetworkConstants.isLiveNetwork();
+        this.peeringPort = 0;
+    }
+    return NodeConfig;
+}());
+exports.NodeConfig = NodeConfig;
 //# sourceMappingURL=NodeConfig.js.map

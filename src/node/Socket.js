@@ -62,7 +62,7 @@ var Socket = /** @class */ (function () {
                         _this.checkup();
                         _this.tcpSocket.connect({
                             port: tcpEndpoint.port,
-                            host: tcpEndpoint.address.value
+                            host: tcpEndpoint.address.toString()
                         }, function () {
                             _this.remoteEndpoint = tcpEndpoint;
                             resolve();

@@ -36,7 +36,7 @@ export class Socket {
             this.checkup()
             this.tcpSocket.connect({
                 port: tcpEndpoint.port,
-                host: tcpEndpoint.address.value
+                host: tcpEndpoint.address.toString()
             }, () => {
                 this.remoteEndpoint = tcpEndpoint
                 resolve()

@@ -14,6 +14,9 @@ var BlockStore = /** @class */ (function () {
     BlockStore.prototype.doesBlockExist = function (transaction, blockType, blockHash) {
         return false;
     };
+    BlockStore.prototype.peersFromTransaction = function (transaction) {
+        return []; // FIXME
+    };
     return BlockStore;
 }());
 exports.BlockStore = BlockStore;

@@ -53,23 +53,35 @@ var Transport_1 = require("./Transport");
 var tcpRealtimeProtocolVersionMin = Common_1.default.tcpRealtimeProtocolVersionMin;
 var moment = require("moment");
 var MessageSigner_1 = require("../../lib/MessageSigner");
+var UDP_1 = require("./UDP");
 var TCPChannels = /** @class */ (function () {
-    function TCPChannels(port, messageReceivedCallback, delegate) {
+    function TCPChannels(delegate) {
         this.channels = new Set();
-        // this.udpSocket = dgram.createSocket('udp6')
-        // this.udpSocket.bind(port)
-        // this.udpSocket.on('error', (error) => {
-        //     console.error(`${new Date().toISOString()}: udpSocket error: `, error)
-        // })
-        // this.udpSocket.on('message', (message, receiveInfo) => {
-        //     if(this.isStopped) {
-        //         return
-        //     }
-        //     const udpEndpoint = new UDPEndpoint() // FIXME
-        //     messageReceivedCallback(new MessageBuffer(message, receiveInfo.size, udpEndpoint))
-        // })
+        this.attempts = new UDP_1.EndpointConnectionAttempts();
         this.delegate = delegate;
     }
+    TCPChannels.prototype.hasReachoutError = function (endpoint) {
+        if (this.isEndpointOverloaded(endpoint)) {
+            return true;
+        }
+        if (this.getChannelFor(endpoint) !== undefined) {
+            return true;
+        }
+        if (this.attempts.has(endpoint)) {
+            return true;
+        }
+        // TODO: figure out if attempts.insert is needed here
+        return false;
+    };
+    TCPChannels.prototype.getChannelFor = function (endpoint) {
+        return undefined; // FIXME
+    };
+    TCPChannels.prototype.isEndpointOverloaded = function (endpoint) {
+        return this.connectionCountFor(endpoint) >= Transport_1.default.maxPeersPerIP;
+    };
+    TCPChannels.prototype.connectionCountFor = function (endpoint) {
+        return 0; // FIXME
+    };
     TCPChannels.prototype.start = function () {
         this.startOngoingKeepalive();
     };

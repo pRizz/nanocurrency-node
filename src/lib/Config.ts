@@ -21,4 +21,12 @@ export class NetworkConstants {
         if(NetworkConstants.activeNetwork === NANONetworks.nanoBetaNetwork) { return 'beta' }
         return 'test'
     }
+
+    static isLiveNetwork(): boolean {
+        switch (NetworkConstants.activeNetwork) {
+            case NANONetworks.nanoLiveNetwork: return true
+            case NANONetworks.nanoBetaNetwork: return false
+            case NANONetworks.nanoTestNetwork: return false
+        }
+    }
 }

@@ -24,26 +24,42 @@ import MessageSigner from '../../lib/MessageSigner'
 import {Moment} from 'moment'
 import UInt512 from '../../lib/UInt512'
 import {PassThrough} from 'stream'
+import {ChannelUDP, EndpointConnectionAttempts} from './UDP'
 
 export class TCPChannels {
     private ongoingKeepaliveTimout?: Timeout
     private readonly delegate: TCPChannelsDelegate
     private readonly channels = new Set<ChannelTCP>()
+    private readonly attempts = new EndpointConnectionAttempts()
 
-    constructor(port: number, messageReceivedCallback: (message: MessageBuffer) => void, delegate: TCPChannelsDelegate) {
-        // this.udpSocket = dgram.createSocket('udp6')
-        // this.udpSocket.bind(port)
-        // this.udpSocket.on('error', (error) => {
-        //     console.error(`${new Date().toISOString()}: udpSocket error: `, error)
-        // })
-        // this.udpSocket.on('message', (message, receiveInfo) => {
-        //     if(this.isStopped) {
-        //         return
-        //     }
-        //     const udpEndpoint = new UDPEndpoint() // FIXME
-        //     messageReceivedCallback(new MessageBuffer(message, receiveInfo.size, udpEndpoint))
-        // })
+    constructor(delegate: TCPChannelsDelegate) {
         this.delegate = delegate
+    }
+
+    hasReachoutError(endpoint: Endpoint): boolean {
+        if(this.isEndpointOverloaded(endpoint)) {
+            return true
+        }
+        if(this.getChannelFor(endpoint) !== undefined) {
+            return true
+        }
+        if(this.attempts.has(endpoint)) {
+            return true
+        }
+        // TODO: figure out if attempts.insert is needed here
+        return false
+    }
+
+    private getChannelFor(endpoint: Endpoint): ChannelTCP | undefined {
+        return undefined // FIXME
+    }
+
+    private isEndpointOverloaded(endpoint: Endpoint): boolean {
+        return this.connectionCountFor(endpoint) >= Transport.maxPeersPerIP
+    }
+
+    private connectionCountFor(endpoint: Endpoint): number {
+        return 0 // FIXME
     }
 
     start() {
@@ -187,7 +203,7 @@ export interface TCPChannelsDelegate {
     isNodeValid(endpoint: TCPEndpoint, nodeID: Account, signature: Signature): boolean
     getNodeID(): Account
     hasNode(nodeID: Account): boolean
-    getPrivateKey(): UInt512
+    getPrivateKey(): UInt512 // TODO: consider using a sign method instead
     isLocalPeersAllowed(): boolean
     hasPeer(endpoint: UDPEndpoint | undefined, allowLocalPeers: boolean): boolean
 }

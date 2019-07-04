@@ -7,6 +7,12 @@ var Transport;
         return new Common_1.TCPEndpoint(endpoint.getAddress(), endpoint.getPort());
     }
     Transport.mapEndpointToTCP = mapEndpointToTCP;
+    function isReserved(ipAddress, allowLocalPeers) {
+        // TODO
+        return true;
+    }
+    Transport.isReserved = isReserved;
+    Transport.maxPeersPerIP = 10;
 })(Transport || (Transport = {}));
 exports.default = Transport;
 //# sourceMappingURL=Transport.js.map

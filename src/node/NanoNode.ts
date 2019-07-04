@@ -6,9 +6,16 @@ import BlockHash from '../lib/BlockHash'
 import Account from '../lib/Account'
 import UInt256 from '../lib/UInt256'
 import moment = require('moment')
-import {QualifiedRoot} from '../lib/Numbers'
+import {QualifiedRoot, Signature} from '../lib/Numbers'
 import {VotesCache} from './Voting'
 import {Wallets} from './Wallet'
+import {Network} from './Network'
+import {NodeConfig, NodeFlags} from './NodeConfig'
+import {UDPChannelsDelegate} from './transport/UDP'
+import {ChannelTCP, TCPChannelsDelegate} from './transport/TCP'
+import {Endpoint, IPAddress, TCPEndpoint, UDPEndpoint} from './Common'
+import {IPv6} from 'ipaddr.js'
+import UInt512 from '../lib/UInt512'
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -16,7 +23,7 @@ class BlockArrival {
     }
 }
 
-export default class NanoNode implements BlockProcessorDelegate {
+export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate {
     private readonly blockProcessor: BlockProcessor
     private readonly blockStore: BlockStoreInterface
     private readonly ledger: Ledger
@@ -24,19 +31,86 @@ export default class NanoNode implements BlockProcessorDelegate {
     private readonly votesCache = new VotesCache()
     private readonly wallets = new Wallets()
     private readonly activeTransactions = new ActiveTransactions()
+    private readonly network: Network
+    private readonly nodeConfig = new NodeConfig()
+    private readonly flags: NodeFlags
 
     readonly applicationPath: string
 
-    constructor(applicationPath: string) {
+    constructor(applicationPath: string, flags: NodeFlags = new NodeFlags()) {
         this.blockProcessor = new BlockProcessor(this)
         this.blockStore = new BlockStore()
         this.ledger = new Ledger(this.blockStore)
+        this.flags = flags
 
         this.applicationPath = applicationPath
+
+        this.network = new Network(flags.disableUDP, this.nodeConfig.peeringPort, this, this)
     }
 
     async start(): Promise<void> {
+        await this.network.start()
+        this.addInitialPeers()
+    }
 
+    private addInitialPeers() {
+        const transaction = this.blockStore.txBeginRead()
+        const peers = this.blockStore.peersFromTransaction(transaction)
+        for(const peer of peers) {
+            if(this.network.hasReachoutError(peer, this.nodeConfig.allowLocalPeers)) {
+                continue
+            }
+            // TODO: WIP
+        }
+    }
+
+    getRandomPeers(): Set<UDPEndpoint> {
+        return new Set() // FIXME
+    }
+
+    getUDPChannelCount(): number {
+        return this.network.udpChannels.getChannelCount()
+    }
+
+    bootstrapPeer(protocolVersionMin: number): TCPEndpoint {
+        // FIXME
+        return new TCPEndpoint(new IPAddress(IPv6.parse('')), 0)
+    }
+
+    startTCPReceiveNodeID(channel: ChannelTCP, endpoint: Endpoint, receiveBuffer: Buffer, callback: () => void): void {
+        // TODO
+    }
+
+    tcpSocketConnectionFailed(): void {
+        // TODO
+    }
+
+    getAccountCookieForEndpoint(endpoint: Endpoint): Account {
+        return new Account(new UInt256()) // FIXME
+    }
+
+    isNodeValid(endpoint: TCPEndpoint, nodeID: Account, signature: Signature): boolean {
+        return false // FIXME
+    }
+
+    getNodeID(): Account {
+        return new Account(new UInt256()) // FIXME
+    }
+
+    hasNode(nodeID: Account): boolean {
+        return false // FIXME
+    }
+
+    hasPeer(endpoint: UDPEndpoint | undefined, allowLocalPeers: boolean): boolean {
+        return false // FIXME
+    }
+
+    getPrivateKey(): UInt512 {
+        return new UInt512() // FIXME
+    }
+
+    isLocalPeersAllowed(): boolean {
+        return this.nodeConfig.allowLocalPeers
     }
 
     processBlock(block: Block) {
