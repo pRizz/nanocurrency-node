@@ -6,25 +6,26 @@ import Constants, {
     Message,
     MessageHeader,
     MessageType,
-    NodeIDHandshakeMessage, NodeIDHandshakeMessageResponse, ReadableMessageStream,
+    NodeIDHandshakeMessage,
+    NodeIDHandshakeMessageResponse,
+    ReadableMessageStream,
     TCPEndpoint,
     UDPEndpoint
 } from '../Common'
-import {MessageBuffer, SYNCookie, SYNCookieInfo} from '../Network'
+import {SYNCookieInfo} from '../Network'
 import {Socket, SocketConcurrency} from '../Socket'
 import Transport from './Transport'
-import Timeout = NodeJS.Timeout
-import tcpRealtimeProtocolVersionMin = Constants.tcpRealtimeProtocolVersionMin
 import Account from '../../lib/Account'
-import UInt256 from '../../lib/UInt256'
 import {Signature} from '../../lib/Numbers'
 import UInt8 from '../../lib/UInt8'
-import moment = require('moment')
 import MessageSigner from '../../lib/MessageSigner'
 import {Moment} from 'moment'
 import UInt512 from '../../lib/UInt512'
-import {PassThrough} from 'stream'
-import {ChannelUDP, EndpointConnectionAttempts} from './UDP'
+import {EndpointConnectionAttempts} from './UDP'
+import {BootstrapServer, BootstrapServerType} from '../Bootstrap'
+import moment = require('moment')
+import tcpRealtimeProtocolVersionMin = Constants.tcpRealtimeProtocolVersionMin
+import Timeout = NodeJS.Timeout
 
 export class TCPChannels {
     private ongoingKeepaliveTimout?: Timeout
@@ -101,7 +102,7 @@ export class TCPChannels {
         return new SYNCookieInfo() // FIXME
     }
 
-    private async startTCPConnection(endpoint: Endpoint): Promise<void> {
+    async startTCPConnection(endpoint: Endpoint, callback: (channel: Transport.Channel) => void): Promise<void> {
         const socket = new Socket(SocketConcurrency.multiWriter)
         const tcpChannel = new ChannelTCP(socket)
         const tcpEndpoint = Transport.mapEndpointToTCP(endpoint)
@@ -109,10 +110,10 @@ export class TCPChannels {
         const accountCookie = this.delegate.getAccountCookieForEndpoint(tcpEndpoint)
         const handshakeMessage = NodeIDHandshakeMessage.fromQuery(accountCookie.publicKey)
         await tcpChannel.sendMessage(handshakeMessage)
-        await this.startTCPReceiveNodeID(tcpChannel, tcpEndpoint)
+        await this.startTCPReceiveNodeID(tcpChannel, tcpEndpoint, callback)
     }
 
-    private async startTCPReceiveNodeID(tcpChannel: ChannelTCP, endpoint: TCPEndpoint): Promise<void> {
+    private async startTCPReceiveNodeID(tcpChannel: ChannelTCP, endpoint: TCPEndpoint, callback: (channel: Transport.Channel) => void): Promise<void> {
         const messageHeader = await tcpChannel.readMessageHeader()
         if(messageHeader.messageType !== MessageType.node_id_handshake) {
             throw new Error(`Unexpected messageType received from remote node`)
@@ -151,6 +152,17 @@ export class TCPChannels {
 
         tcpChannel.setLastPacketReceived(moment())
         this.insertChannel(tcpChannel)
+        callback(tcpChannel)
+
+        TCPChannels.listenForResponses(tcpChannel)
+    }
+
+    private static listenForResponses(channel: ChannelTCP) {
+        channel.responseServer = new BootstrapServer(channel.socket)
+        channel.responseServer.keepaliveFirst = false
+        channel.responseServer.type = BootstrapServerType.realtime_response_server
+        channel.responseServer.remoteNodeID = channel.getNodeID()
+        channel.responseServer.receive()
     }
 
     private hasChannelWithEndpoint(tcpEndpoint: TCPEndpoint | undefined): boolean {
@@ -208,14 +220,16 @@ export interface TCPChannelsDelegate {
     hasPeer(endpoint: UDPEndpoint | undefined, allowLocalPeers: boolean): boolean
 }
 
-export class ChannelTCP {
-    private readonly socket: Socket
+export class ChannelTCP extends Transport.Channel {
+    readonly socket: Socket // TODO: encapsulate
     private networkVersion?: UInt8
     private nodeID?: Account
     private lastPacketReceivedMoment?: Moment
     private tcpEndpoint?: TCPEndpoint
+    responseServer?: BootstrapServer // TODO: encapsulate
 
     constructor(socket: Socket) {
+        super()
         this.socket = socket
     }
 
@@ -225,6 +239,10 @@ export class ChannelTCP {
 
     setLastPacketReceived(moment: Moment) {
         this.lastPacketReceivedMoment = moment
+    }
+
+    getNodeID(): Account | undefined {
+        return this.nodeID
     }
 
     setNodeID(nodeID: Account) {

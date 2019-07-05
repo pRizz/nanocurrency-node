@@ -111,6 +111,9 @@ var Network = /** @class */ (function () {
         this.udpChannels = new UDP_1.UDPChannels(port, udpChannelsDelegate);
         this.tcpChannels = new TCP_1.TCPChannels(tcpChannelsDelegate);
     }
+    Network.prototype.sendKeepalive = function (channel) {
+        // TODO
+    };
     Network.prototype.start = function () {
         this.startCleanupInterval();
         this.startSynCookieCleanupInterval();

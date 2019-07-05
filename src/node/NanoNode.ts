@@ -16,6 +16,7 @@ import {ChannelTCP, TCPChannelsDelegate} from './transport/TCP'
 import {Endpoint, IPAddress, TCPEndpoint, UDPEndpoint} from './Common'
 import {IPv6} from 'ipaddr.js'
 import UInt512 from '../lib/UInt512'
+import RepCrawler from './RepCrawler'
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -34,6 +35,7 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     private readonly network: Network
     private readonly nodeConfig = new NodeConfig()
     private readonly flags: NodeFlags
+    private readonly repCrawler = new RepCrawler()
 
     readonly applicationPath: string
 
@@ -60,7 +62,10 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
             if(this.network.hasReachoutError(peer, this.nodeConfig.allowLocalPeers)) {
                 continue
             }
-            // TODO: WIP
+            this.network.tcpChannels.startTCPConnection(peer, (channel) => {
+                this.network.sendKeepalive(channel)
+                this.repCrawler.query(channel)
+            }).catch()
         }
     }
 

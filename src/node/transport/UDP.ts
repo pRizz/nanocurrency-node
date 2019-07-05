@@ -117,7 +117,7 @@ export interface UDPChannelsDelegate {
     getRandomPeers(): Set<UDPEndpoint>
 }
 
-export class ChannelUDP {
+export class ChannelUDP extends Transport.Channel {
     // FIXME: async?
     send(message: Message) {
         // FIXME

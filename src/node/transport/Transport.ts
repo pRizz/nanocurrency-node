@@ -11,6 +11,10 @@ namespace Transport {
     }
 
     export const maxPeersPerIP = 10
+
+    export abstract class Channel {
+
+    }
 }
 
 export default Transport

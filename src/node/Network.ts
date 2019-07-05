@@ -91,6 +91,10 @@ export class Network {
         this.tcpChannels = new TCPChannels(tcpChannelsDelegate)
     }
 
+    sendKeepalive(channel: Transport.Channel) {
+        // TODO
+    }
+
     start() {
         this.startCleanupInterval()
         this.startSynCookieCleanupInterval()

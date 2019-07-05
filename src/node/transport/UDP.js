@@ -1,4 +1,17 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __values = (this && this.__values) || function (o) {
     var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
     if (m) return m.call(o);
@@ -117,15 +130,17 @@ var UDPChannels = /** @class */ (function () {
     return UDPChannels;
 }());
 exports.UDPChannels = UDPChannels;
-var ChannelUDP = /** @class */ (function () {
+var ChannelUDP = /** @class */ (function (_super) {
+    __extends(ChannelUDP, _super);
     function ChannelUDP() {
+        return _super !== null && _super.apply(this, arguments) || this;
     }
     // FIXME: async?
     ChannelUDP.prototype.send = function (message) {
         // FIXME
     };
     return ChannelUDP;
-}());
+}(Transport_1.default.Channel));
 exports.ChannelUDP = ChannelUDP;
 var ChannelUDPWrapper = /** @class */ (function () {
     function ChannelUDPWrapper() {

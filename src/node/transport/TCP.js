@@ -1,4 +1,17 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -50,10 +63,11 @@ var Common_1 = require("../Common");
 var Network_1 = require("../Network");
 var Socket_1 = require("../Socket");
 var Transport_1 = require("./Transport");
-var tcpRealtimeProtocolVersionMin = Common_1.default.tcpRealtimeProtocolVersionMin;
-var moment = require("moment");
 var MessageSigner_1 = require("../../lib/MessageSigner");
 var UDP_1 = require("./UDP");
+var Bootstrap_1 = require("../Bootstrap");
+var moment = require("moment");
+var tcpRealtimeProtocolVersionMin = Common_1.default.tcpRealtimeProtocolVersionMin;
 var TCPChannels = /** @class */ (function () {
     function TCPChannels(delegate) {
         this.channels = new Set();
@@ -129,7 +143,7 @@ var TCPChannels = /** @class */ (function () {
     TCPChannels.prototype.cookieFromEndpoint = function (endpoint) {
         return new Network_1.SYNCookieInfo(); // FIXME
     };
-    TCPChannels.prototype.startTCPConnection = function (endpoint) {
+    TCPChannels.prototype.startTCPConnection = function (endpoint, callback) {
         return __awaiter(this, void 0, void 0, function () {
             var socket, tcpChannel, tcpEndpoint, accountCookie, handshakeMessage;
             return __generator(this, function (_a) {
@@ -146,7 +160,7 @@ var TCPChannels = /** @class */ (function () {
                         return [4 /*yield*/, tcpChannel.sendMessage(handshakeMessage)];
                     case 2:
                         _a.sent();
-                        return [4 /*yield*/, this.startTCPReceiveNodeID(tcpChannel, tcpEndpoint)];
+                        return [4 /*yield*/, this.startTCPReceiveNodeID(tcpChannel, tcpEndpoint, callback)];
                     case 3:
                         _a.sent();
                         return [2 /*return*/];
@@ -154,7 +168,7 @@ var TCPChannels = /** @class */ (function () {
             });
         });
     };
-    TCPChannels.prototype.startTCPReceiveNodeID = function (tcpChannel, endpoint) {
+    TCPChannels.prototype.startTCPReceiveNodeID = function (tcpChannel, endpoint, callback) {
         return __awaiter(this, void 0, void 0, function () {
             var messageHeader, handshakeMessage, nodeID, signature, response, handshakeMessageResponse;
             return __generator(this, function (_a) {
@@ -191,10 +205,19 @@ var TCPChannels = /** @class */ (function () {
                         _a.sent();
                         tcpChannel.setLastPacketReceived(moment());
                         this.insertChannel(tcpChannel);
+                        callback(tcpChannel);
+                        TCPChannels.listenForResponses(tcpChannel);
                         return [2 /*return*/];
                 }
             });
         });
+    };
+    TCPChannels.listenForResponses = function (channel) {
+        channel.responseServer = new Bootstrap_1.BootstrapServer(channel.socket);
+        channel.responseServer.keepaliveFirst = false;
+        channel.responseServer.type = Bootstrap_1.BootstrapServerType.realtime_response_server;
+        channel.responseServer.remoteNodeID = channel.getNodeID();
+        channel.responseServer.receive();
     };
     TCPChannels.prototype.hasChannelWithEndpoint = function (tcpEndpoint) {
         // TODO
@@ -228,15 +251,21 @@ var TCPChannels = /** @class */ (function () {
     return TCPChannels;
 }());
 exports.TCPChannels = TCPChannels;
-var ChannelTCP = /** @class */ (function () {
+var ChannelTCP = /** @class */ (function (_super) {
+    __extends(ChannelTCP, _super);
     function ChannelTCP(socket) {
-        this.socket = socket;
+        var _this = _super.call(this) || this;
+        _this.socket = socket;
+        return _this;
     }
     ChannelTCP.prototype.getTCPEndpoint = function () {
         return this.tcpEndpoint;
     };
     ChannelTCP.prototype.setLastPacketReceived = function (moment) {
         this.lastPacketReceivedMoment = moment;
+    };
+    ChannelTCP.prototype.getNodeID = function () {
+        return this.nodeID;
     };
     ChannelTCP.prototype.setNodeID = function (nodeID) {
         this.nodeID = nodeID;
@@ -275,6 +304,6 @@ var ChannelTCP = /** @class */ (function () {
         return this.socket.asReadableMessageStream();
     };
     return ChannelTCP;
-}());
+}(Transport_1.default.Channel));
 exports.ChannelTCP = ChannelTCP;
 //# sourceMappingURL=TCP.js.map

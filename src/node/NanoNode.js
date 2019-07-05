@@ -58,6 +58,7 @@ var NodeConfig_1 = require("./NodeConfig");
 var Common_1 = require("./Common");
 var ipaddr_js_1 = require("ipaddr.js");
 var UInt512_1 = require("../lib/UInt512");
+var RepCrawler_1 = require("./RepCrawler");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -74,6 +75,7 @@ var NanoNode = /** @class */ (function () {
         this.wallets = new Wallet_1.Wallets();
         this.activeTransactions = new ActiveTransactions();
         this.nodeConfig = new NodeConfig_1.NodeConfig();
+        this.repCrawler = new RepCrawler_1.default();
         this.blockProcessor = new BlockProcessor_1.default(this);
         this.blockStore = new BlockStore_1.BlockStore();
         this.ledger = new Ledger_1.default(this.blockStore);
@@ -96,6 +98,7 @@ var NanoNode = /** @class */ (function () {
     };
     NanoNode.prototype.addInitialPeers = function () {
         var e_1, _a;
+        var _this = this;
         var transaction = this.blockStore.txBeginRead();
         var peers = this.blockStore.peersFromTransaction(transaction);
         try {
@@ -104,7 +107,10 @@ var NanoNode = /** @class */ (function () {
                 if (this.network.hasReachoutError(peer, this.nodeConfig.allowLocalPeers)) {
                     continue;
                 }
-                // TODO: WIP
+                this.network.tcpChannels.startTCPConnection(peer, function (channel) {
+                    _this.network.sendKeepalive(channel);
+                    _this.repCrawler.query(channel);
+                }).catch();
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }

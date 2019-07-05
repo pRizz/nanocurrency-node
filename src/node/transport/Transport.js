@@ -13,6 +13,12 @@ var Transport;
     }
     Transport.isReserved = isReserved;
     Transport.maxPeersPerIP = 10;
+    var Channel = /** @class */ (function () {
+        function Channel() {
+        }
+        return Channel;
+    }());
+    Transport.Channel = Channel;
 })(Transport || (Transport = {}));
 exports.default = Transport;
 //# sourceMappingURL=Transport.js.map
