@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var Config_1 = require("../lib/Config");
+var DiagnosticsConfig_1 = require("./DiagnosticsConfig");
+var moment = require("moment");
 var NodeFlags = /** @class */ (function () {
     function NodeFlags() {
         this.disableBackup = false;
@@ -26,6 +28,9 @@ var NodeConfig = /** @class */ (function () {
     function NodeConfig() {
         this.allowLocalPeers = !Config_1.NetworkConstants.isLiveNetwork();
         this.peeringPort = 0;
+        this.maxDBs = 128;
+        this.diagnosticsConfig = new DiagnosticsConfig_1.DiagnosticsConfig();
+        this.blockProcessorBatchMaxTime = moment.duration('5000', 'ms');
     }
     return NodeConfig;
 }());

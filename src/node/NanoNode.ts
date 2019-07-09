@@ -1,5 +1,5 @@
 import BlockProcessor, {BlockProcessorDelegate} from "./BlockProcessor";
-import {BlockStore, BlockStoreInterface, ReadTransaction, Transaction, WriteTransaction} from "../secure/BlockStore";
+import {BlockStoreInterface, ReadTransaction, Transaction, WriteTransaction} from "../secure/BlockStore";
 import Ledger from "../secure/Ledger";
 import Block, {BlockType} from '../lib/Block'
 import BlockHash from '../lib/BlockHash'
@@ -17,6 +17,8 @@ import {Endpoint, IPAddress, TCPEndpoint, UDPEndpoint} from './Common'
 import {IPv6} from 'ipaddr.js'
 import UInt512 from '../lib/UInt512'
 import RepCrawler from './RepCrawler'
+import {MDBStore} from './LMDB'
+import * as path from 'path'
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -26,24 +28,32 @@ class BlockArrival {
 
 export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate {
     private readonly blockProcessor: BlockProcessor
-    private readonly blockStore: BlockStoreInterface
     private readonly ledger: Ledger
     private readonly blockArrival = new BlockArrival()
     private readonly votesCache = new VotesCache()
     private readonly wallets = new Wallets()
     private readonly activeTransactions = new ActiveTransactions()
     private readonly network: Network
-    private readonly nodeConfig = new NodeConfig()
-    private readonly flags: NodeFlags
     private readonly repCrawler = new RepCrawler()
 
-    readonly applicationPath: string
+    static async create(applicationPath: string, flags: NodeFlags = new NodeFlags(), nodeConfig: NodeConfig): Promise<NanoNode> {
+        const blockStore = await MDBStore.create(
+            path.join(applicationPath, 'data.ldb'),
+            nodeConfig.maxDBs,
+            nodeConfig.diagnosticsConfig.txnTrackingConfig,
+            nodeConfig.blockProcessorBatchMaxTime
+        )
+        return new NanoNode(applicationPath, flags, blockStore, nodeConfig)
+    }
 
-    constructor(applicationPath: string, flags: NodeFlags = new NodeFlags()) {
+    private constructor(
+        readonly applicationPath: string,
+        private readonly flags: NodeFlags = new NodeFlags(),
+        private readonly blockStore: BlockStoreInterface,
+        private readonly nodeConfig: NodeConfig
+    ) {
         this.blockProcessor = new BlockProcessor(this)
-        this.blockStore = new BlockStore()
         this.ledger = new Ledger(this.blockStore)
-        this.flags = flags
 
         this.applicationPath = applicationPath
 

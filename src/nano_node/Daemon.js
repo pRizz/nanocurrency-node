@@ -68,11 +68,13 @@ var Daemon;
                     case 1:
                         _a.sent();
                         daemonConfig = new DaemonConfig_1.DaemonConfig(dataPath);
-                        node = new NanoNode_1.default(daemonConfig.dataPath);
+                        return [4 /*yield*/, NanoNode_1.default.create(daemonConfig.dataPath, nodeFlags, daemonConfig.nodeConfig)];
+                    case 2:
+                        node = _a.sent();
                         debug("Network: " + Config_1.NetworkConstants.activeNetworkToString() + ", version: " + Common_1.default.getVersion());
                         debug("Path: " + node.applicationPath);
                         return [4 /*yield*/, node.start()];
-                    case 2:
+                    case 3:
                         _a.sent();
                         ipcServer = new IPC_1.default(true, true) // FIXME
                         ;

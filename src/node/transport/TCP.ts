@@ -91,7 +91,7 @@ export class TCPChannels {
             if(this.hasChannel(tcpEndpoint)) {
                 continue
             }
-            this.startTCPConnection(tcpEndpoint).catch((error) => {
+            this.startTCPConnection(tcpEndpoint, () => {}).catch((error) => {
                 console.error(`${new Date().toISOString()}: an error occurred while starting a TCP connection, ${error}`)
             })
         }

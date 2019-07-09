@@ -44,8 +44,8 @@ var SocketConcurrency;
 })(SocketConcurrency = exports.SocketConcurrency || (exports.SocketConcurrency = {}));
 var Socket = /** @class */ (function () {
     function Socket(concurrency) {
-        this.isClosed = false;
         this.concurrency = concurrency;
+        this.isClosed = false;
         this.tcpSocket = new net_1.Socket().setKeepAlive(true).pause();
     }
     Socket.prototype.serialize = function (serializable) {

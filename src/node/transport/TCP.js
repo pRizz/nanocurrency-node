@@ -134,7 +134,7 @@ var TCPChannels = /** @class */ (function () {
             if (this.hasChannel(tcpEndpoint)) {
                 continue;
             }
-            this.startTCPConnection(tcpEndpoint).catch(function (error) {
+            this.startTCPConnection(tcpEndpoint, function () { }).catch(function (error) {
                 console.error(new Date().toISOString() + ": an error occurred while starting a TCP connection, " + error);
             });
         }

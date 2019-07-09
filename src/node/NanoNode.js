@@ -46,7 +46,6 @@ var __values = (this && this.__values) || function (o) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var BlockProcessor_1 = require("./BlockProcessor");
-var BlockStore_1 = require("../secure/BlockStore");
 var Ledger_1 = require("../secure/Ledger");
 var Account_1 = require("../lib/Account");
 var UInt256_1 = require("../lib/UInt256");
@@ -59,6 +58,8 @@ var Common_1 = require("./Common");
 var ipaddr_js_1 = require("ipaddr.js");
 var UInt512_1 = require("../lib/UInt512");
 var RepCrawler_1 = require("./RepCrawler");
+var LMDB_1 = require("./LMDB");
+var path = require("path");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -68,21 +69,36 @@ var BlockArrival = /** @class */ (function () {
     return BlockArrival;
 }());
 var NanoNode = /** @class */ (function () {
-    function NanoNode(applicationPath, flags) {
+    function NanoNode(applicationPath, flags, blockStore, nodeConfig) {
         if (flags === void 0) { flags = new NodeConfig_1.NodeFlags(); }
+        this.applicationPath = applicationPath;
+        this.flags = flags;
+        this.blockStore = blockStore;
+        this.nodeConfig = nodeConfig;
         this.blockArrival = new BlockArrival();
         this.votesCache = new Voting_1.VotesCache();
         this.wallets = new Wallet_1.Wallets();
         this.activeTransactions = new ActiveTransactions();
-        this.nodeConfig = new NodeConfig_1.NodeConfig();
         this.repCrawler = new RepCrawler_1.default();
         this.blockProcessor = new BlockProcessor_1.default(this);
-        this.blockStore = new BlockStore_1.BlockStore();
         this.ledger = new Ledger_1.default(this.blockStore);
-        this.flags = flags;
         this.applicationPath = applicationPath;
         this.network = new Network_1.Network(flags.disableUDP, this.nodeConfig.peeringPort, this, this);
     }
+    NanoNode.create = function (applicationPath, flags, nodeConfig) {
+        if (flags === void 0) { flags = new NodeConfig_1.NodeFlags(); }
+        return __awaiter(this, void 0, void 0, function () {
+            var blockStore;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, LMDB_1.MDBStore.create(path.join(applicationPath, 'data.ldb'), nodeConfig.maxDBs, nodeConfig.diagnosticsConfig.txnTrackingConfig, nodeConfig.blockProcessorBatchMaxTime)];
+                    case 1:
+                        blockStore = _a.sent();
+                        return [2 /*return*/, new NanoNode(applicationPath, flags, blockStore, nodeConfig)];
+                }
+            });
+        });
+    };
     NanoNode.prototype.start = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {

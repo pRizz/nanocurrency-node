@@ -1,4 +1,6 @@
 import {NetworkConstants} from '../lib/Config'
+import {DiagnosticsConfig} from './DiagnosticsConfig'
+import * as moment from 'moment'
 
 export class NodeFlags {
     disableBackup = false
@@ -19,6 +21,9 @@ export class NodeFlags {
 }
 
 export class NodeConfig {
-    allowLocalPeers = !NetworkConstants.isLiveNetwork()
-    peeringPort = 0
+    readonly allowLocalPeers = !NetworkConstants.isLiveNetwork()
+    readonly peeringPort = 0
+    readonly maxDBs = 128
+    readonly diagnosticsConfig: DiagnosticsConfig = new DiagnosticsConfig()
+    readonly blockProcessorBatchMaxTime = moment.duration('5000', 'ms')
 }

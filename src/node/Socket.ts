@@ -13,13 +13,11 @@ export interface Serializable {
 }
 
 export class Socket {
-    readonly concurrency: SocketConcurrency
     private readonly tcpSocket: NetSocket
     private remoteEndpoint: Endpoint
     private isClosed = false
 
-    constructor(concurrency: SocketConcurrency) {
-        this.concurrency = concurrency
+    constructor(readonly concurrency: SocketConcurrency) {
         this.tcpSocket = new NetSocket().setKeepAlive(true).pause()
     }
 

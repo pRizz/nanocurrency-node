@@ -1,7 +1,11 @@
-export class DaemonConfig {
-    readonly dataPath: string
+import {NodeConfig} from './NodeConfig'
 
-    constructor(dataPath: string) {
-        this.dataPath = dataPath
+export class DaemonConfig {
+    readonly nodeConfig: NodeConfig
+
+    constructor(
+        readonly dataPath: string
+    ) {
+        this.nodeConfig = new NodeConfig()
     }
 }

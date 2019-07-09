@@ -1,23 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var BlockStore = /** @class */ (function () {
-    function BlockStore() {
+var ReadTransaction = /** @class */ (function () {
+    function ReadTransaction(readTransactionImpl) {
+        this.readTransactionImpl = readTransactionImpl;
     }
-    //TODO: implement
-    BlockStore.prototype.txBeginRead = function () {
-        return {};
+    ReadTransaction.prototype.getHandle = function () {
+        // TODO
     };
-    BlockStore.prototype.txBeginWrite = function () {
-        return {}; // FIXME
-    };
-    //TODO: implement
-    BlockStore.prototype.doesBlockExist = function (transaction, blockType, blockHash) {
-        return false;
-    };
-    BlockStore.prototype.peersFromTransaction = function (transaction) {
-        return []; // FIXME
-    };
-    return BlockStore;
+    return ReadTransaction;
 }());
-exports.BlockStore = BlockStore;
+exports.ReadTransaction = ReadTransaction;
+var WriteTransaction = /** @class */ (function () {
+    function WriteTransaction(writeTransactionImpl) {
+        this.writeTransactionImpl = writeTransactionImpl;
+    }
+    WriteTransaction.prototype.getHandle = function () {
+        // TODO
+    };
+    return WriteTransaction;
+}());
+exports.WriteTransaction = WriteTransaction;
 //# sourceMappingURL=BlockStore.js.map
