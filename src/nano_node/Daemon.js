@@ -56,7 +56,7 @@ function startRPCServer() {
 }
 var Daemon;
 (function (Daemon) {
-    function start(dataPath, nodeFlags, isRPCEnabled) {
+    function run(dataPath, nodeFlags, isRPCEnabled) {
         return __awaiter(this, void 0, void 0, function () {
             var daemonConfig, node, ipcServer;
             return __generator(this, function (_a) {
@@ -86,7 +86,7 @@ var Daemon;
             });
         });
     }
-    Daemon.start = start;
+    Daemon.run = run;
 })(Daemon || (Daemon = {}));
 exports.default = Daemon;
 //# sourceMappingURL=Daemon.js.map

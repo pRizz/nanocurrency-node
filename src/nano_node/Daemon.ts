@@ -19,7 +19,7 @@ function startRPCServer() {
 }
 
 namespace Daemon {
-    export async function start(dataPath: string, nodeFlags: NodeFlags, isRPCEnabled: boolean): Promise<void> {
+    export async function run(dataPath: string, nodeFlags: NodeFlags, isRPCEnabled: boolean): Promise<void> {
         await fs.mkdir(dataPath, {
             recursive: true,
             mode: 0o700
