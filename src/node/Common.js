@@ -34,6 +34,26 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __read = (this && this.__read) || function (o, n) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator];
+    if (!m) return o;
+    var i = m.call(o), r, ar = [], e;
+    try {
+        while ((n === void 0 || n-- > 0) && !(r = i.next()).done) ar.push(r.value);
+    }
+    catch (error) { e = { error: error }; }
+    finally {
+        try {
+            if (r && !r.done && (m = i["return"])) m.call(i);
+        }
+        finally { if (e) throw e.error; }
+    }
+    return ar;
+};
+var __spread = (this && this.__spread) || function () {
+    for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
+    return ar;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var Common_1 = require("../secure/Common");
 var UInt8_1 = require("../lib/UInt8");
@@ -43,6 +63,7 @@ var Account_1 = require("../lib/Account");
 var UInt512_1 = require("../lib/UInt512");
 var Numbers_1 = require("../lib/Numbers");
 var stream_1 = require("stream");
+var ipaddr = require("ipaddr.js");
 var IPAddress = /** @class */ (function () {
     function IPAddress(ipValue) {
         this.value = ipValue;
@@ -67,6 +88,14 @@ var UDPEndpoint = /** @class */ (function () {
         this.address = address;
         this.port = port;
     }
+    UDPEndpoint.fromDB = function (dbBuffer) {
+        var ipBytes = dbBuffer.slice(0, 16);
+        var portBytes = dbBuffer.slice(16, 18);
+        var ipv6 = new ipaddr.IPv6(__spread(ipBytes));
+        var port = portBytes.readUInt16BE(0);
+        var ipAddress = new IPAddress(ipv6);
+        return new UDPEndpoint(ipAddress, port);
+    };
     UDPEndpoint.prototype.getAddress = function () {
         return this.address;
     };
@@ -75,6 +104,15 @@ var UDPEndpoint = /** @class */ (function () {
     };
     UDPEndpoint.prototype.equals = function (other) {
         return this.address.equals(other.getAddress()) && this.port === other.getPort();
+    };
+    UDPEndpoint.prototype.toDBBuffer = function () {
+        var ipBuffer = Buffer.from(this.address.value.toByteArray());
+        var portBuffer = Buffer.alloc(2);
+        portBuffer.writeUInt16BE(this.port, 0);
+        return Buffer.from(__spread(ipBuffer, portBuffer));
+    };
+    UDPEndpoint.prototype.asTCPEndpoint = function () {
+        return new TCPEndpoint(this.address, this.port);
     };
     return UDPEndpoint;
 }());
@@ -92,6 +130,9 @@ var TCPEndpoint = /** @class */ (function () {
     };
     TCPEndpoint.prototype.equals = function (other) {
         return this.address.equals(other.getAddress()) && this.port === other.getPort();
+    };
+    TCPEndpoint.prototype.asUDPEndpoint = function () {
+        return new UDPEndpoint(this.address, this.port);
     };
     return TCPEndpoint;
 }());

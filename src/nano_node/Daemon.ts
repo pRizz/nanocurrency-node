@@ -26,6 +26,8 @@ namespace Daemon {
         })
 
         const daemonConfig = new DaemonConfig(dataPath)
+        await readAndUpdateDaemonConfig(dataPath, daemonConfig)
+
         const node = await NanoNode.create(daemonConfig.dataPath, nodeFlags, daemonConfig.nodeConfig)
         debug(`Network: ${NetworkConstants.activeNetworkToString()}, version: ${Constants.getVersion()}`)
         debug(`Path: ${node.applicationPath}`)

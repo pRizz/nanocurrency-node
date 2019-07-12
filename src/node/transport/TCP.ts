@@ -150,7 +150,7 @@ export class TCPChannels {
 
         await tcpChannel.sendMessage(handshakeMessageResponse)
 
-        tcpChannel.setLastPacketReceived(moment())
+        tcpChannel.setLastPacketSent(moment())
         this.insertChannel(tcpChannel)
         callback(tcpChannel)
 
@@ -171,11 +171,16 @@ export class TCPChannels {
     }
 
     private insertChannel(tcpChannel: ChannelTCP): boolean {
-        if(!this.delegate.hasPeer(tcpChannel.getTCPEndpoint(), this.delegate.isLocalPeersAllowed())) {
+        const tcpEndpoint = tcpChannel.getTCPEndpoint()
+        if(!tcpEndpoint) {
+            return false
+        }
+
+        if(!this.delegate.hasPeer(tcpEndpoint.asUDPEndpoint(), this.delegate.isLocalPeersAllowed())) {
             return true
         }
 
-        if(this.hasChannelWithEndpoint(tcpChannel.getTCPEndpoint())) {
+        if(this.hasChannelWithEndpoint(tcpEndpoint)) {
             return true
         }
 
@@ -225,6 +230,7 @@ export class ChannelTCP extends Transport.Channel {
     private networkVersion?: UInt8
     private nodeID?: Account
     private lastPacketReceivedMoment?: Moment
+    private lastPacketSentMoment?: Moment
     private tcpEndpoint?: TCPEndpoint
     responseServer?: BootstrapServer // TODO: encapsulate
 
@@ -239,6 +245,10 @@ export class ChannelTCP extends Transport.Channel {
 
     setLastPacketReceived(moment: Moment) {
         this.lastPacketReceivedMoment = moment
+    }
+
+    setLastPacketSent(moment: Moment) {
+        this.lastPacketSentMoment = moment
     }
 
     getNodeID(): Account | undefined {

@@ -44,6 +44,18 @@ export class UDPEndpoint implements Endpoint {
     readonly address: IPAddress
     readonly port: number
 
+    static fromDB(dbBuffer: Buffer): UDPEndpoint {
+        const ipBytes = dbBuffer.slice(0, 16)
+        const portBytes = dbBuffer.slice(16, 18)
+
+        const ipv6 = new ipaddr.IPv6([...ipBytes])
+        const port = portBytes.readUInt16BE(0)
+
+        const ipAddress = new IPAddress(ipv6)
+
+        return new UDPEndpoint(ipAddress, port)
+    }
+
     constructor(address: IPAddress, port: number) {
         this.address = address
         this.port = port
@@ -59,6 +71,17 @@ export class UDPEndpoint implements Endpoint {
 
     equals(other: Endpoint): boolean {
         return this.address.equals(other.getAddress()) && this.port === other.getPort()
+    }
+
+    toDBBuffer(): Buffer {
+        const ipBuffer = Buffer.from(this.address.value.toByteArray())
+        const portBuffer = Buffer.alloc(2)
+        portBuffer.writeUInt16BE(this.port, 0)
+        return Buffer.from([...ipBuffer, ...portBuffer])
+    }
+
+    asTCPEndpoint(): TCPEndpoint {
+        return new TCPEndpoint(this.address, this.port)
     }
 }
 
@@ -80,6 +103,10 @@ export class TCPEndpoint implements Endpoint {
 
     equals(other: Endpoint): boolean {
         return this.address.equals(other.getAddress()) && this.port === other.getPort()
+    }
+
+    asUDPEndpoint(): UDPEndpoint {
+        return new UDPEndpoint(this.address, this.port)
     }
 }
 

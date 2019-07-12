@@ -5,6 +5,7 @@ var DaemonConfig = /** @class */ (function () {
     function DaemonConfig(dataPath) {
         this.dataPath = dataPath;
         this.nodeConfig = new NodeConfig_1.NodeConfig();
+        // FIXME
     }
     return DaemonConfig;
 }());

@@ -38,6 +38,7 @@ var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert = require("assert");
 var Common_1 = require("../src/node/Common");
+var ipaddr = require("ipaddr.js");
 describe('Common', function () {
     describe('#bufferFromSerializable()', function () {
         it('should create a buffer from a serializable', function () { return __awaiter(_this, void 0, void 0, function () {
@@ -57,6 +58,32 @@ describe('Common', function () {
                         assert(inputBuffer.equals(outputBuffer));
                         return [2 /*return*/];
                 }
+            });
+        }); });
+    });
+    describe('UDPEndpoint#toDBBuffer()', function () {
+        it('should create a DB buffer from a UDPEndpoint', function () { return __awaiter(_this, void 0, void 0, function () {
+            var ipv6, ip, udpEndpoint, udpDBBuffer;
+            return __generator(this, function (_a) {
+                ipv6 = ipaddr.IPv6.parse('1::1');
+                ip = new Common_1.IPAddress(ipv6);
+                udpEndpoint = new Common_1.UDPEndpoint(ip, 10);
+                udpDBBuffer = udpEndpoint.toDBBuffer();
+                assert(Buffer.from('00010000000000000000000000000001000a', 'hex').equals(udpDBBuffer));
+                return [2 /*return*/];
+            });
+        }); });
+    });
+    describe('UDPEndpoint#fromDB()', function () {
+        it('should create a UDPEndpoint from a DB buffer', function () { return __awaiter(_this, void 0, void 0, function () {
+            var udpEndpoint, ipv6, ip, expectedUDPEndpoint;
+            return __generator(this, function (_a) {
+                udpEndpoint = Common_1.UDPEndpoint.fromDB(Buffer.from('00ff00000000000000000000000000ab0019', 'hex'));
+                ipv6 = ipaddr.IPv6.parse('ff::ab');
+                ip = new Common_1.IPAddress(ipv6);
+                expectedUDPEndpoint = new Common_1.UDPEndpoint(ip, 25);
+                assert(udpEndpoint.equals(expectedUDPEndpoint));
+                return [2 /*return*/];
             });
         }); });
     });

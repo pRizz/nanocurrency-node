@@ -7,5 +7,6 @@ export class DaemonConfig {
         readonly dataPath: string
     ) {
         this.nodeConfig = new NodeConfig()
+        // FIXME
     }
 }

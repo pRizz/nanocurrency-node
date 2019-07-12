@@ -203,7 +203,7 @@ var TCPChannels = /** @class */ (function () {
                         return [4 /*yield*/, tcpChannel.sendMessage(handshakeMessageResponse)];
                     case 3:
                         _a.sent();
-                        tcpChannel.setLastPacketReceived(moment());
+                        tcpChannel.setLastPacketSent(moment());
                         this.insertChannel(tcpChannel);
                         callback(tcpChannel);
                         TCPChannels.listenForResponses(tcpChannel);
@@ -224,10 +224,14 @@ var TCPChannels = /** @class */ (function () {
         return false;
     };
     TCPChannels.prototype.insertChannel = function (tcpChannel) {
-        if (!this.delegate.hasPeer(tcpChannel.getTCPEndpoint(), this.delegate.isLocalPeersAllowed())) {
+        var tcpEndpoint = tcpChannel.getTCPEndpoint();
+        if (!tcpEndpoint) {
+            return false;
+        }
+        if (!this.delegate.hasPeer(tcpEndpoint.asUDPEndpoint(), this.delegate.isLocalPeersAllowed())) {
             return true;
         }
-        if (this.hasChannelWithEndpoint(tcpChannel.getTCPEndpoint())) {
+        if (this.hasChannelWithEndpoint(tcpEndpoint)) {
             return true;
         }
         this.channels.add(tcpChannel);
@@ -263,6 +267,9 @@ var ChannelTCP = /** @class */ (function (_super) {
     };
     ChannelTCP.prototype.setLastPacketReceived = function (moment) {
         this.lastPacketReceivedMoment = moment;
+    };
+    ChannelTCP.prototype.setLastPacketSent = function (moment) {
+        this.lastPacketSentMoment = moment;
     };
     ChannelTCP.prototype.getNodeID = function () {
         return this.nodeID;

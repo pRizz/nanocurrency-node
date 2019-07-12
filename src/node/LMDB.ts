@@ -7,7 +7,7 @@ import {
 } from '../secure/BlockStore'
 import {BlockType} from '../lib/Block'
 import BlockHash from '../lib/BlockHash'
-import {Endpoint} from './Common'
+import {Endpoint, UDPEndpoint} from './Common'
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import {Duration} from 'moment'
@@ -106,6 +106,7 @@ class MDBTXNCallbacks {
 
 export class MDBStore implements BlockStoreInterface {
     private readonly mdbTXNTracker: MDBTXNTracker
+    private peersDB: any
 
     static async create(
         dbPath: string,
@@ -133,7 +134,15 @@ export class MDBStore implements BlockStoreInterface {
     }
 
     peersFromTransaction(transaction: ReadTransaction): Array<Endpoint> {
-        return [] // FIXME
+        const cursor = new lmdb.Cursor(transaction, this.peersDB)
+        const peers = new Array<Endpoint>()
+
+        for(let key = cursor.goToFirst(); key !== null; key = cursor.goToNext()) {
+            const udpEndpointBuffer: Buffer = cursor.getCurrentBinary()
+            peers.push(UDPEndpoint.fromDB(udpEndpointBuffer))
+        }
+
+        return peers
     }
 
     txBeginRead(): ReadTransaction {
@@ -157,5 +166,32 @@ export class MDBStore implements BlockStoreInterface {
 
     txBeginWrite(): WriteTransaction {
         return this.mdbEnv.txBeginWrite(this.createTxnCallbacks())
+    }
+}
+
+export interface MDBValue {
+    getDBSize(): number
+    asBuffer(): Buffer
+}
+
+class MDBVal<MDBValueType extends MDBValue> implements MDBValue {
+    private rawMDBValue: any
+
+    constructor(private value: MDBValueType) {}
+
+    getRawMDBValue(): any {
+        return this.rawMDBValue
+    }
+
+    getValue(): MDBValueType {
+        return this.value
+    }
+
+    asBuffer(): Buffer {
+        return this.value.asBuffer()
+    }
+
+    getDBSize(): number {
+        return this.value.getDBSize()
     }
 }

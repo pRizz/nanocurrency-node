@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var BlockStore_1 = require("../secure/BlockStore");
+var Common_1 = require("./Common");
 var path = require("path");
 var fs_1 = require("fs");
 var DiagnosticsConfig_1 = require("./DiagnosticsConfig");
@@ -168,7 +169,13 @@ var MDBStore = /** @class */ (function () {
         return false; // FIXME
     };
     MDBStore.prototype.peersFromTransaction = function (transaction) {
-        return []; // FIXME
+        var cursor = new lmdb.Cursor(transaction, this.peersDB);
+        var peers = new Array();
+        for (var key = cursor.goToFirst(); key !== null; key = cursor.goToNext()) {
+            var udpEndpointBuffer = cursor.getCurrentBinary();
+            peers.push(Common_1.UDPEndpoint.fromDB(udpEndpointBuffer));
+        }
+        return peers;
     };
     MDBStore.prototype.txBeginRead = function () {
         return this.mdbEnv.txBeginRead(this.createTxnCallbacks());
@@ -190,4 +197,22 @@ var MDBStore = /** @class */ (function () {
     return MDBStore;
 }());
 exports.MDBStore = MDBStore;
+var MDBVal = /** @class */ (function () {
+    function MDBVal(value) {
+        this.value = value;
+    }
+    MDBVal.prototype.getRawMDBValue = function () {
+        return this.rawMDBValue;
+    };
+    MDBVal.prototype.getValue = function () {
+        return this.value;
+    };
+    MDBVal.prototype.asBuffer = function () {
+        return this.value.asBuffer();
+    };
+    MDBVal.prototype.getDBSize = function () {
+        return this.value.getDBSize();
+    };
+    return MDBVal;
+}());
 //# sourceMappingURL=LMDB.js.map
