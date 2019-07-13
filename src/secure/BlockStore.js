@@ -7,6 +7,9 @@ var ReadTransaction = /** @class */ (function () {
     ReadTransaction.prototype.getHandle = function () {
         // TODO
     };
+    ReadTransaction.prototype.finalize = function () {
+        // TODO
+    };
     return ReadTransaction;
 }());
 exports.ReadTransaction = ReadTransaction;
@@ -15,6 +18,9 @@ var WriteTransaction = /** @class */ (function () {
         this.writeTransactionImpl = writeTransactionImpl;
     }
     WriteTransaction.prototype.getHandle = function () {
+        // TODO
+    };
+    WriteTransaction.prototype.finalize = function () {
         // TODO
     };
     return WriteTransaction;

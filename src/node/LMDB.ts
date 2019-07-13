@@ -14,6 +14,7 @@ import {Duration} from 'moment'
 import {TXNTrackingConfig} from './DiagnosticsConfig'
 import {MDBTXNTracker} from './LMDBTXNTracker'
 import * as moment from 'moment'
+import UInt256 from '../lib/UInt256'
 const lmdb = require('node-lmdb')
 
 export class MDBEnv {
@@ -180,36 +181,120 @@ export class MDBIterator<DBKey extends MDBValueInterface, SomeMDBValue extends M
 }
 
 export class MDBStore implements BlockStoreInterface {
+    private static readonly version = 14
+
     private readonly mdbTXNTracker: MDBTXNTracker
     private peersDB: any
+    private metaDB: any
+    private uncheckedInfoDB: any
 
     static async create(
         dbPath: string,
         maxDBs: number = 128,
         txnTrackingConfig: TXNTrackingConfig = new TXNTrackingConfig(),
-        blockProcessorBatchMaxDuration: Duration = moment.duration('5000', 'ms')
+        blockProcessorBatchMaxDuration: Duration = moment.duration('5000', 'ms'),
+        batchSize: number = 512,
+        shouldDropUnchecked: boolean = false
     ): Promise<MDBStore> {
         const mdbEnv = await MDBEnv.create(dbPath, maxDBs)
-        return new MDBStore(mdbEnv, txnTrackingConfig.isEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration)
+        return new MDBStore(mdbEnv, txnTrackingConfig.isEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration, batchSize, shouldDropUnchecked)
     }
 
     private constructor(
         private readonly mdbEnv: MDBEnv,
         private readonly txnTrackingEnabled: boolean,
         txnTrackingConfig: TXNTrackingConfig,
-        blockProcessorBatchMaxDuration: Duration
+        blockProcessorBatchMaxDuration: Duration,
+        batchSize: number,
+        shouldDropUnchecked: boolean
     ) {
         this.mdbTXNTracker = new MDBTXNTracker(txnTrackingConfig, blockProcessorBatchMaxDuration)
-        let isFullyUpgraded = false
 
-        // TODO
-        this.openDBs() // FIXME
+        if(this.isFullyUpgraded()) {
+            this.openDBs(false)
+        } else {
+            this.openDBs(true)
+            const transaction = this.txBeginWrite()
+            this.doUpgrades(transaction, batchSize)
+            transaction.finalize()
+        }
+
+        if(shouldDropUnchecked) {
+            this.clearUnchecked()
+        }
     }
 
-    private openDBs() {
+    private clearUnchecked() {
+        this.uncheckedInfoDB.drop()
+    }
+
+    private doUpgrades(writeTransaction: WriteTransaction, batchSize: number) {
+        const version = this.versionGet(writeTransaction)
+
+        switch (version) {
+            // @ts-ignore
+            case 1:
+                this.upgradeV1ToV2(writeTransaction)
+                /* fall through */
+            // @ts-ignore
+            case 2:
+                this.upgradeV2ToV3(writeTransaction)
+                /* fall through */
+            // TODO: all cases
+            case 14:
+                break
+            default:
+                console.error(`Invalid db version during upgrade: ${version}`)
+        }
+    }
+
+    private upgradeV1ToV2(transaction: Transaction) {
+        // TODO
+    }
+
+    private upgradeV2ToV3(transaction: Transaction) {
+        // TODO
+    }
+
+    private isFullyUpgraded(): boolean {
+        let result = false
+        const transaction = this.txBeginRead()
+        try {
+            this.metaDB = this.mdbEnv.lmdbEnvironment.openDBi({
+                name: 'meta',
+                create: true,
+                keyIsBuffer: true
+            })
+            result = this.versionGet(transaction) === MDBStore.version
+            this.metaDB.close()
+        } catch (e) {
+            console.error(`An error occurred while checking db version`)
+        }
+        transaction.finalize()
+        return result
+    }
+
+    private versionGet(transaction: Transaction): number {
+        const versionKey = new UInt256({
+            hex: `0000000000000000000000000000000000000000000000000000000000000001`
+        })
+
+        const resultData: Buffer | null = transaction.getHandle().getBinary(this.metaDB, versionKey.asBuffer())
+
+        let result = 1
+        if(resultData !== null) {
+            const resultUInt256 = new UInt256({ buffer: resultData })
+            result = resultUInt256.asBuffer().readUInt32BE(28) // get last 4 bytes of 32 bytes
+        }
+
+        return result
+    }
+
+    // throws
+    private openDBs(shouldCreate: boolean) {
         this.peersDB = this.mdbEnv.lmdbEnvironment.openDBi({
             name: 'peers',
-            create: true,
+            create: shouldCreate,
             keyIsBuffer: true
         })
     }

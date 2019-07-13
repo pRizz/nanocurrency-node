@@ -5,6 +5,7 @@ import {MDBValueInterface} from '../node/LMDB'
 
 export interface Transaction {
     getHandle(): any
+    finalize(): void // maps to C++ destructor; must call when done with transaction; workaround for not having a destructor
 }
 
 export class ReadTransaction implements Transaction {
@@ -15,6 +16,10 @@ export class ReadTransaction implements Transaction {
     getHandle(): any {
         // TODO
     }
+
+    finalize(): void {
+        // TODO
+    }
 }
 
 export class WriteTransaction implements Transaction {
@@ -23,6 +28,10 @@ export class WriteTransaction implements Transaction {
     ) {}
 
     getHandle(): any {
+        // TODO
+    }
+
+    finalize(): void {
         // TODO
     }
 }

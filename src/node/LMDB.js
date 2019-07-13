@@ -42,6 +42,7 @@ var fs_1 = require("fs");
 var DiagnosticsConfig_1 = require("./DiagnosticsConfig");
 var LMDBTXNTracker_1 = require("./LMDBTXNTracker");
 var moment = require("moment");
+var UInt256_1 = require("../lib/UInt256");
 var lmdb = require('node-lmdb');
 var MDBEnv = /** @class */ (function () {
     function MDBEnv(lmdbEnvironment) {
@@ -202,18 +203,29 @@ var MDBIterator = /** @class */ (function () {
 }());
 exports.MDBIterator = MDBIterator;
 var MDBStore = /** @class */ (function () {
-    function MDBStore(mdbEnv, txnTrackingEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration) {
+    function MDBStore(mdbEnv, txnTrackingEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration, batchSize, shouldDropUnchecked) {
         this.mdbEnv = mdbEnv;
         this.txnTrackingEnabled = txnTrackingEnabled;
         this.mdbTXNTracker = new LMDBTXNTracker_1.MDBTXNTracker(txnTrackingConfig, blockProcessorBatchMaxDuration);
-        var isFullyUpgraded = false;
-        // TODO
-        this.openDBs(); // FIXME
+        if (this.isFullyUpgraded()) {
+            this.openDBs(false);
+        }
+        else {
+            this.openDBs(true);
+            var transaction = this.txBeginWrite();
+            this.doUpgrades(transaction, batchSize);
+            transaction.finalize();
+        }
+        if (shouldDropUnchecked) {
+            this.clearUnchecked();
+        }
     }
-    MDBStore.create = function (dbPath, maxDBs, txnTrackingConfig, blockProcessorBatchMaxDuration) {
+    MDBStore.create = function (dbPath, maxDBs, txnTrackingConfig, blockProcessorBatchMaxDuration, batchSize, shouldDropUnchecked) {
         if (maxDBs === void 0) { maxDBs = 128; }
         if (txnTrackingConfig === void 0) { txnTrackingConfig = new DiagnosticsConfig_1.TXNTrackingConfig(); }
         if (blockProcessorBatchMaxDuration === void 0) { blockProcessorBatchMaxDuration = moment.duration('5000', 'ms'); }
+        if (batchSize === void 0) { batchSize = 512; }
+        if (shouldDropUnchecked === void 0) { shouldDropUnchecked = false; }
         return __awaiter(this, void 0, void 0, function () {
             var mdbEnv;
             return __generator(this, function (_a) {
@@ -221,15 +233,73 @@ var MDBStore = /** @class */ (function () {
                     case 0: return [4 /*yield*/, MDBEnv.create(dbPath, maxDBs)];
                     case 1:
                         mdbEnv = _a.sent();
-                        return [2 /*return*/, new MDBStore(mdbEnv, txnTrackingConfig.isEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration)];
+                        return [2 /*return*/, new MDBStore(mdbEnv, txnTrackingConfig.isEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration, batchSize, shouldDropUnchecked)];
                 }
             });
         });
     };
-    MDBStore.prototype.openDBs = function () {
+    MDBStore.prototype.clearUnchecked = function () {
+        this.uncheckedInfoDB.drop();
+    };
+    MDBStore.prototype.doUpgrades = function (writeTransaction, batchSize) {
+        var version = this.versionGet(writeTransaction);
+        switch (version) {
+            // @ts-ignore
+            case 1:
+                this.upgradeV1ToV2(writeTransaction);
+            /* fall through */
+            // @ts-ignore
+            case 2:
+                this.upgradeV2ToV3(writeTransaction);
+            /* fall through */
+            // TODO: all cases
+            case 14:
+                break;
+            default:
+                console.error("Invalid db version during upgrade: " + version);
+        }
+    };
+    MDBStore.prototype.upgradeV1ToV2 = function (transaction) {
+        // TODO
+    };
+    MDBStore.prototype.upgradeV2ToV3 = function (transaction) {
+        // TODO
+    };
+    MDBStore.prototype.isFullyUpgraded = function () {
+        var result = false;
+        var transaction = this.txBeginRead();
+        try {
+            this.metaDB = this.mdbEnv.lmdbEnvironment.openDBi({
+                name: 'meta',
+                create: true,
+                keyIsBuffer: true
+            });
+            result = this.versionGet(transaction) === MDBStore.version;
+            this.metaDB.close();
+        }
+        catch (e) {
+            console.error("An error occurred while checking db version");
+        }
+        transaction.finalize();
+        return result;
+    };
+    MDBStore.prototype.versionGet = function (transaction) {
+        var versionKey = new UInt256_1.default({
+            hex: "0000000000000000000000000000000000000000000000000000000000000001"
+        });
+        var resultData = transaction.getHandle().getBinary(this.metaDB, versionKey.asBuffer());
+        var result = 1;
+        if (resultData !== null) {
+            var resultUInt256 = new UInt256_1.default({ buffer: resultData });
+            result = resultUInt256.asBuffer().readUInt32BE(28); // get last 4 bytes of 32 bytes
+        }
+        return result;
+    };
+    // throws
+    MDBStore.prototype.openDBs = function (shouldCreate) {
         this.peersDB = this.mdbEnv.lmdbEnvironment.openDBi({
             name: 'peers',
-            create: true,
+            create: shouldCreate,
             keyIsBuffer: true
         });
     };
@@ -269,6 +339,7 @@ var MDBStore = /** @class */ (function () {
     MDBStore.prototype.getPeersEnd = function () {
         return new MDBIterator(null, Common_1.UDPEndpoint, BlockStore_1.DBNoValue);
     };
+    MDBStore.version = 14;
     return MDBStore;
 }());
 exports.MDBStore = MDBStore;
