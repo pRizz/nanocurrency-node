@@ -92,6 +92,9 @@ var MDBEnv = /** @class */ (function () {
     MDBEnv.prototype.txBeginWrite = function (mdbTXNCallbacks) {
         return new BlockStore_1.WriteTransaction(new WriteMDBTXN(this, mdbTXNCallbacks));
     };
+    MDBEnv.prototype.getTX = function () {
+        return this.tx;
+    };
     return MDBEnv;
 }());
 exports.MDBEnv = MDBEnv;
@@ -141,6 +144,63 @@ var MDBTXNCallbacks = /** @class */ (function () {
     }
     return MDBTXNCallbacks;
 }());
+var MDBIterator = /** @class */ (function () {
+    function MDBIterator(cursor, mdbKeyValueInterfaceConstructible, mdbValueInterfaceConstructible) {
+        this.cursor = cursor;
+        this.mdbKeyValueInterfaceConstructible = mdbKeyValueInterfaceConstructible;
+        this.mdbValueInterfaceConstructible = mdbValueInterfaceConstructible;
+    }
+    MDBIterator.prototype.next = function () {
+        if (this.cursor === null) {
+            return;
+        }
+        var nextKey = this.cursor.goToNext();
+        if (nextKey === null) {
+            console.log('nextKey is null');
+            this.dbKey = undefined;
+            this.dbValue = undefined;
+            return;
+        }
+        console.log('nextKey');
+        console.log(nextKey);
+        console.log('this.cursor');
+        console.log(this.cursor);
+        this.dbKey = this.mdbKeyValueInterfaceConstructible.fromDBKeyBuffer(nextKey);
+        this.dbValue = this.mdbValueInterfaceConstructible.fromDBBuffer(this.cursor.getCurrentBinary());
+    };
+    MDBIterator.prototype.equals = function (other) {
+        return this.keysEqual(other.getCurrentKey()) && this.valuesEqual(other.getCurrentValue());
+    };
+    MDBIterator.prototype.keysEqual = function (otherKey) {
+        if (this.dbKey === undefined) {
+            return otherKey === undefined;
+        }
+        if (otherKey === undefined) {
+            return false;
+        }
+        return this.dbKey.equals(otherKey);
+    };
+    MDBIterator.prototype.valuesEqual = function (otherValue) {
+        if (this.dbValue === undefined) {
+            return otherValue === undefined;
+        }
+        if (otherValue === undefined) {
+            return false;
+        }
+        return this.dbValue.equals(otherValue);
+    };
+    MDBIterator.prototype.getCurrent = function () {
+        return [this.dbKey, this.dbValue];
+    };
+    MDBIterator.prototype.getCurrentKey = function () {
+        return this.dbKey;
+    };
+    MDBIterator.prototype.getCurrentValue = function () {
+        return this.dbValue;
+    };
+    return MDBIterator;
+}());
+exports.MDBIterator = MDBIterator;
 var MDBStore = /** @class */ (function () {
     function MDBStore(mdbEnv, txnTrackingEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration) {
         this.mdbEnv = mdbEnv;
@@ -148,6 +208,7 @@ var MDBStore = /** @class */ (function () {
         this.mdbTXNTracker = new LMDBTXNTracker_1.MDBTXNTracker(txnTrackingConfig, blockProcessorBatchMaxDuration);
         var isFullyUpgraded = false;
         // TODO
+        this.openDBs(); // FIXME
     }
     MDBStore.create = function (dbPath, maxDBs, txnTrackingConfig, blockProcessorBatchMaxDuration) {
         if (maxDBs === void 0) { maxDBs = 128; }
@@ -163,6 +224,13 @@ var MDBStore = /** @class */ (function () {
                         return [2 /*return*/, new MDBStore(mdbEnv, txnTrackingConfig.isEnabled, txnTrackingConfig, blockProcessorBatchMaxDuration)];
                 }
             });
+        });
+    };
+    MDBStore.prototype.openDBs = function () {
+        this.peersDB = this.mdbEnv.lmdbEnvironment.openDBi({
+            name: 'peers',
+            create: true,
+            keyIsBuffer: true
         });
     };
     MDBStore.prototype.doesBlockExist = function (transaction, blockType, blockHash) {
@@ -194,25 +262,36 @@ var MDBStore = /** @class */ (function () {
     MDBStore.prototype.txBeginWrite = function () {
         return this.mdbEnv.txBeginWrite(this.createTxnCallbacks());
     };
+    MDBStore.prototype.getPeersBegin = function (transaction) {
+        var cursor = new lmdb.Cursor(transaction, this.peersDB);
+        return new MDBIterator(cursor, Common_1.UDPEndpoint, BlockStore_1.DBNoValue);
+    };
+    MDBStore.prototype.getPeersEnd = function () {
+        return new MDBIterator(null, Common_1.UDPEndpoint, BlockStore_1.DBNoValue);
+    };
     return MDBStore;
 }());
 exports.MDBStore = MDBStore;
-var MDBVal = /** @class */ (function () {
-    function MDBVal(value) {
+// maps to MDBVal in C++ project
+var MDBValueWrapper = /** @class */ (function () {
+    function MDBValueWrapper(value) {
         this.value = value;
     }
-    MDBVal.prototype.getRawMDBValue = function () {
+    MDBValueWrapper.prototype.getRawMDBValue = function () {
         return this.rawMDBValue;
     };
-    MDBVal.prototype.getValue = function () {
+    MDBValueWrapper.prototype.getValue = function () {
         return this.value;
     };
-    MDBVal.prototype.asBuffer = function () {
+    MDBValueWrapper.prototype.equals = function (other) {
+        return this.value.equals(other); // TODO: audit
+    };
+    MDBValueWrapper.prototype.asBuffer = function () {
         return this.value.asBuffer();
     };
-    MDBVal.prototype.getDBSize = function () {
+    MDBValueWrapper.prototype.getDBSize = function () {
         return this.value.getDBSize();
     };
-    return MDBVal;
+    return MDBValueWrapper;
 }());
 //# sourceMappingURL=LMDB.js.map

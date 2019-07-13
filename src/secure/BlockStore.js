@@ -20,4 +20,22 @@ var WriteTransaction = /** @class */ (function () {
     return WriteTransaction;
 }());
 exports.WriteTransaction = WriteTransaction;
+var DBNoValue = /** @class */ (function () {
+    function DBNoValue() {
+    }
+    DBNoValue.fromDBBuffer = function (mdbBuffer) {
+        return new DBNoValue();
+    };
+    DBNoValue.prototype.asBuffer = function () {
+        return Buffer.alloc(0);
+    };
+    DBNoValue.prototype.getDBSize = function () {
+        return 0;
+    };
+    DBNoValue.prototype.equals = function (other) {
+        return true;
+    };
+    return DBNoValue;
+}());
+exports.DBNoValue = DBNoValue;
 //# sourceMappingURL=BlockStore.js.map

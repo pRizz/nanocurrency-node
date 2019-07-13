@@ -96,6 +96,9 @@ var UDPEndpoint = /** @class */ (function () {
         var ipAddress = new IPAddress(ipv6);
         return new UDPEndpoint(ipAddress, port);
     };
+    UDPEndpoint.fromDBKeyBuffer = function (keyBuffer) {
+        return UDPEndpoint.fromDB(keyBuffer);
+    };
     UDPEndpoint.prototype.getAddress = function () {
         return this.address;
     };
@@ -114,6 +117,12 @@ var UDPEndpoint = /** @class */ (function () {
     UDPEndpoint.prototype.asTCPEndpoint = function () {
         return new TCPEndpoint(this.address, this.port);
     };
+    UDPEndpoint.prototype.getDBSize = function () {
+        return 18; // 16 address + 2 port
+    };
+    UDPEndpoint.prototype.asBuffer = function () {
+        return this.toDBBuffer();
+    };
     return UDPEndpoint;
 }());
 exports.UDPEndpoint = UDPEndpoint;
@@ -131,8 +140,20 @@ var TCPEndpoint = /** @class */ (function () {
     TCPEndpoint.prototype.equals = function (other) {
         return this.address.equals(other.getAddress()) && this.port === other.getPort();
     };
+    TCPEndpoint.prototype.toDBBuffer = function () {
+        var ipBuffer = Buffer.from(this.address.value.toByteArray());
+        var portBuffer = Buffer.alloc(2);
+        portBuffer.writeUInt16BE(this.port, 0);
+        return Buffer.from(__spread(ipBuffer, portBuffer));
+    };
     TCPEndpoint.prototype.asUDPEndpoint = function () {
         return new UDPEndpoint(this.address, this.port);
+    };
+    TCPEndpoint.prototype.getDBSize = function () {
+        return 18; // 16 address + 2 port
+    };
+    TCPEndpoint.prototype.asBuffer = function () {
+        return this.toDBBuffer();
     };
     return TCPEndpoint;
 }());

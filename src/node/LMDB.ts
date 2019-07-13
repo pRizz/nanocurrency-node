@@ -1,13 +1,13 @@
 import {
-    BlockStoreInterface,
-    ReadTransaction, ReadTransactionImpl,
+    BlockStoreInterface, DBNoValue,
+    ReadTransaction, ReadTransactionImpl, StoreIterator,
     Transaction,
     TransactionImpl,
     WriteTransaction, WriteTransactionImpl
 } from '../secure/BlockStore'
 import {BlockType} from '../lib/Block'
 import BlockHash from '../lib/BlockHash'
-import {Endpoint, UDPEndpoint} from './Common'
+import {Endpoint, Equatable, UDPEndpoint} from './Common'
 import * as path from 'path'
 import { promises as fs } from 'fs'
 import {Duration} from 'moment'
@@ -17,6 +17,8 @@ import * as moment from 'moment'
 const lmdb = require('node-lmdb')
 
 export class MDBEnv {
+    private tx: any | undefined
+
     static async create(dbPath: string, maxDBs: number = 128, mapSize: number = 128 * 1024 * 1024 * 1024): Promise<MDBEnv> {
         await this.configureParentPath(dbPath)
 
@@ -47,6 +49,10 @@ export class MDBEnv {
 
     txBeginWrite(mdbTXNCallbacks: MDBTXNCallbacks): WriteTransaction {
         return new WriteTransaction(new WriteMDBTXN(this, mdbTXNCallbacks))
+    }
+
+    getTX(): any | undefined {
+        return this.tx
     }
 }
 
@@ -104,6 +110,75 @@ class MDBTXNCallbacks {
     ) {}
 }
 
+export class MDBIterator<DBKey extends MDBValueInterface, SomeMDBValue extends MDBValueInterface> implements StoreIterator<DBKey, SomeMDBValue> {
+    private dbKey?: DBKey
+    private dbValue?: SomeMDBValue
+
+    constructor(
+        private readonly cursor: any | null,
+        private mdbKeyValueInterfaceConstructible: MDBKeyInterfaceConstructible<DBKey>,
+        private mdbValueInterfaceConstructible: MDBValueInterfaceConstructible<SomeMDBValue>
+    ) {}
+
+    next(): void {
+        if(this.cursor === null) {
+            return
+        }
+
+        const nextKey = this.cursor.goToNext()
+        if(nextKey === null) {
+            console.log('nextKey is null')
+            this.dbKey = undefined
+            this.dbValue = undefined
+            return
+        }
+
+        console.log('nextKey')
+        console.log(nextKey)
+        console.log('this.cursor')
+        console.log(this.cursor)
+
+        this.dbKey = this.mdbKeyValueInterfaceConstructible.fromDBKeyBuffer(nextKey)
+        this.dbValue = this.mdbValueInterfaceConstructible.fromDBBuffer(this.cursor.getCurrentBinary())
+    }
+
+    equals(other: StoreIterator<DBKey, SomeMDBValue>): boolean {
+        return this.keysEqual(other.getCurrentKey()) && this.valuesEqual(other.getCurrentValue())
+    }
+
+    private keysEqual(otherKey: DBKey | undefined): boolean {
+        if(this.dbKey === undefined) {
+            return otherKey === undefined
+        }
+        if(otherKey === undefined) {
+            return false
+        }
+        return this.dbKey.equals(otherKey)
+    }
+
+    private valuesEqual(otherValue: SomeMDBValue | undefined): boolean {
+        if(this.dbValue === undefined) {
+            return otherValue === undefined
+        }
+        if(otherValue === undefined) {
+            return false
+        }
+        return this.dbValue.equals(otherValue)
+    }
+
+    getCurrent(): [DBKey | undefined, SomeMDBValue | undefined] {
+        return [this.dbKey, this.dbValue]
+    }
+
+    getCurrentKey(): DBKey | undefined {
+        return this.dbKey
+    }
+
+    getCurrentValue(): SomeMDBValue | undefined {
+        return this.dbValue
+    }
+}
+
 export class MDBStore implements BlockStoreInterface {
     private readonly mdbTXNTracker: MDBTXNTracker
     private peersDB: any
@@ -126,7 +201,17 @@ export class MDBStore implements BlockStoreInterface {
     ) {
         this.mdbTXNTracker = new MDBTXNTracker(txnTrackingConfig, blockProcessorBatchMaxDuration)
         let isFullyUpgraded = false
+
         // TODO
+        this.openDBs() // FIXME
+    }
+
+    private openDBs() {
+        this.peersDB = this.mdbEnv.lmdbEnvironment.openDBi({
+            name: 'peers',
+            create: true,
+            keyIsBuffer: true
+        })
     }
 
     doesBlockExist(transaction: Transaction, blockType: BlockType, blockHash: BlockHash): boolean {
@@ -167,14 +252,32 @@ export class MDBStore implements BlockStoreInterface {
     txBeginWrite(): WriteTransaction {
         return this.mdbEnv.txBeginWrite(this.createTxnCallbacks())
     }
+
+    getPeersBegin(transaction: ReadTransaction): StoreIterator<Endpoint, DBNoValue> {
+        const cursor = new lmdb.Cursor(transaction, this.peersDB)
+        return new MDBIterator<Endpoint, DBNoValue>(cursor, UDPEndpoint, DBNoValue)
+    }
+
+    getPeersEnd(): StoreIterator<Endpoint, DBNoValue> {
+        return new MDBIterator<Endpoint, DBNoValue>(null, UDPEndpoint, DBNoValue)
+    }
 }
 
-export interface MDBValue {
+export interface MDBValueInterface extends Equatable<MDBValueInterface> {
     getDBSize(): number
     asBuffer(): Buffer
 }
 
-class MDBVal<MDBValueType extends MDBValue> implements MDBValue {
+export interface MDBValueInterfaceConstructible<SomeMDBValue extends MDBValueInterface> {
+    fromDBBuffer(mdbBuffer: Buffer): SomeMDBValue
+}
+
+export interface MDBKeyInterfaceConstructible<SomeMDBValue extends MDBValueInterface> {
+    fromDBKeyBuffer(keyBuffer: Buffer): SomeMDBValue
+}
+
+// maps to MDBVal in C++ project
+class MDBValueWrapper<MDBValueType extends MDBValueInterface> implements MDBValueInterface {
     private rawMDBValue: any
 
     constructor(private value: MDBValueType) {}
@@ -185,6 +288,10 @@ class MDBVal<MDBValueType extends MDBValue> implements MDBValue {
 
     getValue(): MDBValueType {
         return this.value
+    }
+
+    equals(other: MDBValueInterface): boolean {
+        return this.value.equals(other) // TODO: audit
     }
 
     asBuffer(): Buffer {

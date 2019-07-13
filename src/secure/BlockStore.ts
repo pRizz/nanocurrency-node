@@ -1,6 +1,7 @@
 import {BlockType} from "../lib/Block";
 import BlockHash from "../lib/BlockHash";
-import {Endpoint} from '../node/Common'
+import {Endpoint, Equatable} from '../node/Common'
+import {MDBValueInterface} from '../node/LMDB'
 
 export interface Transaction {
     getHandle(): any
@@ -40,9 +41,37 @@ export interface WriteTransactionImpl extends TransactionImpl {
     renew(): void
 }
 
+export interface StoreIterator<DBKey, DBValue> extends Equatable<StoreIterator<DBKey, DBValue>> {
+    next(): void
+    equals(other: StoreIterator<DBKey, DBValue>): boolean
+    getCurrent(): [DBKey | undefined, DBValue | undefined]
+    getCurrentKey(): DBKey | undefined
+    getCurrentValue(): DBValue | undefined
+}
+
+export class DBNoValue implements MDBValueInterface, Equatable<DBNoValue> {
+    static fromDBBuffer(mdbBuffer: Buffer): DBNoValue {
+        return new DBNoValue()
+    }
+
+    asBuffer(): Buffer {
+        return Buffer.alloc(0)
+    }
+
+    getDBSize(): number {
+        return 0
+    }
+
+    equals(other: DBNoValue): boolean {
+        return true
+    }
+}
+
 export interface BlockStoreInterface {
     txBeginRead(): ReadTransaction
     txBeginWrite(): WriteTransaction
     doesBlockExist(transaction: Transaction, blockType: BlockType, blockHash: BlockHash): boolean
     peersFromTransaction(transaction: ReadTransaction): Array<Endpoint>
+    getPeersBegin(transaction: ReadTransaction): StoreIterator<Endpoint, DBNoValue>
+    getPeersEnd(): StoreIterator<Endpoint, DBNoValue>
 }

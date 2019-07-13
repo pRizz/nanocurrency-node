@@ -113,28 +113,20 @@ var NanoNode = /** @class */ (function () {
         });
     };
     NanoNode.prototype.addInitialPeers = function () {
-        var e_1, _a;
         var _this = this;
         var transaction = this.blockStore.txBeginRead();
-        var peers = this.blockStore.peersFromTransaction(transaction);
-        try {
-            for (var peers_1 = __values(peers), peers_1_1 = peers_1.next(); !peers_1_1.done; peers_1_1 = peers_1.next()) {
-                var peer = peers_1_1.value;
-                if (this.network.hasReachoutError(peer, this.nodeConfig.allowLocalPeers)) {
-                    continue;
-                }
-                this.network.tcpChannels.startTCPConnection(peer, function (channel) {
-                    _this.network.sendKeepalive(channel);
-                    _this.repCrawler.query(channel);
-                }).catch();
+        for (var peerIterator = this.blockStore.getPeersBegin(transaction), endIterator = this.blockStore.getPeersEnd(); !peerIterator.equals(endIterator); peerIterator.next()) {
+            var peer = peerIterator.getCurrentKey();
+            if (peer === undefined) {
+                continue;
             }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (peers_1_1 && !peers_1_1.done && (_a = peers_1.return)) _a.call(peers_1);
+            if (this.network.hasReachoutError(peer, this.nodeConfig.allowLocalPeers)) {
+                continue;
             }
-            finally { if (e_1) throw e_1.error; }
+            this.network.tcpChannels.startTCPConnection(peer, function (channel) {
+                _this.network.sendKeepalive(channel);
+                _this.repCrawler.query(channel);
+            }).catch();
         }
     };
     NanoNode.prototype.getRandomPeers = function () {
@@ -200,7 +192,7 @@ var NanoNode = /** @class */ (function () {
         this.ledger.rollback(transaction, blockHash, rollbackList);
     };
     NanoNode.prototype.removeRollbackList = function (rollbackList) {
-        var e_2, _a;
+        var e_1, _a;
         try {
             for (var rollbackList_1 = __values(rollbackList), rollbackList_1_1 = rollbackList_1.next(); !rollbackList_1_1.done; rollbackList_1_1 = rollbackList_1.next()) {
                 var block = rollbackList_1_1.value;
@@ -209,12 +201,12 @@ var NanoNode = /** @class */ (function () {
                 this.activeTransactions.erase(block);
             }
         }
-        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
         finally {
             try {
                 if (rollbackList_1_1 && !rollbackList_1_1.done && (_a = rollbackList_1.return)) _a.call(rollbackList_1);
             }
-            finally { if (e_2) throw e_2.error; }
+            finally { if (e_1) throw e_1.error; }
         }
     };
     return NanoNode;

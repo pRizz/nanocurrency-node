@@ -9,6 +9,11 @@ import {Signature} from '../lib/Numbers'
 import {Serializable} from './Socket'
 import {PassThrough} from "stream"
 import * as ipaddr from 'ipaddr.js'
+import {MDBValueInterface} from './LMDB'
+
+export interface Equatable<Self> {
+    equals(other: Self): boolean
+}
 
 export class IPAddress {
     readonly value: ipaddr.IPv6
@@ -34,7 +39,7 @@ export class IPAddress {
     }
 }
 
-export interface Endpoint {
+export interface Endpoint extends MDBValueInterface {
     getAddress(): IPAddress
     getPort(): number
     equals(other: Endpoint): boolean
@@ -54,6 +59,10 @@ export class UDPEndpoint implements Endpoint {
         const ipAddress = new IPAddress(ipv6)
 
         return new UDPEndpoint(ipAddress, port)
+    }
+
+    static fromDBKeyBuffer(keyBuffer: Buffer): UDPEndpoint {
+        return UDPEndpoint.fromDB(keyBuffer)
     }
 
     constructor(address: IPAddress, port: number) {
@@ -83,6 +92,14 @@ export class UDPEndpoint implements Endpoint {
     asTCPEndpoint(): TCPEndpoint {
         return new TCPEndpoint(this.address, this.port)
     }
+
+    getDBSize(): number {
+        return 18 // 16 address + 2 port
+    }
+
+    asBuffer(): Buffer {
+        return this.toDBBuffer()
+    }
 }
 
 export class TCPEndpoint implements Endpoint {
@@ -105,8 +122,23 @@ export class TCPEndpoint implements Endpoint {
         return this.address.equals(other.getAddress()) && this.port === other.getPort()
     }
 
+    toDBBuffer(): Buffer {
+        const ipBuffer = Buffer.from(this.address.value.toByteArray())
+        const portBuffer = Buffer.alloc(2)
+        portBuffer.writeUInt16BE(this.port, 0)
+        return Buffer.from([...ipBuffer, ...portBuffer])
+    }
+
     asUDPEndpoint(): UDPEndpoint {
         return new UDPEndpoint(this.address, this.port)
+    }
+
+    getDBSize(): number {
+        return 18 // 16 address + 2 port
+    }
+
+    asBuffer(): Buffer {
+        return this.toDBBuffer()
     }
 }
 

@@ -1,6 +1,6 @@
 import {Serializable} from '../src/node/Socket'
 import * as assert from 'assert'
-import {bufferFromSerializable, IPAddress, UDPEndpoint} from '../src/node/Common'
+import {bufferFromSerializable, Equatable, IPAddress, UDPEndpoint} from '../src/node/Common'
 import ipaddr = require('ipaddr.js');
 
 describe('Common', () => {

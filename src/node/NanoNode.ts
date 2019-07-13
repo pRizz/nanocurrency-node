@@ -67,8 +67,15 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
 
     private addInitialPeers() {
         const transaction = this.blockStore.txBeginRead()
-        const peers = this.blockStore.peersFromTransaction(transaction)
-        for(const peer of peers) {
+        for(
+            let peerIterator = this.blockStore.getPeersBegin(transaction), endIterator = this.blockStore.getPeersEnd();
+            !peerIterator.equals(endIterator);
+            peerIterator.next()
+        ) {
+            const peer = peerIterator.getCurrentKey()
+            if(peer === undefined) {
+                continue
+            }
             if(this.network.hasReachoutError(peer, this.nodeConfig.allowLocalPeers)) {
                 continue
             }
