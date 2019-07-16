@@ -3,36 +3,47 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var UInt64_1 = require("./UInt64");
 var publishTestThresholdHex = 'ff00000000000000';
 var publishFullThresholdHex = 'ffffffc000000000';
-var NANONetworks;
-(function (NANONetworks) {
-    NANONetworks[NANONetworks["nanoTestNetwork"] = 0] = "nanoTestNetwork";
-    NANONetworks[NANONetworks["raiTestNetwork"] = 0] = "raiTestNetwork";
-    NANONetworks[NANONetworks["nanoBetaNetwork"] = 1] = "nanoBetaNetwork";
-    NANONetworks[NANONetworks["raiBetaNetwork"] = 1] = "raiBetaNetwork";
-    NANONetworks[NANONetworks["nanoLiveNetwork"] = 2] = "nanoLiveNetwork";
-    NANONetworks[NANONetworks["raiLiveNetwork"] = 2] = "raiLiveNetwork";
-})(NANONetworks = exports.NANONetworks || (exports.NANONetworks = {}));
+var NANONetwork;
+(function (NANONetwork) {
+    NANONetwork[NANONetwork["nanoTestNetwork"] = 0] = "nanoTestNetwork";
+    NANONetwork[NANONetwork["raiTestNetwork"] = 0] = "raiTestNetwork";
+    NANONetwork[NANONetwork["nanoBetaNetwork"] = 1] = "nanoBetaNetwork";
+    NANONetwork[NANONetwork["raiBetaNetwork"] = 1] = "raiBetaNetwork";
+    NANONetwork[NANONetwork["nanoLiveNetwork"] = 2] = "nanoLiveNetwork";
+    NANONetwork[NANONetwork["raiLiveNetwork"] = 2] = "raiLiveNetwork";
+})(NANONetwork = exports.NANONetwork || (exports.NANONetwork = {}));
 var NetworkConstants = /** @class */ (function () {
-    function NetworkConstants() {
+    function NetworkConstants(currentNetwork) {
+        if (currentNetwork === void 0) { currentNetwork = NetworkConstants.activeNetwork; }
+        this.currentNetwork = currentNetwork;
     }
     NetworkConstants.activeNetworkToString = function () {
-        if (NetworkConstants.activeNetwork === NANONetworks.nanoLiveNetwork) {
+        if (NetworkConstants.activeNetwork === NANONetwork.nanoLiveNetwork) {
             return 'live';
         }
-        if (NetworkConstants.activeNetwork === NANONetworks.nanoBetaNetwork) {
+        if (NetworkConstants.activeNetwork === NANONetwork.nanoBetaNetwork) {
             return 'beta';
         }
         return 'test';
     };
     NetworkConstants.isLiveNetwork = function () {
         switch (NetworkConstants.activeNetwork) {
-            case NANONetworks.nanoLiveNetwork: return true;
-            case NANONetworks.nanoBetaNetwork: return false;
-            case NANONetworks.nanoTestNetwork: return false;
+            case NANONetwork.nanoLiveNetwork: return true;
+            case NANONetwork.nanoBetaNetwork: return false;
+            case NANONetwork.nanoTestNetwork: return false;
         }
     };
+    NetworkConstants.prototype.getDefaultNodePort = function () {
+        return this.isLiveNetwork() ? 7075 : this.isBetaNetwork() ? 54000 : 44000;
+    };
+    NetworkConstants.prototype.isLiveNetwork = function () {
+        return this.currentNetwork === NANONetwork.nanoLiveNetwork;
+    };
+    NetworkConstants.prototype.isBetaNetwork = function () {
+        return this.currentNetwork === NANONetwork.nanoBetaNetwork;
+    };
     NetworkConstants.publishThresholdDifficulty = new UInt64_1.default({ hex: publishFullThresholdHex });
-    NetworkConstants.activeNetwork = NANONetworks.nanoLiveNetwork;
+    NetworkConstants.activeNetwork = NANONetwork.nanoLiveNetwork;
     return NetworkConstants;
 }());
 exports.NetworkConstants = NetworkConstants;

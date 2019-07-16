@@ -3,7 +3,7 @@ import UInt64 from './UInt64'
 const publishTestThresholdHex = 'ff00000000000000'
 const publishFullThresholdHex = 'ffffffc000000000'
 
-export enum NANONetworks {
+export enum NANONetwork {
     nanoTestNetwork = 0,
     raiTestNetwork = 0,
     nanoBetaNetwork = 1,
@@ -15,18 +15,33 @@ export enum NANONetworks {
 export class NetworkConstants {
     static publishThresholdDifficulty = new UInt64({ hex: publishFullThresholdHex })
 
-    static activeNetwork = NANONetworks.nanoLiveNetwork
+    static activeNetwork = NANONetwork.nanoLiveNetwork
+
     static activeNetworkToString(): string {
-        if(NetworkConstants.activeNetwork === NANONetworks.nanoLiveNetwork) { return 'live' }
-        if(NetworkConstants.activeNetwork === NANONetworks.nanoBetaNetwork) { return 'beta' }
+        if(NetworkConstants.activeNetwork === NANONetwork.nanoLiveNetwork) { return 'live' }
+        if(NetworkConstants.activeNetwork === NANONetwork.nanoBetaNetwork) { return 'beta' }
         return 'test'
     }
 
     static isLiveNetwork(): boolean {
         switch (NetworkConstants.activeNetwork) {
-            case NANONetworks.nanoLiveNetwork: return true
-            case NANONetworks.nanoBetaNetwork: return false
-            case NANONetworks.nanoTestNetwork: return false
+            case NANONetwork.nanoLiveNetwork: return true
+            case NANONetwork.nanoBetaNetwork: return false
+            case NANONetwork.nanoTestNetwork: return false
         }
+    }
+
+    constructor(public currentNetwork: NANONetwork = NetworkConstants.activeNetwork) {}
+
+    getDefaultNodePort(): number {
+        return this.isLiveNetwork() ? 7075 : this.isBetaNetwork () ? 54000 : 44000
+    }
+
+    private isLiveNetwork(): boolean {
+        return this.currentNetwork === NANONetwork.nanoLiveNetwork
+    }
+
+    private isBetaNetwork(): boolean {
+        return this.currentNetwork === NANONetwork.nanoBetaNetwork
     }
 }

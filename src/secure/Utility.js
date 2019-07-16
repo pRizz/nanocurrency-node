@@ -5,9 +5,9 @@ var path = require("path");
 var Config_1 = require("../lib/Config");
 function getPathSuffix(isLegacy) {
     switch (Config_1.NetworkConstants.activeNetwork) {
-        case Config_1.NANONetworks.nanoLiveNetwork: return isLegacy ? 'RaiBlocks' : 'Nano';
-        case Config_1.NANONetworks.nanoBetaNetwork: return isLegacy ? 'RaiBlocksBeta' : 'NanoBeta';
-        case Config_1.NANONetworks.nanoTestNetwork: return isLegacy ? 'RaiBlocksTest' : 'NanoTest';
+        case Config_1.NANONetwork.nanoLiveNetwork: return isLegacy ? 'RaiBlocks' : 'Nano';
+        case Config_1.NANONetwork.nanoBetaNetwork: return isLegacy ? 'RaiBlocksBeta' : 'NanoBeta';
+        case Config_1.NANONetwork.nanoTestNetwork: return isLegacy ? 'RaiBlocksTest' : 'NanoTest';
     }
 }
 var Utility;

@@ -1,12 +1,12 @@
 import * as os from 'os'
 import * as path from 'path'
-import {NANONetworks, NetworkConstants} from '../lib/Config'
+import {NANONetwork, NetworkConstants} from '../lib/Config'
 
 function getPathSuffix(isLegacy: boolean): string {
     switch (NetworkConstants.activeNetwork) {
-        case NANONetworks.nanoLiveNetwork: return isLegacy ? 'RaiBlocks' : 'Nano'
-        case NANONetworks.nanoBetaNetwork: return isLegacy ? 'RaiBlocksBeta' : 'NanoBeta'
-        case NANONetworks.nanoTestNetwork: return isLegacy ? 'RaiBlocksTest' : 'NanoTest'
+        case NANONetwork.nanoLiveNetwork: return isLegacy ? 'RaiBlocks' : 'Nano'
+        case NANONetwork.nanoBetaNetwork: return isLegacy ? 'RaiBlocksBeta' : 'NanoBeta'
+        case NANONetwork.nanoTestNetwork: return isLegacy ? 'RaiBlocksTest' : 'NanoTest'
     }
 }
 

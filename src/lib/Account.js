@@ -1,11 +1,15 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var UInt256_1 = require("./UInt256");
 var blakejs = require('blakejs');
 var nanoAlphabet = '13456789abcdefghijkmnopqrstuwxyz';
 var Account = /** @class */ (function () {
     function Account(publicKey) {
         this.publicKey = publicKey;
     }
+    Account.fromHex = function (hex) {
+        return new Account(new UInt256_1.default({ hex: hex }));
+    };
     Account.prototype.isZero = function () {
         return this.publicKey.isZero();
     };
