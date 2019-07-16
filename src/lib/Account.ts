@@ -7,7 +7,7 @@ export default class Account {
     readonly publicKey: UInt256
     private computedAddress: string
 
-    static fromHex(hex: string): Account {
+    static fromPublicKeyHex(hex: string): Account {
         return new Account(new UInt256({ hex }))
     }
 

@@ -86,10 +86,10 @@ var LedgerConstants = /** @class */ (function () {
             case Config_1.NANONetwork.nanoTestNetwork: return LedgerConstants.nanoTestAccount;
         }
     };
-    LedgerConstants.nanoLiveAccount = Account_1.default.fromHex('E89208DD038FBB269987689621D52292AE9C35941A7484756ECCED92A65093BA');
-    LedgerConstants.nanoBetaAccount = Account_1.default.fromHex('A59A47CC4F593E75AE9AD653FDA9358E2F7898D9ACC8C60E80D0495CE20FBA9F');
-    LedgerConstants.nanoTestAccount = Account_1.default.fromHex('B0311EA55708D6A53C75CDBF88300259C6D018522FE3D4D0A242E431F9E8B6D0');
-    LedgerConstants.burnAccount = Account_1.default.fromHex('0000000000000000000000000000000000000000000000000000000000000000');
+    LedgerConstants.nanoLiveAccount = Account_1.default.fromPublicKeyHex('E89208DD038FBB269987689621D52292AE9C35941A7484756ECCED92A65093BA');
+    LedgerConstants.nanoBetaAccount = Account_1.default.fromPublicKeyHex('A59A47CC4F593E75AE9AD653FDA9358E2F7898D9ACC8C60E80D0495CE20FBA9F');
+    LedgerConstants.nanoTestAccount = Account_1.default.fromPublicKeyHex('B0311EA55708D6A53C75CDBF88300259C6D018522FE3D4D0A242E431F9E8B6D0');
+    LedgerConstants.burnAccount = Account_1.default.fromPublicKeyHex('0000000000000000000000000000000000000000000000000000000000000000');
     LedgerConstants.zeroKey = KeyPair.createZeroKeyPair();
     return LedgerConstants;
 }());
@@ -104,18 +104,9 @@ var NetworkParams = /** @class */ (function () {
     }
     NetworkParams.headerMagicNumberForNetwork = function (nanoNetwork) {
         switch (nanoNetwork) {
-            case Config_1.NANONetwork.nanoLiveNetwork:
-                return new UInt16_1.default({
-                    buffer: Buffer.from('RC', 'ascii')
-                });
-            case Config_1.NANONetwork.nanoBetaNetwork:
-                return new UInt16_1.default({
-                    buffer: Buffer.from('RB', 'ascii')
-                });
-            case Config_1.NANONetwork.nanoTestNetwork:
-                return new UInt16_1.default({
-                    buffer: Buffer.from('RA', 'ascii')
-                });
+            case Config_1.NANONetwork.nanoLiveNetwork: return new UInt16_1.default({ buffer: Buffer.from('RC') });
+            case Config_1.NANONetwork.nanoBetaNetwork: return new UInt16_1.default({ buffer: Buffer.from('RB') });
+            case Config_1.NANONetwork.nanoTestNetwork: return new UInt16_1.default({ buffer: Buffer.from('RA') });
         }
     };
     return NetworkParams;
