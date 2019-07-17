@@ -175,14 +175,14 @@ var MessageType;
 })(MessageType = exports.MessageType || (exports.MessageType = {}));
 var MessageHeader = /** @class */ (function () {
     function MessageHeader(messageType, extensions, versionMax, versionUsing, versionMin) {
+        this.messageType = messageType;
+        this.extensions = extensions;
         this.versionMax = versionMax || Constants.protocolVersion;
         this.versionUsing = versionUsing || Constants.protocolVersion;
         this.versionMin = versionMin || Constants.protocolVersionMin;
-        this.messageType = messageType;
-        this.extensions = extensions;
     }
     MessageHeader.prototype.serialize = function (writableStream) {
-        writableStream.write(Common_1.NetworkParams.headerMagicNumber.asBuffer());
+        writableStream.write(Common_1.NetworkParams.getHeaderMagicNumber().asBuffer());
         writableStream.write(this.versionMax.asBuffer());
         writableStream.write(this.versionUsing.asBuffer());
         writableStream.write(this.versionMin.asBuffer());
@@ -404,7 +404,7 @@ var MessageDecoder;
                                     return [4 /*yield*/, stream.readUInt(UInt16_1.default)];
                                 case 2:
                                     magicNumber = _a.sent();
-                                    if (!magicNumber.equals(Common_1.NetworkParams.headerMagicNumber)) {
+                                    if (!magicNumber.equals(Common_1.NetworkParams.getHeaderMagicNumber())) {
                                         return [2 /*return*/, reject(new Error('Invalid magic number'))];
                                     }
                                     return [4 /*yield*/, stream.readUInt(UInt8_1.default)];

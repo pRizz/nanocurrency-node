@@ -1,7 +1,5 @@
 import { Socket as NetSocket } from 'net'
 import {Endpoint, MessageHeader, ReadableMessageStream, TCPEndpoint} from './Common'
-import {promisify} from 'util'
-import {Duplex} from 'stream'
 
 export enum SocketConcurrency {
     singleWriter,

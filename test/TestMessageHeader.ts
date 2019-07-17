@@ -28,7 +28,7 @@ describe('MessageHeader', () => {
             messageHeader.serialize(writable)
 
             const expectedBuffer = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06])
             ])
 
@@ -39,7 +39,7 @@ describe('MessageHeader', () => {
     describe('#from()',() => {
         it('should create the message header from the stream', async () => {
             const streamBuffer = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06])
             ])
 
@@ -65,7 +65,7 @@ describe('MessageHeader', () => {
 
         it('should create the message header from the stream asynchronously on UInt8 boundary', async () => {
             const streamBuffer1 = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03])
             ])
 
@@ -97,7 +97,7 @@ describe('MessageHeader', () => {
 
         it('should create the message header from the stream asynchronously on UInt16 boundary', async () => {
             const streamBuffer1 = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
             ])
 
@@ -127,7 +127,7 @@ describe('MessageHeader', () => {
 
         it('should not create the message header from a short stream at UInt16 boundary', async () => {
             const invalidStreamBuffer = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
             ])
 
@@ -140,7 +140,7 @@ describe('MessageHeader', () => {
 
         it('should not create the message header after a timeout', async () => {
             const streamBuffer1 = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
             ])
 
@@ -156,7 +156,7 @@ describe('MessageHeader', () => {
 
         it('should not create the message header after stream ends unexpectedly on UInt16 boundary', async () => {
             const streamBuffer = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
             ])
 
@@ -170,7 +170,7 @@ describe('MessageHeader', () => {
 
         it('should not create the message header after stream ends unexpectedly on UInt8 boundary', async () => {
             const streamBuffer = Buffer.concat([
-                NetworkParams.headerMagicNumber.asBuffer(),
+                NetworkParams.getHeaderMagicNumber().asBuffer(),
                 Buffer.from([0x01, 0x02, 0x03])
             ])
 

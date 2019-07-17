@@ -7,6 +7,7 @@ import {NANONetwork, NetworkConstants} from '../lib/Config'
 import {PublicKey, RawKey} from '../lib/Numbers'
 import * as nacl from 'tweetnacl'
 import UInt256 from '../lib/UInt256'
+import UInt512 from '../lib/UInt512'
 
 interface UncheckedInfoProps {
     readonly block: Block
@@ -74,8 +75,8 @@ export class KeyPair {
     }
 
     static createZeroKeyPair() {
-        const rawKey = new RawKey(new UInt256({
-            buffer: Buffer.alloc(32)
+        const rawKey = new RawKey(new UInt512({
+            buffer: Buffer.alloc(64)
         }))
         return new KeyPair(rawKey)
     }
@@ -127,6 +128,11 @@ export class NetworkParams {
             case NANONetwork.nanoBetaNetwork: return new UInt16({ buffer: Buffer.from('RB') })
             case NANONetwork.nanoTestNetwork: return new UInt16({ buffer: Buffer.from('RA') })
         }
+    }
+
+    static getHeaderMagicNumber(): UInt16 {
+        const currentNetwork = NANONetwork.nanoLiveNetwork // FIXME: network is replaced at build time in C++ project
+        return this.headerMagicNumberForNetwork(currentNetwork)
     }
 
     constructor(

@@ -57,7 +57,7 @@ describe('MessageHeader', function () {
                 });
                 messageHeader.serialize(writable);
                 expectedBuffer = Buffer.concat([
-                    Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                    Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                     Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06])
                 ]);
                 assert(actualBuffer.equals(expectedBuffer));
@@ -72,7 +72,7 @@ describe('MessageHeader', function () {
                 switch (_a.label) {
                     case 0:
                         streamBuffer = Buffer.concat([
-                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                             Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06])
                         ]);
                         messageStream = new stream_1.PassThrough();
@@ -96,7 +96,7 @@ describe('MessageHeader', function () {
                 switch (_a.label) {
                     case 0:
                         streamBuffer1 = Buffer.concat([
-                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                             Buffer.from([0x01, 0x02, 0x03])
                         ]);
                         streamBuffer2 = Buffer.concat([
@@ -124,7 +124,7 @@ describe('MessageHeader', function () {
                 switch (_a.label) {
                     case 0:
                         streamBuffer1 = Buffer.concat([
-                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                             Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
                         ]);
                         streamBuffer2 = Buffer.from([0x06]);
@@ -150,7 +150,7 @@ describe('MessageHeader', function () {
                 switch (_a.label) {
                     case 0:
                         invalidStreamBuffer = Buffer.concat([
-                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                             Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
                         ]);
                         messageStream = new stream_1.PassThrough();
@@ -169,7 +169,7 @@ describe('MessageHeader', function () {
                 switch (_a.label) {
                     case 0:
                         streamBuffer1 = Buffer.concat([
-                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                             Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
                         ]);
                         streamBuffer2 = Buffer.from([0x06]);
@@ -189,7 +189,7 @@ describe('MessageHeader', function () {
                 switch (_a.label) {
                     case 0:
                         streamBuffer = Buffer.concat([
-                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                             Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
                         ]);
                         messageStream = new stream_1.PassThrough();
@@ -208,7 +208,7 @@ describe('MessageHeader', function () {
                 switch (_a.label) {
                     case 0:
                         streamBuffer = Buffer.concat([
-                            Common_2.NetworkParams.headerMagicNumber.asBuffer(),
+                            Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
                             Buffer.from([0x01, 0x02, 0x03])
                         ]);
                         messageStream = new stream_1.PassThrough();

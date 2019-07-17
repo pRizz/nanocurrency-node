@@ -27,7 +27,7 @@ export class PublicKey implements Equatable<PublicKey> {
 }
 
 export class RawKey implements Equatable<RawKey> {
-    constructor(readonly value: UInt256) {}
+    constructor(readonly value: UInt512) {}
 
     decrypt() {
         // TODO

@@ -169,19 +169,15 @@ export class MessageHeader implements Serializable {
     readonly versionMax: UInt8
     readonly versionUsing: UInt8
     readonly versionMin: UInt8
-    readonly messageType: MessageType
-    readonly extensions: UInt16
 
-    constructor(messageType: MessageType, extensions: UInt16, versionMax?: UInt8, versionUsing?: UInt8, versionMin?: UInt8) {
+    constructor(readonly messageType: MessageType, readonly extensions: UInt16, versionMax?: UInt8, versionUsing?: UInt8, versionMin?: UInt8) {
         this.versionMax = versionMax || Constants.protocolVersion
         this.versionUsing = versionUsing || Constants.protocolVersion
         this.versionMin = versionMin || Constants.protocolVersionMin
-        this.messageType = messageType
-        this.extensions = extensions
     }
 
     serialize(writableStream: NodeJS.WritableStream) {
-        writableStream.write(NetworkParams.headerMagicNumber.asBuffer())
+        writableStream.write(NetworkParams.getHeaderMagicNumber().asBuffer())
         writableStream.write(this.versionMax.asBuffer())
         writableStream.write(this.versionUsing.asBuffer())
         writableStream.write(this.versionMin.asBuffer())
@@ -388,7 +384,7 @@ namespace MessageDecoder {
 
             try {
                 const magicNumber = await stream.readUInt(UInt16)
-                if(!magicNumber.equals(NetworkParams.headerMagicNumber)) {
+                if(!magicNumber.equals(NetworkParams.getHeaderMagicNumber())) {
                     return reject(new Error('Invalid magic number'))
                 }
 

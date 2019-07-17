@@ -6,6 +6,7 @@ var Config_1 = require("../lib/Config");
 var Numbers_1 = require("../lib/Numbers");
 var nacl = require("tweetnacl");
 var UInt256_1 = require("../lib/UInt256");
+var UInt512_1 = require("../lib/UInt512");
 var UncheckedInfo = /** @class */ (function () {
     function UncheckedInfo(props) {
         this.block = props.block;
@@ -57,8 +58,8 @@ var KeyPair = /** @class */ (function () {
         }
     }
     KeyPair.createZeroKeyPair = function () {
-        var rawKey = new Numbers_1.RawKey(new UInt256_1.default({
-            buffer: Buffer.alloc(32)
+        var rawKey = new Numbers_1.RawKey(new UInt512_1.default({
+            buffer: Buffer.alloc(64)
         }));
         return new KeyPair(rawKey);
     };
@@ -108,6 +109,10 @@ var NetworkParams = /** @class */ (function () {
             case Config_1.NANONetwork.nanoBetaNetwork: return new UInt16_1.default({ buffer: Buffer.from('RB') });
             case Config_1.NANONetwork.nanoTestNetwork: return new UInt16_1.default({ buffer: Buffer.from('RA') });
         }
+    };
+    NetworkParams.getHeaderMagicNumber = function () {
+        var currentNetwork = Config_1.NANONetwork.nanoLiveNetwork; // FIXME: network is replaced at build time in C++ project
+        return this.headerMagicNumberForNetwork(currentNetwork);
     };
     return NetworkParams;
 }());
