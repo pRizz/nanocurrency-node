@@ -16,6 +16,7 @@ var NetworkConstants = /** @class */ (function () {
     function NetworkConstants(currentNetwork) {
         if (currentNetwork === void 0) { currentNetwork = NetworkConstants.activeNetwork; }
         this.currentNetwork = currentNetwork;
+        this.defaultWebSocketPort = this.isLiveNetwork() ? 7078 : this.isBetaNetwork() ? 57000 : 47000;
     }
     NetworkConstants.activeNetworkToString = function () {
         if (NetworkConstants.activeNetwork === NANONetwork.nanoLiveNetwork) {

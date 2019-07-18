@@ -19,9 +19,12 @@ import UInt512 from '../lib/UInt512'
 import RepCrawler from './RepCrawler'
 import {MDBStore} from './LMDB'
 import * as path from 'path'
-import {BootstrapListener, BootstrapListenerDelegate} from './Bootstrap'
-import ipaddr = require("ipaddr.js");
+import {BootstrapInitiator, BootstrapInitiatorDelegate, BootstrapListener, BootstrapListenerDelegate} from './Bootstrap'
 import {PortMapping, PortMappingDelegate} from './PortMapping'
+import {VoteProcessor, VoteProcessorDelegate} from './VoteProcessor'
+import {ConfirmationHeightProcessor} from './ConfirmationHeightProcessor'
+import {ActiveTransactions} from './ActiveTransactions'
+import * as NANOWebSocket from './WebSocket'
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -29,7 +32,7 @@ class BlockArrival {
     }
 }
 
-export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate, BootstrapListenerDelegate, PortMappingDelegate {
+export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate, BootstrapListenerDelegate, PortMappingDelegate, VoteProcessorDelegate, NANOWebSocket.default.ListenerDelegate, BootstrapInitiatorDelegate {
     private readonly blockProcessor: BlockProcessor
     private readonly ledger: Ledger
     private readonly blockArrival = new BlockArrival()
@@ -40,6 +43,11 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     private readonly repCrawler = new RepCrawler()
     private readonly bootstrapListener: BootstrapListener
     private readonly portMapping: PortMapping
+    private readonly voteProcessor: VoteProcessor
+    private readonly confirmationHeightProcessor: ConfirmationHeightProcessor
+    private isStopped = false
+    private readonly webSocketServer: NANOWebSocket.default.Listener | undefined
+    private readonly bootstrapInitiator: BootstrapInitiator
 
     static async create(applicationPath: string, flags: NodeFlags = new NodeFlags(), nodeConfig: NodeConfig): Promise<NanoNode> {
         const blockStore = await MDBStore.create(
@@ -57,6 +65,12 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         private readonly blockStore: BlockStoreInterface,
         private readonly nodeConfig: NodeConfig
     ) {
+        if(this.nodeConfig.webSocketConfig.getIsEnabled()) {
+            const endpoint = new TCPEndpoint(new IPAddress(this.nodeConfig.webSocketConfig.getIPAddress()), this.nodeConfig.webSocketConfig.getPort())
+            this.webSocketServer = new NANOWebSocket.default.Listener(this, endpoint)
+            this.webSocketServer.run()
+        }
+
         this.blockProcessor = new BlockProcessor(this)
         this.ledger = new Ledger(this.blockStore)
 
@@ -67,6 +81,9 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         this.bootstrapListener = new BootstrapListener(this.nodeConfig.peeringPort, this)
 
         this.portMapping = new PortMapping(this)
+        this.voteProcessor = new VoteProcessor(this)
+        this.confirmationHeightProcessor = new ConfirmationHeightProcessor()
+        this.bootstrapInitiator = new BootstrapInitiator(this)
     }
 
     async start(): Promise<void> {
@@ -104,6 +121,27 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         if(this.nodeConfig.externalAddress.range() !== 'unspecified' && this.nodeConfig.externalPort !== 0) {
             this.portMapping.start()
         }
+    }
+
+    stop() {
+        if(this.isStopped) {
+            return
+        }
+
+        console.log(`${new Date().toISOString()}: Node stopping`)
+
+        this.blockProcessor.stop()
+        this.voteProcessor.stop()
+        this.confirmationHeightProcessor.stop()
+        this.activeTransactions.stop()
+        this.network.stop()
+        if(this.webSocketServer) {
+            this.webSocketServer.stop()
+        }
+
+        this.bootstrapInitiator.stop()
+
+        // TODO
     }
 
     private bootstrapWallet() {
@@ -251,13 +289,5 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
             this.wallets.workWatcher.remove(block)
             this.activeTransactions.erase(block)
         }
-    }
-}
-
-class ActiveTransactions {
-
-    // TODO
-    erase(block: Block) {
-
     }
 }

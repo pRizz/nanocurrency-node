@@ -38,3 +38,16 @@ export class BootstrapListener {
         // TODO
     }
 }
+
+export interface BootstrapInitiatorDelegate {
+
+}
+
+export class BootstrapInitiator {
+
+    constructor(private readonly bootstrapInitiatorDelegate: BootstrapInitiatorDelegate) {} // TODO
+
+    stop() {
+        // TODO
+    }
+}

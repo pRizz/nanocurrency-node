@@ -31,7 +31,11 @@ export class NetworkConstants {
         }
     }
 
-    constructor(public currentNetwork: NANONetwork = NetworkConstants.activeNetwork) {}
+    readonly defaultWebSocketPort: number
+
+    constructor(public currentNetwork: NANONetwork = NetworkConstants.activeNetwork) {
+        this.defaultWebSocketPort = this.isLiveNetwork() ? 7078 : this.isBetaNetwork() ? 57000 : 47000
+    }
 
     getDefaultNodePort(): number {
         return this.isLiveNetwork() ? 7075 : this.isBetaNetwork () ? 54000 : 44000

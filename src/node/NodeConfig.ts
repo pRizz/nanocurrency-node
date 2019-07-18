@@ -5,6 +5,7 @@ import {LedgerConstants, NetworkParams} from '../secure/Common'
 import Account from '../lib/Account'
 import UInt256 from '../lib/UInt256'
 import ipaddr = require('ipaddr.js');
+import NANOWebSocket from './WebSocketConfig'
 
 namespace NodeConfigConstants {
     export const preconfiguredPeersKey = 'preconfigured_peers'
@@ -69,6 +70,7 @@ export class NodeConfig {
     readonly tcpIncomingConnectionsMax = 1024
     readonly externalAddress = ipaddr.IPv6.parse('::')
     readonly externalPort = 0
+    readonly webSocketConfig = new NANOWebSocket.Config()
 
     constructor(readonly peeringPort: number = 0) {
         if(this.peeringPort === 0) {

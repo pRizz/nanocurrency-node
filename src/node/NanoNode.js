@@ -62,6 +62,10 @@ var LMDB_1 = require("./LMDB");
 var path = require("path");
 var Bootstrap_1 = require("./Bootstrap");
 var PortMapping_1 = require("./PortMapping");
+var VoteProcessor_1 = require("./VoteProcessor");
+var ConfirmationHeightProcessor_1 = require("./ConfirmationHeightProcessor");
+var ActiveTransactions_1 = require("./ActiveTransactions");
+var NANOWebSocket = require("./WebSocket");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -80,14 +84,23 @@ var NanoNode = /** @class */ (function () {
         this.blockArrival = new BlockArrival();
         this.votesCache = new Voting_1.VotesCache();
         this.wallets = new Wallet_1.Wallets();
-        this.activeTransactions = new ActiveTransactions();
+        this.activeTransactions = new ActiveTransactions_1.ActiveTransactions();
         this.repCrawler = new RepCrawler_1.default();
+        this.isStopped = false;
+        if (this.nodeConfig.webSocketConfig.getIsEnabled()) {
+            var endpoint = new Common_1.TCPEndpoint(new Common_1.IPAddress(this.nodeConfig.webSocketConfig.getIPAddress()), this.nodeConfig.webSocketConfig.getPort());
+            this.webSocketServer = new NANOWebSocket.default.Listener(this, endpoint);
+            this.webSocketServer.run();
+        }
         this.blockProcessor = new BlockProcessor_1.default(this);
         this.ledger = new Ledger_1.default(this.blockStore);
         this.applicationPath = applicationPath;
         this.network = new Network_1.Network(flags.disableUDP, this.nodeConfig.peeringPort, this, this);
         this.bootstrapListener = new Bootstrap_1.BootstrapListener(this.nodeConfig.peeringPort, this);
         this.portMapping = new PortMapping_1.PortMapping(this);
+        this.voteProcessor = new VoteProcessor_1.VoteProcessor(this);
+        this.confirmationHeightProcessor = new ConfirmationHeightProcessor_1.ConfirmationHeightProcessor();
+        this.bootstrapInitiator = new Bootstrap_1.BootstrapInitiator(this);
     }
     NanoNode.create = function (applicationPath, flags, nodeConfig) {
         if (flags === void 0) { flags = new NodeConfig_1.NodeFlags(); }
@@ -142,6 +155,22 @@ var NanoNode = /** @class */ (function () {
                 }
             });
         });
+    };
+    NanoNode.prototype.stop = function () {
+        if (this.isStopped) {
+            return;
+        }
+        console.log(new Date().toISOString() + ": Node stopping");
+        this.blockProcessor.stop();
+        this.voteProcessor.stop();
+        this.confirmationHeightProcessor.stop();
+        this.activeTransactions.stop();
+        this.network.stop();
+        if (this.webSocketServer) {
+            this.webSocketServer.stop();
+        }
+        this.bootstrapInitiator.stop();
+        // TODO
     };
     NanoNode.prototype.bootstrapWallet = function () {
         // TODO
@@ -270,12 +299,4 @@ var NanoNode = /** @class */ (function () {
     return NanoNode;
 }());
 exports.default = NanoNode;
-var ActiveTransactions = /** @class */ (function () {
-    function ActiveTransactions() {
-    }
-    // TODO
-    ActiveTransactions.prototype.erase = function (block) {
-    };
-    return ActiveTransactions;
-}());
 //# sourceMappingURL=NanoNode.js.map

@@ -27,6 +27,7 @@ var Common_1 = require("../secure/Common");
 var Account_1 = require("../lib/Account");
 var UInt256_1 = require("../lib/UInt256");
 var ipaddr = require("ipaddr.js");
+var WebSocketConfig_1 = require("./WebSocketConfig");
 var NodeConfigConstants;
 (function (NodeConfigConstants) {
     NodeConfigConstants.preconfiguredPeersKey = 'preconfigured_peers';
@@ -72,6 +73,7 @@ var NodeConfig = /** @class */ (function () {
         this.tcpIncomingConnectionsMax = 1024;
         this.externalAddress = ipaddr.IPv6.parse('::');
         this.externalPort = 0;
+        this.webSocketConfig = new WebSocketConfig_1.default.Config();
         if (this.peeringPort === 0) {
             this.peeringPort = Common_1.NetworkParams.network.getDefaultNodePort();
         }

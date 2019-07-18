@@ -32,4 +32,14 @@ var BootstrapListener = /** @class */ (function () {
     return BootstrapListener;
 }());
 exports.BootstrapListener = BootstrapListener;
+var BootstrapInitiator = /** @class */ (function () {
+    function BootstrapInitiator(bootstrapInitiatorDelegate) {
+        this.bootstrapInitiatorDelegate = bootstrapInitiatorDelegate;
+    } // TODO
+    BootstrapInitiator.prototype.stop = function () {
+        // TODO
+    };
+    return BootstrapInitiator;
+}());
+exports.BootstrapInitiator = BootstrapInitiator;
 //# sourceMappingURL=Bootstrap.js.map
