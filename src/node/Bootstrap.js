@@ -18,4 +18,18 @@ var BootstrapServer = /** @class */ (function () {
     return BootstrapServer;
 }());
 exports.BootstrapServer = BootstrapServer;
+var BootstrapListener = /** @class */ (function () {
+    function BootstrapListener(port, delegate) {
+        this.port = port;
+        this.delegate = delegate;
+    }
+    BootstrapListener.prototype.start = function () {
+        // TODO
+    };
+    BootstrapListener.prototype.stop = function () {
+        // TODO
+    };
+    return BootstrapListener;
+}());
+exports.BootstrapListener = BootstrapListener;
 //# sourceMappingURL=Bootstrap.js.map

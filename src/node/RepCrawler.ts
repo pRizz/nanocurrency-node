@@ -5,4 +5,8 @@ export default class RepCrawler {
     query(channel: Transport.Channel) {
         // TODO
     }
+
+    start() {
+        // TODO
+    }
 }

@@ -60,6 +60,8 @@ var UInt512_1 = require("../lib/UInt512");
 var RepCrawler_1 = require("./RepCrawler");
 var LMDB_1 = require("./LMDB");
 var path = require("path");
+var Bootstrap_1 = require("./Bootstrap");
+var PortMapping_1 = require("./PortMapping");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -84,6 +86,8 @@ var NanoNode = /** @class */ (function () {
         this.ledger = new Ledger_1.default(this.blockStore);
         this.applicationPath = applicationPath;
         this.network = new Network_1.Network(flags.disableUDP, this.nodeConfig.peeringPort, this, this);
+        this.bootstrapListener = new Bootstrap_1.BootstrapListener(this.nodeConfig.peeringPort, this);
+        this.portMapping = new PortMapping_1.PortMapping(this);
     }
     NanoNode.create = function (applicationPath, flags, nodeConfig) {
         if (flags === void 0) { flags = new NodeConfig_1.NodeFlags(); }
@@ -101,16 +105,70 @@ var NanoNode = /** @class */ (function () {
     };
     NanoNode.prototype.start = function () {
         return __awaiter(this, void 0, void 0, function () {
+            var _this = this;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, this.network.start()];
                     case 1:
                         _a.sent();
                         this.addInitialPeers();
+                        if (!this.flags.disableLegacyBootstrap) {
+                            this.ongoingBootstrap();
+                        }
+                        else if (!this.flags.disableUncheckedCleanup) {
+                            this.ongoingUncheckedCleanup();
+                        }
+                        this.ongoingStoreFlush();
+                        this.repCrawler.start();
+                        this.ongoingRepCalculation();
+                        this.ongoingPeerStore();
+                        this.ongoingOnlineWeightCalculationQueue();
+                        if (this.nodeConfig.tcpIncomingConnectionsMax > 0) {
+                            this.bootstrapListener.start();
+                        }
+                        if (!this.flags.disableBackup) {
+                            this.backupWallet();
+                        }
+                        this.searchPending();
+                        if (!this.flags.disableWalletBootstrap) {
+                            setTimeout(function () {
+                                _this.bootstrapWallet();
+                            }, moment.duration(1, 'minute').asMilliseconds());
+                        }
+                        if (this.nodeConfig.externalAddress.range() !== 'unspecified' && this.nodeConfig.externalPort !== 0) {
+                            this.portMapping.start();
+                        }
                         return [2 /*return*/];
                 }
             });
         });
+    };
+    NanoNode.prototype.bootstrapWallet = function () {
+        // TODO
+    };
+    NanoNode.prototype.searchPending = function () {
+        // TODO
+    };
+    NanoNode.prototype.backupWallet = function () {
+        // TODO
+    };
+    NanoNode.prototype.ongoingOnlineWeightCalculationQueue = function () {
+        // TODO
+    };
+    NanoNode.prototype.ongoingPeerStore = function () {
+        // TODO
+    };
+    NanoNode.prototype.ongoingRepCalculation = function () {
+        // TODO
+    };
+    NanoNode.prototype.ongoingStoreFlush = function () {
+        // TODO
+    };
+    NanoNode.prototype.ongoingBootstrap = function () {
+        // TODO
+    };
+    NanoNode.prototype.ongoingUncheckedCleanup = function () {
+        // TODO
     };
     NanoNode.prototype.addInitialPeers = function () {
         var _this = this;

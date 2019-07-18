@@ -6,6 +6,9 @@ var RepCrawler = /** @class */ (function () {
     RepCrawler.prototype.query = function (channel) {
         // TODO
     };
+    RepCrawler.prototype.start = function () {
+        // TODO
+    };
     return RepCrawler;
 }());
 exports.default = RepCrawler;

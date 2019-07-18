@@ -19,6 +19,9 @@ import UInt512 from '../lib/UInt512'
 import RepCrawler from './RepCrawler'
 import {MDBStore} from './LMDB'
 import * as path from 'path'
+import {BootstrapListener, BootstrapListenerDelegate} from './Bootstrap'
+import ipaddr = require("ipaddr.js");
+import {PortMapping, PortMappingDelegate} from './PortMapping'
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -26,7 +29,7 @@ class BlockArrival {
     }
 }
 
-export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate {
+export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate, BootstrapListenerDelegate, PortMappingDelegate {
     private readonly blockProcessor: BlockProcessor
     private readonly ledger: Ledger
     private readonly blockArrival = new BlockArrival()
@@ -35,6 +38,8 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     private readonly activeTransactions = new ActiveTransactions()
     private readonly network: Network
     private readonly repCrawler = new RepCrawler()
+    private readonly bootstrapListener: BootstrapListener
+    private readonly portMapping: PortMapping
 
     static async create(applicationPath: string, flags: NodeFlags = new NodeFlags(), nodeConfig: NodeConfig): Promise<NanoNode> {
         const blockStore = await MDBStore.create(
@@ -58,11 +63,83 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         this.applicationPath = applicationPath
 
         this.network = new Network(flags.disableUDP, this.nodeConfig.peeringPort, this, this)
+
+        this.bootstrapListener = new BootstrapListener(this.nodeConfig.peeringPort, this)
+
+        this.portMapping = new PortMapping(this)
     }
 
     async start(): Promise<void> {
         await this.network.start()
         this.addInitialPeers()
+
+        if(!this.flags.disableLegacyBootstrap) {
+            this.ongoingBootstrap()
+        } else if(!this.flags.disableUncheckedCleanup) {
+            this.ongoingUncheckedCleanup()
+        }
+
+        this.ongoingStoreFlush()
+        this.repCrawler.start()
+        this.ongoingRepCalculation()
+        this.ongoingPeerStore()
+        this.ongoingOnlineWeightCalculationQueue()
+
+        if(this.nodeConfig.tcpIncomingConnectionsMax > 0) {
+            this.bootstrapListener.start()
+        }
+
+        if(!this.flags.disableBackup) {
+            this.backupWallet()
+        }
+
+        this.searchPending()
+
+        if(!this.flags.disableWalletBootstrap) {
+            setTimeout(() => {
+                this.bootstrapWallet()
+            }, moment.duration(1, 'minute').asMilliseconds())
+        }
+
+        if(this.nodeConfig.externalAddress.range() !== 'unspecified' && this.nodeConfig.externalPort !== 0) {
+            this.portMapping.start()
+        }
+    }
+
+    private bootstrapWallet() {
+        // TODO
+    }
+
+    private searchPending() {
+        // TODO
+    }
+
+    private backupWallet() {
+        // TODO
+    }
+
+    private ongoingOnlineWeightCalculationQueue() {
+        // TODO
+    }
+
+    private ongoingPeerStore() {
+        // TODO
+    }
+
+    private ongoingRepCalculation() {
+        // TODO
+    }
+
+    private ongoingStoreFlush() {
+        // TODO
+    }
+
+    private ongoingBootstrap() {
+        // TODO
+    }
+
+    private ongoingUncheckedCleanup() {
+        // TODO
     }
 
     private addInitialPeers() {

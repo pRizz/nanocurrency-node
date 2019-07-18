@@ -22,3 +22,19 @@ export class BootstrapServer {
         // TODO
     }
 }
+
+export interface BootstrapListenerDelegate {
+
+}
+
+export class BootstrapListener {
+    constructor(private readonly port: number, private readonly delegate: BootstrapListenerDelegate) {}
+
+    start() {
+        // TODO
+    }
+
+    stop() {
+        // TODO
+    }
+}

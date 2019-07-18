@@ -4,6 +4,7 @@ import * as moment from 'moment'
 import {LedgerConstants, NetworkParams} from '../secure/Common'
 import Account from '../lib/Account'
 import UInt256 from '../lib/UInt256'
+import ipaddr = require('ipaddr.js');
 
 namespace NodeConfigConstants {
     export const preconfiguredPeersKey = 'preconfigured_peers'
@@ -65,6 +66,9 @@ export class NodeConfig {
     readonly networkParams = new NetworkParams()
     readonly epochBlockLink: UInt256
     readonly epochBlockSigner: Account
+    readonly tcpIncomingConnectionsMax = 1024
+    readonly externalAddress = ipaddr.IPv6.parse('::')
+    readonly externalPort = 0
 
     constructor(readonly peeringPort: number = 0) {
         if(this.peeringPort === 0) {
