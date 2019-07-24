@@ -66,6 +66,8 @@ var VoteProcessor_1 = require("./VoteProcessor");
 var ConfirmationHeightProcessor_1 = require("./ConfirmationHeightProcessor");
 var ActiveTransactions_1 = require("./ActiveTransactions");
 var NANOWebSocket = require("./WebSocket");
+var Signatures_1 = require("./Signatures");
+var WriteDatabaseQueue_1 = require("./WriteDatabaseQueue");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -83,10 +85,11 @@ var NanoNode = /** @class */ (function () {
         this.nodeConfig = nodeConfig;
         this.blockArrival = new BlockArrival();
         this.votesCache = new Voting_1.VotesCache();
-        this.wallets = new Wallet_1.Wallets();
+        this.wallets = new Wallet_1.Wallets(); // FIXME: Doesn't really belong in the core node
         this.activeTransactions = new ActiveTransactions_1.ActiveTransactions();
         this.repCrawler = new RepCrawler_1.default();
         this.isStopped = false;
+        this.writeDatabaseQueue = new WriteDatabaseQueue_1.WriteDatabaseQueue();
         if (this.nodeConfig.webSocketConfig.getIsEnabled()) {
             var endpoint = new Common_1.TCPEndpoint(new Common_1.IPAddress(this.nodeConfig.webSocketConfig.getIPAddress()), this.nodeConfig.webSocketConfig.getPort());
             this.webSocketServer = new NANOWebSocket.default.Listener(this, endpoint);
@@ -101,6 +104,7 @@ var NanoNode = /** @class */ (function () {
         this.voteProcessor = new VoteProcessor_1.VoteProcessor(this);
         this.confirmationHeightProcessor = new ConfirmationHeightProcessor_1.ConfirmationHeightProcessor();
         this.bootstrapInitiator = new Bootstrap_1.BootstrapInitiator(this);
+        this.signatureChecker = new Signatures_1.SignatureChecker(nodeConfig.signatureCheckerThreads);
     }
     NanoNode.create = function (applicationPath, flags, nodeConfig) {
         if (flags === void 0) { flags = new NodeConfig_1.NodeFlags(); }
@@ -170,7 +174,12 @@ var NanoNode = /** @class */ (function () {
             this.webSocketServer.stop();
         }
         this.bootstrapInitiator.stop();
-        // TODO
+        this.bootstrapListener.stop();
+        this.portMapping.stop();
+        this.signatureChecker.stop();
+        this.wallets.stop();
+        this.stats.stop();
+        this.writeDatabaseQueue.stop();
     };
     NanoNode.prototype.bootstrapWallet = function () {
         // TODO

@@ -16,6 +16,10 @@ export class Wallets {
     readonly workWatcher = new WorkWatcher()
 
     constructor() {
+        // TODO
+    }
 
+    stop() {
+        // TODO
     }
 }

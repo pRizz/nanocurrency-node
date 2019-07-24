@@ -25,6 +25,9 @@ import {VoteProcessor, VoteProcessorDelegate} from './VoteProcessor'
 import {ConfirmationHeightProcessor} from './ConfirmationHeightProcessor'
 import {ActiveTransactions} from './ActiveTransactions'
 import * as NANOWebSocket from './WebSocket'
+import {SignatureChecker} from './Signatures'
+import {Stat} from '../lib/Stats'
+import {WriteDatabaseQueue} from './WriteDatabaseQueue'
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -37,7 +40,7 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     private readonly ledger: Ledger
     private readonly blockArrival = new BlockArrival()
     private readonly votesCache = new VotesCache()
-    private readonly wallets = new Wallets()
+    private readonly wallets = new Wallets() // FIXME: Doesn't really belong in the core node
     private readonly activeTransactions = new ActiveTransactions()
     private readonly network: Network
     private readonly repCrawler = new RepCrawler()
@@ -48,6 +51,9 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     private isStopped = false
     private readonly webSocketServer: NANOWebSocket.default.Listener | undefined
     private readonly bootstrapInitiator: BootstrapInitiator
+    private readonly signatureChecker: SignatureChecker
+    private readonly stats: Stat
+    private readonly writeDatabaseQueue = new WriteDatabaseQueue()
 
     static async create(applicationPath: string, flags: NodeFlags = new NodeFlags(), nodeConfig: NodeConfig): Promise<NanoNode> {
         const blockStore = await MDBStore.create(
@@ -84,6 +90,7 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         this.voteProcessor = new VoteProcessor(this)
         this.confirmationHeightProcessor = new ConfirmationHeightProcessor()
         this.bootstrapInitiator = new BootstrapInitiator(this)
+        this.signatureChecker = new SignatureChecker(nodeConfig.signatureCheckerThreads)
     }
 
     async start(): Promise<void> {
@@ -140,8 +147,12 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         }
 
         this.bootstrapInitiator.stop()
-
-        // TODO
+        this.bootstrapListener.stop()
+        this.portMapping.stop()
+        this.signatureChecker.stop()
+        this.wallets.stop()
+        this.stats.stop()
+        this.writeDatabaseQueue.stop()
     }
 
     private bootstrapWallet() {

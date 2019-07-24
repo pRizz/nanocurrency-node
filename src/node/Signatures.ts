@@ -16,4 +16,10 @@ export class SignatureChecker {
     static verify(signatureVerifiable: SignatureVerifiable): boolean {
         return SignatureVerifier.verify(signatureVerifiable.message, signatureVerifiable.signature.value.asUint8Array(), signatureVerifiable.publicKey)
     }
+
+    constructor(private readonly signatureCheckerThreads: number) {}
+
+    stop() {
+        // TODO
+    }
 }

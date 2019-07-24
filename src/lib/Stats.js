@@ -95,6 +95,9 @@ var StatDirection;
 var Stat = /** @class */ (function () {
     function Stat() {
     }
+    Stat.prototype.stop = function () {
+        // TODO
+    };
     return Stat;
 }());
 exports.Stat = Stat;

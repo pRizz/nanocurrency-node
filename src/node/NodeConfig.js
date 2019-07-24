@@ -74,6 +74,7 @@ var NodeConfig = /** @class */ (function () {
         this.externalAddress = ipaddr.IPv6.parse('::');
         this.externalPort = 0;
         this.webSocketConfig = new WebSocketConfig_1.default.Config();
+        this.signatureCheckerThreads = 1; // FIXME; utilize cores
         if (this.peeringPort === 0) {
             this.peeringPort = Common_1.NetworkParams.network.getDefaultNodePort();
         }

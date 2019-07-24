@@ -102,5 +102,7 @@ export enum StatDirection {
 }
 
 export class Stat {
-
+    stop() {
+        // TODO
+    }
 }

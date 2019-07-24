@@ -71,6 +71,7 @@ export class NodeConfig {
     readonly externalAddress = ipaddr.IPv6.parse('::')
     readonly externalPort = 0
     readonly webSocketConfig = new NANOWebSocket.Config()
+    readonly signatureCheckerThreads = 1 // FIXME; utilize cores
 
     constructor(readonly peeringPort: number = 0) {
         if(this.peeringPort === 0) {

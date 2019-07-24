@@ -12,7 +12,11 @@ exports.WorkWatcher = WorkWatcher;
 var Wallets = /** @class */ (function () {
     function Wallets() {
         this.workWatcher = new WorkWatcher();
+        // TODO
     }
+    Wallets.prototype.stop = function () {
+        // TODO
+    };
     return Wallets;
 }());
 exports.Wallets = Wallets;
