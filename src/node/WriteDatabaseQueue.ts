@@ -1,5 +1,5 @@
 export class WriteDatabaseQueue {
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

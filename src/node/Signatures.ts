@@ -20,6 +20,6 @@ export class SignatureChecker {
     constructor(private readonly signatureCheckerThreads: number) {}
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

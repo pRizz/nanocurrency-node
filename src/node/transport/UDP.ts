@@ -19,7 +19,7 @@ export class EndpointConnectionAttempt {
 
 export class EndpointConnectionAttempts {
     has(endpoint: Endpoint): boolean {
-        return false // FIXME
+        throw 0 // FIXME
     }
 }
 
@@ -67,7 +67,7 @@ export class UDPChannels {
     }
 
     private getChannelFor(endpoint: Endpoint): ChannelUDP | undefined {
-        return undefined // FIXME
+        throw 0 // FIXME
     }
 
     private isEndpointOverloaded(endpoint: Endpoint): boolean {
@@ -99,17 +99,16 @@ export class UDPChannels {
         }, 100000) // FIXME
     }
 
-    // TODO
     private getChannelsAboveCutoff(cutoffTime: number): Set<ChannelUDPWrapper> {
-        return new Set()
+        throw 0 // FIXME
     }
 
     stop() {
-
+        throw 0 // FIXME
     }
 
     purge(cutoffTime: number) {
-
+        throw 0 // FIXME
     }
 }
 
@@ -119,8 +118,8 @@ export interface UDPChannelsDelegate {
 
 export class ChannelUDP extends Transport.Channel {
     // FIXME: async?
-    send(message: Message) {
-        // FIXME
+    async sendBuffer(buffer: Buffer): Promise<void> {
+        throw 0 // FIXME
     }
 }
 

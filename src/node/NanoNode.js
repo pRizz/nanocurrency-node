@@ -47,16 +47,12 @@ var __values = (this && this.__values) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var BlockProcessor_1 = require("./BlockProcessor");
 var Ledger_1 = require("../secure/Ledger");
-var Account_1 = require("../lib/Account");
-var UInt256_1 = require("../lib/UInt256");
-var moment = require("moment");
 var Voting_1 = require("./Voting");
 var Wallet_1 = require("./Wallet");
 var Network_1 = require("./Network");
 var NodeConfig_1 = require("./NodeConfig");
 var Common_1 = require("./Common");
 var ipaddr_js_1 = require("ipaddr.js");
-var UInt512_1 = require("../lib/UInt512");
 var RepCrawler_1 = require("./RepCrawler");
 var LMDB_1 = require("./LMDB");
 var path = require("path");
@@ -68,6 +64,8 @@ var ActiveTransactions_1 = require("./ActiveTransactions");
 var NANOWebSocket = require("./WebSocket");
 var Signatures_1 = require("./Signatures");
 var WriteDatabaseQueue_1 = require("./WriteDatabaseQueue");
+var Config_1 = require("../lib/Config");
+var moment = require("moment");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -87,7 +85,7 @@ var NanoNode = /** @class */ (function () {
         this.votesCache = new Voting_1.VotesCache();
         this.wallets = new Wallet_1.Wallets(); // FIXME: Doesn't really belong in the core node
         this.activeTransactions = new ActiveTransactions_1.ActiveTransactions();
-        this.repCrawler = new RepCrawler_1.default();
+        this.repCrawler = new RepCrawler_1.default(this);
         this.isStopped = false;
         this.writeDatabaseQueue = new WriteDatabaseQueue_1.WriteDatabaseQueue();
         if (this.nodeConfig.webSocketConfig.getIsEnabled()) {
@@ -181,32 +179,38 @@ var NanoNode = /** @class */ (function () {
         this.stats.stop();
         this.writeDatabaseQueue.stop();
     };
+    NanoNode.prototype.isTestNetwork = function () {
+        return Config_1.NetworkConstants.activeNetwork === Config_1.NANONetwork.nanoTestNetwork;
+    };
+    NanoNode.prototype.blockRandom = function (readTransaction) {
+        return this.blockStore.blockRandom(readTransaction);
+    };
     NanoNode.prototype.bootstrapWallet = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.searchPending = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.backupWallet = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.ongoingOnlineWeightCalculationQueue = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.ongoingPeerStore = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.ongoingRepCalculation = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.ongoingStoreFlush = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.ongoingBootstrap = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.ongoingUncheckedCleanup = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.addInitialPeers = function () {
         var _this = this;
@@ -226,38 +230,38 @@ var NanoNode = /** @class */ (function () {
         }
     };
     NanoNode.prototype.getRandomPeers = function () {
-        return new Set(); // FIXME
+        throw 0; // FIXME
     };
     NanoNode.prototype.getUDPChannelCount = function () {
         return this.network.udpChannels.getChannelCount();
     };
     NanoNode.prototype.bootstrapPeer = function (protocolVersionMin) {
-        // FIXME
+        throw 0; // FIXME
         return new Common_1.TCPEndpoint(new Common_1.IPAddress(ipaddr_js_1.IPv6.parse('')), 0);
     };
     NanoNode.prototype.startTCPReceiveNodeID = function (channel, endpoint, receiveBuffer, callback) {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.tcpSocketConnectionFailed = function () {
-        // TODO
+        throw 0; // FIXME
     };
     NanoNode.prototype.getAccountCookieForEndpoint = function (endpoint) {
-        return new Account_1.default(new UInt256_1.default()); // FIXME
+        throw 0; // FIXME
     };
     NanoNode.prototype.isNodeValid = function (endpoint, nodeID, signature) {
-        return false; // FIXME
+        throw 0; // FIXME
     };
     NanoNode.prototype.getNodeID = function () {
-        return new Account_1.default(new UInt256_1.default()); // FIXME
+        throw 0; // FIXME
     };
     NanoNode.prototype.hasNode = function (nodeID) {
-        return false; // FIXME
+        throw 0; // FIXME
     };
     NanoNode.prototype.hasPeer = function (endpoint, allowLocalPeers) {
-        return false; // FIXME
+        throw 0; // FIXME
     };
     NanoNode.prototype.getPrivateKey = function () {
-        return new UInt512_1.default(); // FIXME
+        throw 0; // FIXME
     };
     NanoNode.prototype.isLocalPeersAllowed = function () {
         return this.nodeConfig.allowLocalPeers;

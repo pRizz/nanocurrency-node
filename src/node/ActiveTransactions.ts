@@ -2,12 +2,11 @@ import Block from '../lib/Block'
 
 export class ActiveTransactions {
 
-    // TODO
     erase(block: Block) {
-
+        throw 0 // FIXME
     }
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

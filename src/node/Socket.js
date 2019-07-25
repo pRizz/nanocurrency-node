@@ -71,8 +71,8 @@ var Socket = /** @class */ (function () {
             });
         });
     };
-    // TODO
     Socket.prototype.checkup = function () {
+        throw 0; // FIXME
     };
     Socket.prototype.writeBuffer = function (buffer) {
         return __awaiter(this, void 0, void 0, function () {

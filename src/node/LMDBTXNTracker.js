@@ -6,10 +6,10 @@ var MDBTXNTracker = /** @class */ (function () {
         this.blockProcessorBatchMaxDuration = blockProcessorBatchMaxDuration;
     }
     MDBTXNTracker.prototype.add = function (transactionImpl) {
-        // TODO
+        throw 0; // FIXME
     };
     MDBTXNTracker.prototype.erase = function (transactionImpl) {
-        // TODO
+        throw 0; // FIXME
     };
     return MDBTXNTracker;
 }());

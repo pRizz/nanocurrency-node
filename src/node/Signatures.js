@@ -9,7 +9,7 @@ var SignatureChecker = /** @class */ (function () {
         return SignatureVerifier_1.default.verify(signatureVerifiable.message, signatureVerifiable.signature.value.asUint8Array(), signatureVerifiable.publicKey);
     };
     SignatureChecker.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return SignatureChecker;
 }());

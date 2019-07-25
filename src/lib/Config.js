@@ -43,6 +43,9 @@ var NetworkConstants = /** @class */ (function () {
     NetworkConstants.prototype.isBetaNetwork = function () {
         return this.currentNetwork === NANONetwork.nanoBetaNetwork;
     };
+    NetworkConstants.prototype.isTestNetwork = function () {
+        return this.currentNetwork === NANONetwork.nanoTestNetwork;
+    };
     NetworkConstants.publishThresholdDifficulty = new UInt64_1.default({ hex: publishFullThresholdHex });
     NetworkConstants.activeNetwork = NANONetwork.nanoLiveNetwork;
     return NetworkConstants;

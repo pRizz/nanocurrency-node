@@ -11,7 +11,7 @@ export default class IPCServer {
         this.isTransportDomainEnabled = isTransportDomainEnabled
         this.isTransportTCPEnabled = isTransportTCPEnabled
 
-        // TODO
+        throw 0 // FIXME
     }
 
     stop() {

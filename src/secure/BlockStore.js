@@ -5,10 +5,10 @@ var ReadTransaction = /** @class */ (function () {
         this.readTransactionImpl = readTransactionImpl;
     }
     ReadTransaction.prototype.getHandle = function () {
-        // TODO
+        throw 0; // FIXME
     };
     ReadTransaction.prototype.finalize = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return ReadTransaction;
 }());
@@ -18,10 +18,10 @@ var WriteTransaction = /** @class */ (function () {
         this.writeTransactionImpl = writeTransactionImpl;
     }
     WriteTransaction.prototype.getHandle = function () {
-        // TODO
+        throw 0; // FIXME
     };
     WriteTransaction.prototype.finalize = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return WriteTransaction;
 }());

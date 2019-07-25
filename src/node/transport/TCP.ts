@@ -97,14 +97,13 @@ export class TCPChannels {
         }
     }
 
-    // TODO:
     private cookieFromEndpoint(endpoint: Endpoint): SYNCookieInfo {
-        return new SYNCookieInfo() // FIXME
+        throw 0 // FIXME
     }
 
     async startTCPConnection(endpoint: Endpoint, callback: (channel: Transport.Channel) => void): Promise<void> {
         const socket = new Socket(SocketConcurrency.multiWriter)
-        const tcpChannel = new ChannelTCP(socket)
+        const tcpChannel = new ChannelTCP(socket, this.delegate)
         const tcpEndpoint = Transport.mapEndpointToTCP(endpoint)
         await tcpChannel.connect(tcpEndpoint) // TODO: refactor; encapsulate socket
         const accountCookie = this.delegate.getAccountCookieForEndpoint(tcpEndpoint)
@@ -166,8 +165,7 @@ export class TCPChannels {
     }
 
     private hasChannelWithEndpoint(tcpEndpoint: TCPEndpoint | undefined): boolean {
-        // TODO
-        return false
+        throw 0 // FIXME
     }
 
     private insertChannel(tcpChannel: ChannelTCP): boolean {
@@ -189,28 +187,24 @@ export class TCPChannels {
         return false
     }
 
-    // TODO
     private getChannelsAboveCutoff(cutoffTime: number): Set<ChannelTCP> {
-        return new Set()
+        throw 0 // FIXME
     }
 
-    // TODO
     stop() {
-
+        throw 0 // FIXME
     }
 
-    // TODO
     purge(cutoffTime: number) {
-
+        throw 0 // FIXME
     }
 
-    // TODO
     private hasChannel(tcpEndpoint: TCPEndpoint): boolean {
-        return false
+        throw 0 // FIXME
     }
 }
 
-export interface TCPChannelsDelegate {
+export interface TCPChannelsDelegate extends Transport.TransportChannelDelegate {
     getRandomPeers(): Set<UDPEndpoint>
     getUDPChannelCount(): number
     bootstrapPeer(protocolVersionMin: number): TCPEndpoint
@@ -234,9 +228,13 @@ export class ChannelTCP extends Transport.Channel {
     private tcpEndpoint?: TCPEndpoint
     responseServer?: BootstrapServer // TODO: encapsulate
 
-    constructor(socket: Socket) {
-        super()
+    constructor(socket: Socket, delegate: Transport.TransportChannelDelegate) {
+        super(delegate)
         this.socket = socket
+    }
+
+    async sendBuffer(buffer: Buffer): Promise<void> {
+        throw 0 // FIXME
     }
 
     getTCPEndpoint(): TCPEndpoint | undefined {

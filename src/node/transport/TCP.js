@@ -60,7 +60,6 @@ var __values = (this && this.__values) || function (o) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // TODO: audit
 var Common_1 = require("../Common");
-var Network_1 = require("../Network");
 var Socket_1 = require("../Socket");
 var Transport_1 = require("./Transport");
 var MessageSigner_1 = require("../../lib/MessageSigner");
@@ -139,9 +138,8 @@ var TCPChannels = /** @class */ (function () {
             });
         }
     };
-    // TODO:
     TCPChannels.prototype.cookieFromEndpoint = function (endpoint) {
-        return new Network_1.SYNCookieInfo(); // FIXME
+        throw 0; // FIXME
     };
     TCPChannels.prototype.startTCPConnection = function (endpoint, callback) {
         return __awaiter(this, void 0, void 0, function () {
@@ -150,7 +148,7 @@ var TCPChannels = /** @class */ (function () {
                 switch (_a.label) {
                     case 0:
                         socket = new Socket_1.Socket(Socket_1.SocketConcurrency.multiWriter);
-                        tcpChannel = new ChannelTCP(socket);
+                        tcpChannel = new ChannelTCP(socket, this.delegate);
                         tcpEndpoint = Transport_1.default.mapEndpointToTCP(endpoint);
                         return [4 /*yield*/, tcpChannel.connect(tcpEndpoint)]; // TODO: refactor; encapsulate socket
                     case 1:
@@ -220,8 +218,7 @@ var TCPChannels = /** @class */ (function () {
         channel.responseServer.receive();
     };
     TCPChannels.prototype.hasChannelWithEndpoint = function (tcpEndpoint) {
-        // TODO
-        return false;
+        throw 0; // FIXME
     };
     TCPChannels.prototype.insertChannel = function (tcpChannel) {
         var tcpEndpoint = tcpChannel.getTCPEndpoint();
@@ -238,30 +235,35 @@ var TCPChannels = /** @class */ (function () {
         // FIXME: parity code needed?
         return false;
     };
-    // TODO
     TCPChannels.prototype.getChannelsAboveCutoff = function (cutoffTime) {
-        return new Set();
+        throw 0; // FIXME
     };
-    // TODO
     TCPChannels.prototype.stop = function () {
+        throw 0; // FIXME
     };
-    // TODO
     TCPChannels.prototype.purge = function (cutoffTime) {
+        throw 0; // FIXME
     };
-    // TODO
     TCPChannels.prototype.hasChannel = function (tcpEndpoint) {
-        return false;
+        throw 0; // FIXME
     };
     return TCPChannels;
 }());
 exports.TCPChannels = TCPChannels;
 var ChannelTCP = /** @class */ (function (_super) {
     __extends(ChannelTCP, _super);
-    function ChannelTCP(socket) {
-        var _this = _super.call(this) || this;
+    function ChannelTCP(socket, delegate) {
+        var _this = _super.call(this, delegate) || this;
         _this.socket = socket;
         return _this;
     }
+    ChannelTCP.prototype.sendBuffer = function (buffer) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                throw 0; // FIXME
+            });
+        });
+    };
     ChannelTCP.prototype.getTCPEndpoint = function () {
         return this.tcpEndpoint;
     };

@@ -1,4 +1,4 @@
-import {Endpoint, IPAddress, TCPEndpoint} from '../Common'
+import {Endpoint, IPAddress, Message, TCPEndpoint} from '../Common'
 
 namespace Transport {
     export function mapEndpointToTCP(endpoint: Endpoint) {
@@ -6,14 +6,24 @@ namespace Transport {
     }
 
     export function isReserved(ipAddress: IPAddress, allowLocalPeers: boolean): boolean {
-        // TODO
-        return true
+        throw 0 // FIXME
     }
 
     export const maxPeersPerIP = 10
 
-    export abstract class Channel {
+    export interface TransportChannelDelegate {
 
+    }
+
+    export abstract class Channel {
+        constructor(protected readonly delegate: TransportChannelDelegate) {}
+
+        async send(message: Message): Promise<void> {
+            const messageBuffer = message.asBuffer()
+            return this.sendBuffer(messageBuffer)
+        }
+
+        abstract sendBuffer(buffer: Buffer): Promise<void>
     }
 }
 

@@ -254,12 +254,13 @@ var KeepaliveMessage = /** @class */ (function () {
     function KeepaliveMessage(peers) {
         this.messageHeader = new MessageHeader(MessageType.keepalive, new UInt16_1.default()); // FIXME
         this.peers = peers;
+        throw 0; // FIXME messageHeader
     }
     KeepaliveMessage.prototype.serialize = function (stream) {
-        //TODO
+        throw 0; // FIXME
     };
     KeepaliveMessage.prototype.visit = function (messageVisitor) {
-        //TODO
+        throw 0; // FIXME
     };
     KeepaliveMessage.prototype.getPeers = function () {
         return this.peers;
@@ -267,9 +268,34 @@ var KeepaliveMessage = /** @class */ (function () {
     KeepaliveMessage.prototype.getMessageHeader = function () {
         return this.messageHeader;
     };
+    KeepaliveMessage.prototype.asBuffer = function () {
+        throw 0; // FIXME
+    };
     return KeepaliveMessage;
 }());
 exports.KeepaliveMessage = KeepaliveMessage;
+var ConfirmReqMessage = /** @class */ (function () {
+    function ConfirmReqMessage(block) {
+        this.block = block;
+    }
+    // TODO
+    ConfirmReqMessage.prototype.asBuffer = function () {
+        throw 0; // FIXME
+    };
+    ConfirmReqMessage.prototype.getMessageHeader = function () {
+        // FIXME
+        throw 0; // FIXME
+        // return new MessageHeader(MessageType.confirm_req, new UInt16())
+    };
+    ConfirmReqMessage.prototype.serialize = function (stream) {
+        throw 0; // FIXME
+    };
+    ConfirmReqMessage.prototype.visit = function (messageVisitor) {
+        throw 0; // FIXME
+    };
+    return ConfirmReqMessage;
+}());
+exports.ConfirmReqMessage = ConfirmReqMessage;
 var NodeIDHandshakeMessageResponse = /** @class */ (function () {
     function NodeIDHandshakeMessageResponse(account, signature) {
         this.account = account;
@@ -315,6 +341,9 @@ var NodeIDHandshakeMessage = /** @class */ (function () {
         if (this.response) {
             this.response.serialize(stream);
         }
+    };
+    NodeIDHandshakeMessage.prototype.asBuffer = function () {
+        throw 0; // FIXME
     };
     NodeIDHandshakeMessage.prototype.visit = function (messageVisitor) {
     };

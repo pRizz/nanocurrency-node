@@ -6,14 +6,14 @@ interface RPCHandler {
 export default class RPCServer {
 
     constructor() {
-
+        throw 0 // FIXME
     }
 
     start() {
-        // TODO
+        throw 0 // FIXME
     }
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

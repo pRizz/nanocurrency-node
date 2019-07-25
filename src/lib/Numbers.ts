@@ -30,7 +30,7 @@ export class RawKey implements Equatable<RawKey> {
     constructor(readonly value: UInt512) {}
 
     decrypt() {
-        // TODO
+        throw 0 // FIXME
     }
 
     equals(other: RawKey): boolean {

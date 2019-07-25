@@ -4,7 +4,7 @@ var ConfirmationHeightProcessor = /** @class */ (function () {
     function ConfirmationHeightProcessor() {
     }
     ConfirmationHeightProcessor.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return ConfirmationHeightProcessor;
 }());

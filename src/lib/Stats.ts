@@ -103,6 +103,6 @@ export enum StatDirection {
 
 export class Stat {
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

@@ -22,16 +22,16 @@ var PortMapping = /** @class */ (function () {
         ];
     }
     PortMapping.prototype.start = function () {
-        // TODO
+        throw 0; // FIXME
     };
     PortMapping.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     PortMapping.prototype.refreshDevices = function () {
-        // TODO
+        throw 0; // FIXME
     };
     PortMapping.prototype.getExternalAddress = function () {
-        // TODO
+        throw 0; // FIXME
         return new Common_1.UDPEndpoint(new Common_1.IPAddress(ipaddr.IPv6.parse('::')), 0);
     };
     return PortMapping;

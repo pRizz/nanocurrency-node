@@ -13,9 +13,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var Common_1 = require("../secure/Common");
 var Block_1 = require("../lib/Block");
 var Voting_1 = require("./Voting");
-var UInt256_1 = require("../lib/UInt256");
 var WorkValidator_1 = require("../lib/WorkValidator");
-var BlockHash_1 = require("../lib/BlockHash");
 var Signatures_1 = require("./Signatures");
 var Common_2 = require("./Common");
 var moment = require("moment");
@@ -24,25 +22,23 @@ var RolledHashContainer = /** @class */ (function () {
     function RolledHashContainer() {
     }
     RolledHashContainer.prototype.has = function (blockHash) {
-        return false; // FIXME
+        throw 0; // FIXME
     };
     // returns success
     RolledHashContainer.prototype.insert = function (rolledHash) {
-        // TODO
-        return false;
+        throw 0; // FIXME
     };
     RolledHashContainer.prototype.removeBlockHash = function (blockHash) {
-        // TODO
+        throw 0; // FIXME
     };
     RolledHashContainer.prototype.removeRolledHash = function (rolledHash) {
-        // TODO
+        throw 0; // FIXME
     };
     RolledHashContainer.prototype.getSize = function () {
-        return 0; // FIXME
+        throw 0; // FIXME
     };
     RolledHashContainer.prototype.getFirst = function () {
-        // FIXME
-        return new RolledHash(new BlockHash_1.default(new UInt256_1.default()), moment());
+        throw 0; // FIXME
     };
     return RolledHashContainer;
 }());

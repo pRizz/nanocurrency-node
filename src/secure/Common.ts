@@ -142,3 +142,18 @@ export class NetworkParams {
         this.headerMagicNumber = NetworkParams.headerMagicNumberForNetwork(nanoNetwork)
     }
 }
+
+export class BlockCounts {
+    constructor(
+        readonly send: number,
+        readonly receive: number,
+        readonly open: number,
+        readonly change: number,
+        readonly stateV0: number,
+        readonly stateV1: number,
+    ) {}
+
+    getSum(): number {
+        return this.send + this.receive + this.open + this.change + this.stateV0 + this.stateV1
+    }
+}

@@ -26,19 +26,19 @@ export class PortMapping {
     }
 
     start() {
-        // TODO
+        throw 0 // FIXME
     }
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 
     refreshDevices() {
-        // TODO
+        throw 0 // FIXME
     }
 
     getExternalAddress(): Endpoint {
-        // TODO
+        throw 0 // FIXME
         return new UDPEndpoint(new IPAddress(ipaddr.IPv6.parse('::')), 0)
     }
 

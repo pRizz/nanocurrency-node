@@ -8,10 +8,10 @@ var NANOWebSocket;
             this.tcpEndpoint = tcpEndpoint;
         }
         Listener.prototype.stop = function () {
-            // TODO
+            throw 0; // FIXME
         };
         Listener.prototype.run = function () {
-            // TODO
+            throw 0; // FIXME
         };
         return Listener;
     }());

@@ -35,7 +35,7 @@ var RawKey = /** @class */ (function () {
         this.value = value;
     }
     RawKey.prototype.decrypt = function () {
-        // TODO
+        throw 0; // FIXME
     };
     RawKey.prototype.equals = function (other) {
         return this.value.equals(other.value);

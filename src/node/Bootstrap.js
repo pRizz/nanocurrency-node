@@ -13,7 +13,7 @@ var BootstrapServer = /** @class */ (function () {
         this.socket = socket;
     }
     BootstrapServer.prototype.receive = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return BootstrapServer;
 }());
@@ -24,10 +24,10 @@ var BootstrapListener = /** @class */ (function () {
         this.delegate = delegate;
     }
     BootstrapListener.prototype.start = function () {
-        // TODO
+        throw 0; // FIXME
     };
     BootstrapListener.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return BootstrapListener;
 }());
@@ -37,7 +37,7 @@ var BootstrapInitiator = /** @class */ (function () {
         this.bootstrapInitiatorDelegate = bootstrapInitiatorDelegate;
     } // TODO
     BootstrapInitiator.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return BootstrapInitiator;
 }());

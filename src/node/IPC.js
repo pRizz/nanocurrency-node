@@ -15,7 +15,7 @@ var IPCServer = /** @class */ (function () {
         this.transports = new Array();
         this.isTransportDomainEnabled = isTransportDomainEnabled;
         this.isTransportTCPEnabled = isTransportTCPEnabled;
-        // TODO
+        throw 0; // FIXME
     }
     IPCServer.prototype.stop = function () {
         var e_1, _a;

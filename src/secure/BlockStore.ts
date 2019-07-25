@@ -1,4 +1,4 @@
-import {BlockType} from "../lib/Block";
+import Block, {BlockType} from "../lib/Block";
 import BlockHash from "../lib/BlockHash";
 import {Endpoint, Equatable} from '../node/Common'
 import {MDBValueInterface} from '../node/LMDB'
@@ -14,11 +14,11 @@ export class ReadTransaction implements Transaction {
     ) {}
 
     getHandle(): any {
-        // TODO
+        throw 0 // FIXME
     }
 
     finalize(): void {
-        // TODO
+        throw 0 // FIXME
     }
 }
 
@@ -28,11 +28,11 @@ export class WriteTransaction implements Transaction {
     ) {}
 
     getHandle(): any {
-        // TODO
+        throw 0 // FIXME
     }
 
     finalize(): void {
-        // TODO
+        throw 0 // FIXME
     }
 }
 
@@ -83,4 +83,5 @@ export interface BlockStoreInterface {
     peersFromTransaction(transaction: ReadTransaction): Array<Endpoint>
     getPeersBegin(transaction: ReadTransaction): StoreIterator<Endpoint, DBNoValue>
     getPeersEnd(): StoreIterator<Endpoint, DBNoValue>
+    blockRandom(readTransaction: ReadTransaction): Block
 }

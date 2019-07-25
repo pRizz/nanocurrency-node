@@ -9,23 +9,23 @@
     "macCoverage": "npm run coverage; open coverage/index.html"
   },
   "dependencies": {
-    "@types/node": "^12.0.2",
+    "@types/node": "^12.6.8",
     "blakejs": "^1.1.0",
     "commander": "^2.20.0",
     "debug": "^4.1.1",
-    "ipaddr.js": "^1.9.0",
+    "ipaddr.js": "^1.9.1",
     "moment": "^2.24.0",
     "morgan": "~1.9.1",
     "node-lmdb": "^0.7.0",
     "tweetnacl": "^1.0.1"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.6",
-    "mocha": "^6.1.4",
+    "@types/mocha": "^5.2.7",
+    "mocha": "^6.2.0",
     "nyc": "^14.1.1",
     "source-map-support": "^0.5.12",
-    "ts-node": "^8.2.0",
-    "typescript": "^3.5.1"
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3"
   },
   "nyc": {
     "extension": [

@@ -48,4 +48,8 @@ export class NetworkConstants {
     private isBetaNetwork(): boolean {
         return this.currentNetwork === NANONetwork.nanoBetaNetwork
     }
+
+    private isTestNetwork(): boolean {
+        return this.currentNetwork === NANONetwork.nanoTestNetwork
+    }
 }

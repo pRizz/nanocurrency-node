@@ -8,6 +8,6 @@ export class VoteProcessor {
     ) {}
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

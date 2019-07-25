@@ -3,11 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ActiveTransactions = /** @class */ (function () {
     function ActiveTransactions() {
     }
-    // TODO
     ActiveTransactions.prototype.erase = function (block) {
+        throw 0; // FIXME
     };
     ActiveTransactions.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return ActiveTransactions;
 }());

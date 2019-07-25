@@ -6,9 +6,8 @@ export class WorkWatcher {
 
     }
 
-    // TODO
     remove(block: Block) {
-
+        throw 0 // FIXME
     }
 }
 
@@ -16,10 +15,10 @@ export class Wallets {
     readonly workWatcher = new WorkWatcher()
 
     constructor() {
-        // TODO
+        throw 0 // FIXME
     }
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

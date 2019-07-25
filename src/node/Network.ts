@@ -32,7 +32,7 @@ export class MessageBufferManager {
 
     async dequeue(): Promise<MessageBuffer> {
         return new Promise((resolve, reject) => {
-            // FIXME
+            throw 0 // FIXME
         })
     }
 }
@@ -92,7 +92,7 @@ export class Network {
     }
 
     sendKeepalive(channel: Transport.Channel) {
-        // TODO
+        throw 0 // FIXME
     }
 
     start() {

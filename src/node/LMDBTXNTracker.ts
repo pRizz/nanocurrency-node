@@ -9,10 +9,10 @@ export class MDBTXNTracker {
     ) {}
 
     add(transactionImpl: TransactionImpl) {
-        // TODO
+        throw 0 // FIXME
     }
 
     erase(transactionImpl: TransactionImpl) {
-        // TODO
+        throw 0 // FIXME
     }
 }

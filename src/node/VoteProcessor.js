@@ -5,7 +5,7 @@ var VoteProcessor = /** @class */ (function () {
         this.voteProcessorDelegate = voteProcessorDelegate;
     }
     VoteProcessor.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return VoteProcessor;
 }());

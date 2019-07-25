@@ -4,7 +4,7 @@ var WriteDatabaseQueue = /** @class */ (function () {
     function WriteDatabaseQueue() {
     }
     WriteDatabaseQueue.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return WriteDatabaseQueue;
 }());

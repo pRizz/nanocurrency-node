@@ -10,6 +10,7 @@ import {Serializable} from './Socket'
 import {PassThrough} from "stream"
 import * as ipaddr from 'ipaddr.js'
 import {MDBValueInterface} from './LMDB'
+import Block from '../lib/Block'
 
 export interface Equatable<Self> {
     equals(other: Self): boolean
@@ -145,6 +146,7 @@ export class TCPEndpoint implements Endpoint {
 export interface Message extends Serializable {
     visit(messageVisitor: MessageVisitor): void
     getMessageHeader(): MessageHeader
+    asBuffer(): Buffer
 }
 
 export enum MessageType {
@@ -247,14 +249,15 @@ export class KeepaliveMessage implements Message {
 
     constructor(peers: Set<UDPEndpoint>) {
         this.peers = peers
+        throw 0 // FIXME messageHeader
     }
 
     serialize(stream: NodeJS.WritableStream): void {
-        //TODO
+        throw 0 // FIXME
     }
 
     visit(messageVisitor: MessageVisitor): void {
-        //TODO
+        throw 0 // FIXME
     }
 
     getPeers(): Set<UDPEndpoint> {
@@ -263,6 +266,34 @@ export class KeepaliveMessage implements Message {
 
     getMessageHeader(): MessageHeader {
         return this.messageHeader
+    }
+
+    asBuffer(): Buffer {
+        throw 0 // FIXME
+    }
+}
+
+export class ConfirmReqMessage implements Message {
+    constructor(private readonly block: Block) {}
+
+    // TODO
+
+    asBuffer(): Buffer {
+        throw 0 // FIXME
+    }
+
+    getMessageHeader(): MessageHeader {
+        // FIXME
+        throw 0 // FIXME
+        // return new MessageHeader(MessageType.confirm_req, new UInt16())
+    }
+
+    serialize(stream: NodeJS.WritableStream): void {
+        throw 0 // FIXME
+    }
+
+    visit(messageVisitor: MessageVisitor): void {
+        throw 0 // FIXME
     }
 }
 
@@ -326,6 +357,10 @@ export class NodeIDHandshakeMessage implements Message {
         if(this.response) {
             this.response.serialize(stream)
         }
+    }
+
+    asBuffer(): Buffer {
+        throw 0 // FIXME
     }
 
     visit(messageVisitor: MessageVisitor): void {

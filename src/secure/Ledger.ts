@@ -17,18 +17,18 @@ export default class Ledger {
     }
 
     getEpochLink(): UInt256 {
-        return new UInt256() // FIXME
+        throw 0 // FIXME
     }
 
     getEpochSigner(): Account {
-        return new Account(new UInt256()) // FIXME
+        throw 0 // FIXME
     }
 
     successorFrom(transaction: Transaction, qualifiedRoot: QualifiedRoot): Block | undefined {
-        return // FIXME
+        throw 0 // FIXME
     }
 
     rollback(transaction: Transaction, blockHash: BlockHash, rollbackList: Array<Block>) {
-        // TODO
+        throw 0 // FIXME
     }
 }

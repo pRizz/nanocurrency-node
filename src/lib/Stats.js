@@ -96,7 +96,7 @@ var Stat = /** @class */ (function () {
     function Stat() {
     }
     Stat.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return Stat;
 }());

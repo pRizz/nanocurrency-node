@@ -9,11 +9,11 @@ namespace NANOWebSocket {
         constructor(private readonly listenerDelegate: ListenerDelegate, private readonly tcpEndpoint: TCPEndpoint) {}
 
         stop() {
-            // TODO
+            throw 0 // FIXME
         }
 
         run() {
-            // TODO
+            throw 0 // FIXME
         }
     }
 }

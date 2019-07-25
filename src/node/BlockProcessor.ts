@@ -15,30 +15,28 @@ import {QualifiedRoot} from '../lib/Numbers'
 // TODO: implement
 class RolledHashContainer {
     has(blockHash: BlockHash): boolean {
-        return false // FIXME
+        throw 0 // FIXME
     }
 
     // returns success
     insert(rolledHash: RolledHash): boolean {
-        // TODO
-        return false
+        throw 0 // FIXME
     }
 
     removeBlockHash(blockHash: BlockHash) {
-        // TODO
+        throw 0 // FIXME
     }
 
     removeRolledHash(rolledHash: RolledHash) {
-        // TODO
+        throw 0 // FIXME
     }
 
     getSize(): number {
-        return 0 // FIXME
+        throw 0 // FIXME
     }
 
     getFirst(): RolledHash {
-        // FIXME
-        return new RolledHash(new BlockHash(new UInt256()), moment())
+        throw 0 // FIXME
     }
 }
 

@@ -2,16 +2,16 @@ import BlockHash from "../lib/BlockHash"
 
 export class VoteGenerator {
     add(blockHash: BlockHash) {
-        // TODO
+        throw 0 // FIXME
     }
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }
 
 export class VotesCache {
     remove(blockHash: BlockHash) {
-        // TODO
+        throw 0 // FIXME
     }
 }

@@ -1,1 +1,1 @@
-{"version":3,"file":"VoteProcessor.js","sourceRoot":"","sources":["VoteProcessor.ts"],"names":[],"mappings":";;AAIA;IACI,uBACqB,qBAA4C;QAA5C,0BAAqB,GAArB,qBAAqB,CAAuB;IAC9D,CAAC;IAEJ,4BAAI,GAAJ;QACI,OAAO;IACX,CAAC;IACL,oBAAC;AAAD,CAAC,AARD,IAQC;AARY,sCAAa"}
+{"version":3,"file":"VoteProcessor.js","sourceRoot":"","sources":["VoteProcessor.ts"],"names":[],"mappings":";;AAIA;IACI,uBACqB,qBAA4C;QAA5C,0BAAqB,GAArB,qBAAqB,CAAuB;IAC9D,CAAC;IAEJ,4BAAI,GAAJ;QACI,MAAM,CAAC,CAAA,CAAC,QAAQ;IACpB,CAAC;IACL,oBAAC;AAAD,CAAC,AARD,IAQC;AARY,sCAAa"}

@@ -58,7 +58,7 @@ var MessageBufferManager = /** @class */ (function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) {
-                        // FIXME
+                        throw 0; // FIXME
                     })];
             });
         });
@@ -112,7 +112,7 @@ var Network = /** @class */ (function () {
         this.tcpChannels = new TCP_1.TCPChannels(tcpChannelsDelegate);
     }
     Network.prototype.sendKeepalive = function (channel) {
-        // TODO
+        throw 0; // FIXME
     };
     Network.prototype.start = function () {
         this.startCleanupInterval();

@@ -5,7 +5,7 @@ import {
     TransactionImpl,
     WriteTransaction, WriteTransactionImpl
 } from '../secure/BlockStore'
-import {BlockType} from '../lib/Block'
+import Block, {BlockType} from '../lib/Block'
 import BlockHash from '../lib/BlockHash'
 import {Endpoint, Equatable, UDPEndpoint} from './Common'
 import * as path from 'path'
@@ -15,6 +15,7 @@ import {TXNTrackingConfig} from './DiagnosticsConfig'
 import {MDBTXNTracker} from './LMDBTXNTracker'
 import * as moment from 'moment'
 import UInt256 from '../lib/UInt256'
+import {BlockCounts} from '../secure/Common'
 const lmdb = require('node-lmdb')
 
 export class MDBEnv {
@@ -92,15 +93,15 @@ class WriteMDBTXN implements WriteTransactionImpl {
     }
 
     getHandle(): any {
-        // TODO
+        throw 0 // FIXME
     }
 
     commit(): void {
-        // TODO
+        throw 0 // FIXME
     }
 
     renew(): void {
-        // TODO
+        throw 0 // FIXME
     }
 }
 
@@ -187,6 +188,12 @@ export class MDBStore implements BlockStoreInterface {
     private peersDB: any
     private metaDB: any
     private uncheckedInfoDB: any
+    private sendBlocksDB: any
+    private receiveBlocksDB: any
+    private openBlocksDB: any
+    private changeBlocksDB: any
+    private stateBlocksV0DB: any
+    private stateBlocksV1DB: any
 
     static async create(
         dbPath: string,
@@ -222,6 +229,28 @@ export class MDBStore implements BlockStoreInterface {
         if(shouldDropUnchecked) {
             this.clearUnchecked()
         }
+    }
+
+    blockRandom(readTransaction: ReadTransaction): Block {
+        const blockCount = this.getBlockCounts(readTransaction)
+        throw 0 // FIXME
+        // TODO WIP
+    }
+
+    private getBlockCounts(transaction: Transaction): BlockCounts {
+        return new BlockCounts(
+            this.getEntryCount(transaction, this.sendBlocksDB),
+            this.getEntryCount(transaction, this.receiveBlocksDB),
+            this.getEntryCount(transaction, this.openBlocksDB),
+            this.getEntryCount(transaction, this.changeBlocksDB),
+            this.getEntryCount(transaction, this.stateBlocksV0DB),
+            this.getEntryCount(transaction, this.stateBlocksV1DB),
+        )
+    }
+
+    private getEntryCount(transaction: Transaction, db: any): number {
+        const stat = db.stat(transaction)
+        return stat.entryCount
     }
 
     private clearUnchecked() {

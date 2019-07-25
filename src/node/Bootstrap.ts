@@ -19,7 +19,7 @@ export class BootstrapServer {
     }
 
     receive() {
-        // TODO
+        throw 0 // FIXME
     }
 }
 
@@ -31,11 +31,11 @@ export class BootstrapListener {
     constructor(private readonly port: number, private readonly delegate: BootstrapListenerDelegate) {}
 
     start() {
-        // TODO
+        throw 0 // FIXME
     }
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }
 
@@ -48,6 +48,6 @@ export class BootstrapInitiator {
     constructor(private readonly bootstrapInitiatorDelegate: BootstrapInitiatorDelegate) {} // TODO
 
     stop() {
-        // TODO
+        throw 0 // FIXME
     }
 }

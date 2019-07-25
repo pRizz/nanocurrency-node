@@ -4,10 +4,10 @@ var VoteGenerator = /** @class */ (function () {
     function VoteGenerator() {
     }
     VoteGenerator.prototype.add = function (blockHash) {
-        // TODO
+        throw 0; // FIXME
     };
     VoteGenerator.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return VoteGenerator;
 }());
@@ -16,7 +16,7 @@ var VotesCache = /** @class */ (function () {
     function VotesCache() {
     }
     VotesCache.prototype.remove = function (blockHash) {
-        // TODO
+        throw 0; // FIXME
     };
     return VotesCache;
 }());

@@ -43,6 +43,7 @@ var DiagnosticsConfig_1 = require("./DiagnosticsConfig");
 var LMDBTXNTracker_1 = require("./LMDBTXNTracker");
 var moment = require("moment");
 var UInt256_1 = require("../lib/UInt256");
+var Common_2 = require("../secure/Common");
 var lmdb = require('node-lmdb');
 var MDBEnv = /** @class */ (function () {
     function MDBEnv(lmdbEnvironment) {
@@ -126,13 +127,13 @@ var WriteMDBTXN = /** @class */ (function () {
         this.renew();
     }
     WriteMDBTXN.prototype.getHandle = function () {
-        // TODO
+        throw 0; // FIXME
     };
     WriteMDBTXN.prototype.commit = function () {
-        // TODO
+        throw 0; // FIXME
     };
     WriteMDBTXN.prototype.renew = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return WriteMDBTXN;
 }());
@@ -237,6 +238,18 @@ var MDBStore = /** @class */ (function () {
                 }
             });
         });
+    };
+    MDBStore.prototype.blockRandom = function (readTransaction) {
+        var blockCount = this.getBlockCounts(readTransaction);
+        throw 0; // FIXME
+        // TODO WIP
+    };
+    MDBStore.prototype.getBlockCounts = function (transaction) {
+        return new Common_2.BlockCounts(this.getEntryCount(transaction, this.sendBlocksDB), this.getEntryCount(transaction, this.receiveBlocksDB), this.getEntryCount(transaction, this.openBlocksDB), this.getEntryCount(transaction, this.changeBlocksDB), this.getEntryCount(transaction, this.stateBlocksV0DB), this.getEntryCount(transaction, this.stateBlocksV1DB));
+    };
+    MDBStore.prototype.getEntryCount = function (transaction, db) {
+        var stat = db.stat(transaction);
+        return stat.entryCount;
     };
     MDBStore.prototype.clearUnchecked = function () {
         this.uncheckedInfoDB.drop();

@@ -5,7 +5,6 @@ import Block, {BlockType} from '../lib/Block'
 import BlockHash from '../lib/BlockHash'
 import Account from '../lib/Account'
 import UInt256 from '../lib/UInt256'
-import moment = require('moment')
 import {QualifiedRoot, Signature} from '../lib/Numbers'
 import {VotesCache} from './Voting'
 import {Wallets} from './Wallet'
@@ -16,7 +15,7 @@ import {ChannelTCP, TCPChannelsDelegate} from './transport/TCP'
 import {Endpoint, IPAddress, TCPEndpoint, UDPEndpoint} from './Common'
 import {IPv6} from 'ipaddr.js'
 import UInt512 from '../lib/UInt512'
-import RepCrawler from './RepCrawler'
+import RepCrawler, {RepCrawlerDelegate} from './RepCrawler'
 import {MDBStore} from './LMDB'
 import * as path from 'path'
 import {BootstrapInitiator, BootstrapInitiatorDelegate, BootstrapListener, BootstrapListenerDelegate} from './Bootstrap'
@@ -28,6 +27,8 @@ import * as NANOWebSocket from './WebSocket'
 import {SignatureChecker} from './Signatures'
 import {Stat} from '../lib/Stats'
 import {WriteDatabaseQueue} from './WriteDatabaseQueue'
+import {NANONetwork, NetworkConstants} from '../lib/Config'
+import moment = require('moment')
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -35,7 +36,7 @@ class BlockArrival {
     }
 }
 
-export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate, BootstrapListenerDelegate, PortMappingDelegate, VoteProcessorDelegate, NANOWebSocket.default.ListenerDelegate, BootstrapInitiatorDelegate {
+export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDelegate, TCPChannelsDelegate, BootstrapListenerDelegate, PortMappingDelegate, VoteProcessorDelegate, NANOWebSocket.default.ListenerDelegate, BootstrapInitiatorDelegate, RepCrawlerDelegate {
     private readonly blockProcessor: BlockProcessor
     private readonly ledger: Ledger
     private readonly blockArrival = new BlockArrival()
@@ -43,7 +44,7 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     private readonly wallets = new Wallets() // FIXME: Doesn't really belong in the core node
     private readonly activeTransactions = new ActiveTransactions()
     private readonly network: Network
-    private readonly repCrawler = new RepCrawler()
+    private readonly repCrawler = new RepCrawler(this)
     private readonly bootstrapListener: BootstrapListener
     private readonly portMapping: PortMapping
     private readonly voteProcessor: VoteProcessor
@@ -155,40 +156,48 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         this.writeDatabaseQueue.stop()
     }
 
+    isTestNetwork(): boolean {
+        return NetworkConstants.activeNetwork === NANONetwork.nanoTestNetwork
+    }
+
+    blockRandom(readTransaction: ReadTransaction): Block {
+        return this.blockStore.blockRandom(readTransaction)
+    }
+
     private bootstrapWallet() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private searchPending() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private backupWallet() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private ongoingOnlineWeightCalculationQueue() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private ongoingPeerStore() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private ongoingRepCalculation() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private ongoingStoreFlush() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private ongoingBootstrap() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private ongoingUncheckedCleanup() {
-        // TODO
+        throw 0 // FIXME
     }
 
     private addInitialPeers() {
@@ -213,7 +222,7 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     }
 
     getRandomPeers(): Set<UDPEndpoint> {
-        return new Set() // FIXME
+        throw 0 // FIXME
     }
 
     getUDPChannelCount(): number {
@@ -221,40 +230,40 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     }
 
     bootstrapPeer(protocolVersionMin: number): TCPEndpoint {
-        // FIXME
+        throw 0 // FIXME
         return new TCPEndpoint(new IPAddress(IPv6.parse('')), 0)
     }
 
     startTCPReceiveNodeID(channel: ChannelTCP, endpoint: Endpoint, receiveBuffer: Buffer, callback: () => void): void {
-        // TODO
+        throw 0 // FIXME
     }
 
     tcpSocketConnectionFailed(): void {
-        // TODO
+        throw 0 // FIXME
     }
 
     getAccountCookieForEndpoint(endpoint: Endpoint): Account {
-        return new Account(new UInt256()) // FIXME
+        throw 0 // FIXME
     }
 
     isNodeValid(endpoint: TCPEndpoint, nodeID: Account, signature: Signature): boolean {
-        return false // FIXME
+        throw 0 // FIXME
     }
 
     getNodeID(): Account {
-        return new Account(new UInt256()) // FIXME
+        throw 0 // FIXME
     }
 
     hasNode(nodeID: Account): boolean {
-        return false // FIXME
+        throw 0 // FIXME
     }
 
     hasPeer(endpoint: UDPEndpoint | undefined, allowLocalPeers: boolean): boolean {
-        return false // FIXME
+        throw 0 // FIXME
     }
 
     getPrivateKey(): UInt512 {
-        return new UInt512() // FIXME
+        throw 0 // FIXME
     }
 
     isLocalPeersAllowed(): boolean {

@@ -2,12 +2,13 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var RPCServer = /** @class */ (function () {
     function RPCServer() {
+        throw 0; // FIXME
     }
     RPCServer.prototype.start = function () {
-        // TODO
+        throw 0; // FIXME
     };
     RPCServer.prototype.stop = function () {
-        // TODO
+        throw 0; // FIXME
     };
     return RPCServer;
 }());

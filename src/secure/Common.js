@@ -117,4 +117,19 @@ var NetworkParams = /** @class */ (function () {
     return NetworkParams;
 }());
 exports.NetworkParams = NetworkParams;
+var BlockCounts = /** @class */ (function () {
+    function BlockCounts(send, receive, open, change, stateV0, stateV1) {
+        this.send = send;
+        this.receive = receive;
+        this.open = open;
+        this.change = change;
+        this.stateV0 = stateV0;
+        this.stateV1 = stateV1;
+    }
+    BlockCounts.prototype.getSum = function () {
+        return this.send + this.receive + this.open + this.change + this.stateV0 + this.stateV1;
+    };
+    return BlockCounts;
+}());
+exports.BlockCounts = BlockCounts;
 //# sourceMappingURL=Common.js.map
