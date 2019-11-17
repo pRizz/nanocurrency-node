@@ -36,12 +36,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 var BlockStore_1 = require("../secure/BlockStore");
+var BlockHash_1 = require("../lib/BlockHash");
 var Common_1 = require("./Common");
 var path = require("path");
 var fs_1 = require("fs");
+var moment = require("moment");
 var DiagnosticsConfig_1 = require("./DiagnosticsConfig");
 var LMDBTXNTracker_1 = require("./LMDBTXNTracker");
-var moment = require("moment");
 var UInt256_1 = require("../lib/UInt256");
 var Common_2 = require("../secure/Common");
 var lmdb = require('node-lmdb');
@@ -152,6 +153,30 @@ var MDBIterator = /** @class */ (function () {
         this.mdbKeyValueInterfaceConstructible = mdbKeyValueInterfaceConstructible;
         this.mdbValueInterfaceConstructible = mdbValueInterfaceConstructible;
     }
+    MDBIterator.from = function (transaction, db, mdbVal, mdbKeyValueInterfaceConstructible, mdbValueInterfaceConstructible, epoch) {
+        if (epoch === void 0) { epoch = Common_2.Epoch.unspecified; }
+        var cursor = new lmdb.Cursor(transaction.getHandle(), db);
+        var iterator = new MDBIterator(cursor, mdbKeyValueInterfaceConstructible, mdbValueInterfaceConstructible);
+        iterator.dbKey = mdbVal;
+        var currentKey = cursor.goToRange(mdbVal);
+        if (currentKey === null) {
+            iterator.clear();
+            return iterator;
+        }
+        var currentValueBuffer = cursor.getCurrentBinary();
+        if (currentValueBuffer !== null) {
+            try {
+                var currentValue = mdbValueInterfaceConstructible.fromDBBuffer(currentValueBuffer);
+            }
+            catch (e) {
+                iterator.clear();
+            }
+        }
+        return iterator;
+    };
+    MDBIterator.prototype.clear = function () {
+        // FIXME; possibly not needed
+    };
     MDBIterator.prototype.next = function () {
         if (this.cursor === null) {
             return;
@@ -240,9 +265,32 @@ var MDBStore = /** @class */ (function () {
         });
     };
     MDBStore.prototype.blockRandom = function (readTransaction) {
-        var blockCount = this.getBlockCounts(readTransaction);
-        throw 0; // FIXME
-        // TODO WIP
+        var blockCounts = this.getBlockCounts(readTransaction);
+        var blockIndex = Math.floor(Math.random() * blockCounts.getSum());
+        if (blockIndex < blockCounts.send) {
+            return this.blockRandomFor(readTransaction, this.sendBlocksDB, SendBlock);
+        }
+        blockIndex -= blockCounts.send;
+        if (blockIndex < blockCounts.receive) {
+            return this.blockRandomFor(readTransaction, this.receiveBlocksDB);
+        }
+        blockIndex -= blockCounts.receive;
+        if (blockIndex < blockCounts.open) {
+            return this.blockRandomFor(readTransaction, this.openBlocksDB);
+        }
+        blockIndex -= blockCounts.open;
+        if (blockIndex < blockCounts.change) {
+            return this.blockRandomFor(readTransaction, this.changeBlocksDB);
+        }
+        blockIndex -= blockCounts.change;
+        if (blockIndex < blockCounts.stateV0) {
+            return this.blockRandomFor(readTransaction, this.stateBlocksV0DB);
+        }
+        return this.blockRandomFor(readTransaction, this.stateBlocksV1DB);
+    };
+    MDBStore.prototype.blockRandomFor = function (transaction, db, mdbValueInterfaceConstructible) {
+        var blockHash = new BlockHash_1.default(UInt256_1.default.getRandom());
+        var storeIterator = MDBIterator.from(transaction, db, blockHash, BlockHash_1.default, mdbValueInterfaceConstructible);
     };
     MDBStore.prototype.getBlockCounts = function (transaction) {
         return new Common_2.BlockCounts(this.getEntryCount(transaction, this.sendBlocksDB), this.getEntryCount(transaction, this.receiveBlocksDB), this.getEntryCount(transaction, this.openBlocksDB), this.getEntryCount(transaction, this.changeBlocksDB), this.getEntryCount(transaction, this.stateBlocksV0DB), this.getEntryCount(transaction, this.stateBlocksV1DB));
@@ -368,7 +416,7 @@ var MDBValueWrapper = /** @class */ (function () {
         return this.value;
     };
     MDBValueWrapper.prototype.equals = function (other) {
-        return this.value.equals(other); // TODO: audit
+        return this.value.equals(other.value); // TODO: audit
     };
     MDBValueWrapper.prototype.asBuffer = function () {
         return this.value.asBuffer();

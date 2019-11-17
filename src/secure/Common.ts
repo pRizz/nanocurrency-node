@@ -157,3 +157,10 @@ export class BlockCounts {
         return this.send + this.receive + this.open + this.change + this.stateV0 + this.stateV1
     }
 }
+
+export enum Epoch {
+    invalid = 0,
+    unspecified = 1,
+    epoch_0 = 2,
+    epoch_1 = 3
+}

@@ -26,7 +26,6 @@ function produceSendBlockHash(sendBlockHashables: SendBlockHashables): BlockHash
     return new BlockHash(new UInt256({ uint8Array: result }))
 }
 
-
 interface ReceiveBlockHashables {
     previousBlockHash: BlockHash
     sourceBlockHash: BlockHash
@@ -138,4 +137,18 @@ export default interface Block {
      virtual bool valid_predecessor (nano::block const &) const = 0;
      static size_t size (nano::block_type);
      */
+}
+
+export class SendBlock implements Block {
+    static fromDBBuffer(mdbBuffer: Buffer): SendBlock {
+
+    }
+
+    constructor() {
+
+    }
+
+    getHash(): BlockHash {
+        // FIXME
+    }
 }

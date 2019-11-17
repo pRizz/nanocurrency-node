@@ -58,4 +58,15 @@ var BlockType;
     BlockType[BlockType["change"] = 5] = "change";
     BlockType[BlockType["state"] = 6] = "state";
 })(BlockType = exports.BlockType || (exports.BlockType = {}));
+var SendBlock = /** @class */ (function () {
+    function SendBlock() {
+    }
+    SendBlock.fromDBBuffer = function (mdbBuffer) {
+    };
+    SendBlock.prototype.getHash = function () {
+        // FIXME
+    };
+    return SendBlock;
+}());
+exports.SendBlock = SendBlock;
 //# sourceMappingURL=Block.js.map

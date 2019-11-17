@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 var UnsignedInteger_1 = require("./UnsignedInteger");
+var crypto = require("crypto");
 var UInt256 = /** @class */ (function () {
     function UInt256(props) {
         this.unsignedIntegerImpl = new UnsignedInteger_1.UnsignedIntegerImpl(this, props);
@@ -10,6 +11,9 @@ var UInt256 = /** @class */ (function () {
     };
     UInt256.getByteCount = function () {
         return UInt256.byteCount;
+    };
+    UInt256.getRandom = function () {
+        return new UInt256({ uint8Array: crypto.randomBytes(UInt256.byteCount) });
     };
     UInt256.prototype.getBitCount = function () {
         return UInt256.bitCount;

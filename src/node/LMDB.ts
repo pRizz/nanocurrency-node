@@ -1,21 +1,26 @@
 import {
-    BlockStoreInterface, DBNoValue,
-    ReadTransaction, ReadTransactionImpl, StoreIterator,
+    BlockStoreInterface,
+    DBNoValue,
+    ReadTransaction,
+    ReadTransactionImpl,
+    StoreIterator,
     Transaction,
     TransactionImpl,
-    WriteTransaction, WriteTransactionImpl
+    WriteTransaction,
+    WriteTransactionImpl
 } from '../secure/BlockStore'
 import Block, {BlockType} from '../lib/Block'
 import BlockHash from '../lib/BlockHash'
 import {Endpoint, Equatable, UDPEndpoint} from './Common'
 import * as path from 'path'
-import { promises as fs } from 'fs'
+import {promises as fs} from 'fs'
+import * as moment from 'moment'
 import {Duration} from 'moment'
 import {TXNTrackingConfig} from './DiagnosticsConfig'
 import {MDBTXNTracker} from './LMDBTXNTracker'
-import * as moment from 'moment'
 import UInt256 from '../lib/UInt256'
-import {BlockCounts} from '../secure/Common'
+import {BlockCounts, Epoch} from '../secure/Common'
+
 const lmdb = require('node-lmdb')
 
 export class MDBEnv {
@@ -112,7 +117,7 @@ class MDBTXNCallbacks {
     ) {}
 }
 
-export class MDBIterator<DBKey extends MDBValueInterface, SomeMDBValue extends MDBValueInterface> implements StoreIterator<DBKey, SomeMDBValue> {
+export class MDBIterator<DBKey extends MDBValueInterface<DBKey>, SomeMDBValue extends MDBValueInterface<SomeMDBValue>> implements StoreIterator<DBKey, SomeMDBValue> {
     private dbKey?: DBKey
     private dbValue?: SomeMDBValue
 
@@ -121,6 +126,43 @@ export class MDBIterator<DBKey extends MDBValueInterface, SomeMDBValue extends M
         private mdbKeyValueInterfaceConstructible: MDBKeyInterfaceConstructible<DBKey>,
         private mdbValueInterfaceConstructible: MDBValueInterfaceConstructible<SomeMDBValue>
     ) {}
+
+    static from<DBKey extends MDBValueInterface<DBKey>, SomeMDBValue extends MDBValueInterface<SomeMDBValue>>(
+        transaction: Transaction,
+        db: any,
+        mdbVal: DBKey,
+        mdbKeyValueInterfaceConstructible: MDBKeyInterfaceConstructible<DBKey>,
+        mdbValueInterfaceConstructible: MDBValueInterfaceConstructible<SomeMDBValue>,
+        epoch: Epoch = Epoch.unspecified
+    ): MDBIterator<DBKey, SomeMDBValue> {
+
+        const cursor = new lmdb.Cursor(transaction.getHandle(), db)
+
+        const iterator = new MDBIterator(cursor, mdbKeyValueInterfaceConstructible, mdbValueInterfaceConstructible)
+
+        iterator.dbKey = mdbVal
+
+        const currentKey = cursor.goToRange(mdbVal)
+
+        if(currentKey === null) {
+            iterator.clear()
+            return iterator
+        }
+
+        const currentValueBuffer: Buffer | null = cursor.getCurrentBinary()
+        if(currentValueBuffer !== null) {
+            try {
+                const currentValue = mdbValueInterfaceConstructible.fromDBBuffer(currentValueBuffer)
+            } catch (e) {
+                iterator.clear()
+            }
+        }
+        return iterator
+    }
+
+    private clear() {
+        // FIXME; possibly not needed
+    }
 
     next(): void {
         if(this.cursor === null) {
@@ -232,9 +274,39 @@ export class MDBStore implements BlockStoreInterface {
     }
 
     blockRandom(readTransaction: ReadTransaction): Block {
-        const blockCount = this.getBlockCounts(readTransaction)
-        throw 0 // FIXME
-        // TODO WIP
+        const blockCounts = this.getBlockCounts(readTransaction)
+        let blockIndex = Math.floor(Math.random() * blockCounts.getSum())
+
+        if(blockIndex < blockCounts.send) {
+            return this.blockRandomFor(readTransaction, this.sendBlocksDB, SendBlock)
+        }
+        blockIndex -= blockCounts.send
+        if(blockIndex < blockCounts.receive) {
+            return this.blockRandomFor(readTransaction, this.receiveBlocksDB)
+        }
+        blockIndex -= blockCounts.receive
+        if(blockIndex < blockCounts.open) {
+            return this.blockRandomFor(readTransaction, this.openBlocksDB)
+        }
+        blockIndex -= blockCounts.open
+        if(blockIndex < blockCounts.change) {
+            return this.blockRandomFor(readTransaction, this.changeBlocksDB)
+        }
+        blockIndex -= blockCounts.change
+        if(blockIndex < blockCounts.stateV0) {
+            return this.blockRandomFor(readTransaction, this.stateBlocksV0DB)
+        }
+        return this.blockRandomFor(readTransaction, this.stateBlocksV1DB)
+    }
+
+    private blockRandomFor<SomeMDBValue extends MDBValueInterface<SomeMDBValue>>(
+        transaction: Transaction,
+        db: any,
+        mdbValueInterfaceConstructible: MDBValueInterfaceConstructible<SomeMDBValue>
+    ): Block {
+        const blockHash = new BlockHash(UInt256.getRandom())
+
+        const storeIterator = MDBIterator.from(transaction, db, blockHash, BlockHash, mdbValueInterfaceConstructible)
     }
 
     private getBlockCounts(transaction: Transaction): BlockCounts {
@@ -377,21 +449,21 @@ export class MDBStore implements BlockStoreInterface {
     }
 }
 
-export interface MDBValueInterface extends Equatable<MDBValueInterface> {
+export interface MDBValueInterface<Self> extends Equatable<Self> {
     getDBSize(): number
     asBuffer(): Buffer
 }
 
-export interface MDBValueInterfaceConstructible<SomeMDBValue extends MDBValueInterface> {
+export interface MDBValueInterfaceConstructible<SomeMDBValue extends MDBValueInterface<SomeMDBValue>> {
     fromDBBuffer(mdbBuffer: Buffer): SomeMDBValue
 }
 
-export interface MDBKeyInterfaceConstructible<SomeMDBValue extends MDBValueInterface> {
+export interface MDBKeyInterfaceConstructible<SomeMDBValue extends MDBValueInterface<SomeMDBValue>> {
     fromDBKeyBuffer(keyBuffer: Buffer): SomeMDBValue
 }
 
 // maps to MDBVal in C++ project
-class MDBValueWrapper<MDBValueType extends MDBValueInterface> implements MDBValueInterface {
+class MDBValueWrapper<MDBValueType extends MDBValueInterface<MDBValueType>> implements MDBValueInterface<MDBValueWrapper<MDBValueType>> {
     private rawMDBValue: any
 
     constructor(private value: MDBValueType) {}
@@ -404,8 +476,8 @@ class MDBValueWrapper<MDBValueType extends MDBValueInterface> implements MDBValu
         return this.value
     }
 
-    equals(other: MDBValueInterface): boolean {
-        return this.value.equals(other) // TODO: audit
+    equals(other: MDBValueWrapper<MDBValueType>): boolean {
+        return this.value.equals(other.value) // TODO: audit
     }
 
     asBuffer(): Buffer {

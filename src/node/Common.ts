@@ -40,7 +40,7 @@ export class IPAddress {
     }
 }
 
-export interface Endpoint extends MDBValueInterface {
+export interface Endpoint extends MDBValueInterface<Endpoint> {
     getAddress(): IPAddress
     getPort(): number
     equals(other: Endpoint): boolean

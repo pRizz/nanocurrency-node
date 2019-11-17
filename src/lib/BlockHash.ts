@@ -1,6 +1,8 @@
 import UInt256 from './UInt256'
+import {MDBValueInterface} from '../node/LMDB'
 
-export default class BlockHash {
+// TODO: remove dependency on MDBValueInterface
+export default class BlockHash implements MDBValueInterface<BlockHash> {
     readonly value: UInt256
 
     constructor(hashValue: UInt256) {
@@ -17,5 +19,17 @@ export default class BlockHash {
 
     equals(other: BlockHash): boolean {
         return this.value.equals(other.value)
+    }
+
+    getDBSize(): number {
+        return UInt256.getByteCount()
+    }
+
+    asBuffer(): Buffer {
+        return this.value.asBuffer()
+    }
+
+    static fromDBKeyBuffer(buffer: Buffer): BlockHash {
+        return new BlockHash(new UInt256({buffer}))
     }
 }

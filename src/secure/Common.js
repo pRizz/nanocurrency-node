@@ -132,4 +132,11 @@ var BlockCounts = /** @class */ (function () {
     return BlockCounts;
 }());
 exports.BlockCounts = BlockCounts;
+var Epoch;
+(function (Epoch) {
+    Epoch[Epoch["invalid"] = 0] = "invalid";
+    Epoch[Epoch["unspecified"] = 1] = "unspecified";
+    Epoch[Epoch["epoch_0"] = 2] = "epoch_0";
+    Epoch[Epoch["epoch_1"] = 3] = "epoch_1";
+})(Epoch = exports.Epoch || (exports.Epoch = {}));
 //# sourceMappingURL=Common.js.map

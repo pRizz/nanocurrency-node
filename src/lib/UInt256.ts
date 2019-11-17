@@ -1,4 +1,5 @@
 import {UnsignedInteger, UnsignedIntegerImpl, UnsignedIntegerProps} from './UnsignedInteger'
+import * as crypto from "crypto"
 
 export default class UInt256 implements UnsignedInteger {
     private static readonly bitCount = 256
@@ -16,6 +17,10 @@ export default class UInt256 implements UnsignedInteger {
 
     static getByteCount(): number {
         return UInt256.byteCount
+    }
+
+    static getRandom(): UInt256 {
+        return new UInt256({ uint8Array: crypto.randomBytes(UInt256.byteCount) })
     }
 
     getBitCount(): number {
