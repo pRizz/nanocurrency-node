@@ -6,6 +6,7 @@ import {TCPChannels, TCPChannelsDelegate} from './transport/TCP'
 import UInt256 from '../lib/UInt256'
 import Transport from './transport/Transport'
 import {IPv6} from 'ipaddr.js'
+import {Moment} from 'moment'
 
 // TODO: audit
 export class MessageBuffer {
@@ -64,12 +65,11 @@ export class SYNCookies {
 }
 
 export class SYNCookie {
-    readonly value: UInt256
+    constructor(readonly value: UInt256){}
 }
 
 export class SYNCookieInfo {
-    readonly cookie: SYNCookie
-    readonly creationTime: number // FIXME
+    constructor(readonly cookie: SYNCookie, readonly creationMoment: Moment){}
 }
 
 export interface NetworkDelegate {

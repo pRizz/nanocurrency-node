@@ -93,13 +93,16 @@ var SYNCookies = /** @class */ (function () {
 }());
 exports.SYNCookies = SYNCookies;
 var SYNCookie = /** @class */ (function () {
-    function SYNCookie() {
+    function SYNCookie(value) {
+        this.value = value;
     }
     return SYNCookie;
 }());
 exports.SYNCookie = SYNCookie;
 var SYNCookieInfo = /** @class */ (function () {
-    function SYNCookieInfo() {
+    function SYNCookieInfo(cookie, creationMoment) {
+        this.cookie = cookie;
+        this.creationMoment = creationMoment;
     }
     return SYNCookieInfo;
 }());

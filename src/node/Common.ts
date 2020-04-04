@@ -11,6 +11,8 @@ import {PassThrough} from "stream"
 import * as ipaddr from 'ipaddr.js'
 import {MDBValueInterface} from './LMDB'
 import Block from '../lib/Block'
+import {SYNCookie} from './Network'
+import {IPv6} from 'ipaddr.js'
 
 export interface Equatable<Self> {
     equals(other: Self): boolean
@@ -184,7 +186,7 @@ export class MessageHeader implements Serializable {
         writableStream.write(this.versionUsing.asBuffer())
         writableStream.write(this.versionMin.asBuffer())
         writableStream.write(Buffer.from([this.messageType]))
-        writableStream.write(this.extensions.asBuffer())
+        writableStream.write(this.extensionsAsBuffer())
     }
 
     static async from(readableStream: NodeJS.ReadableStream, timeout?: number): Promise<MessageHeader> {
@@ -208,6 +210,10 @@ export class MessageHeader implements Serializable {
 
     private hasFlag(flagPosition: number): boolean {
         return (this.extensions.asBuffer().readUInt16BE(0) & (1 << flagPosition)) !== 0
+    }
+
+    private extensionsAsBuffer(): Buffer {
+        return Buffer.from(this.extensions.asBuffer()).swap16()
     }
 }
 
@@ -244,16 +250,27 @@ export interface MessageVisitor {
 }
 
 export class KeepaliveMessage implements Message {
-    private messageHeader = new MessageHeader(MessageType.keepalive, new UInt16()) // FIXME
+    private messageHeader = new MessageHeader(MessageType.keepalive, new UInt16())
     private readonly peers: Set<UDPEndpoint>
 
     constructor(peers: Set<UDPEndpoint>) {
-        this.peers = peers
-        throw 0 // FIXME messageHeader
+        this.peers = new Set(Array.from({length: 8}).map(() =>
+            new UDPEndpoint(
+                new IPAddress(
+                    IPv6.parse("::")
+                ), 7075
+            )
+        ))
     }
 
     serialize(stream: NodeJS.WritableStream): void {
-        throw 0 // FIXME
+        this.messageHeader.serialize(stream)
+        for(let peer of this.peers) {
+            stream.write(Buffer.from(peer.address.value.toByteArray()))
+            const portBuffer = Buffer.alloc(2)
+            portBuffer.writeUInt16BE(peer.port, 0)
+            stream.write(portBuffer)
+        }
     }
 
     visit(messageVisitor: MessageVisitor): void {
@@ -321,6 +338,10 @@ export class NodeIDHandshakeMessage implements Message {
         this.messageHeader = messageHeader
         this.query = query
         this.response = response
+    }
+
+    static fromCookie(cookie: SYNCookie): NodeIDHandshakeMessage {
+        return this.fromQuery(cookie.value)
     }
 
     static fromQuery(query: UInt256): NodeIDHandshakeMessage {
@@ -400,7 +421,7 @@ export class NodeIDHandshakeMessage implements Message {
 namespace Constants {
     export const tcpRealtimeProtocolVersionMin = 0x11
     export const protocolVersion = new UInt8({ octetArray: [0x11] })
-    export const protocolVersionMin = new UInt8({ octetArray: [0x0d] })
+    export const protocolVersionMin = new UInt8({ octetArray: [0x10] })
     export const blockProcessorBatchSize = 10000 // FIXME
 
     export function getVersion(): string {
@@ -427,7 +448,7 @@ namespace MessageDecoder {
                 const versionUsing = await stream.readUInt(UInt8)
                 const versionMin = await stream.readUInt(UInt8)
                 const messageType: MessageType = (await stream.readUInt(UInt8)).asUint8Array()[0] // TODO: validate
-                const extensions = await stream.readUInt(UInt16)
+                const extensions = new UInt16({buffer: (await stream.readUInt(UInt16)).asBuffer().swap16()})
 
                 resolve(new MessageHeader(
                     messageType,

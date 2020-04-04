@@ -54,6 +54,16 @@ var __spread = (this && this.__spread) || function () {
     for (var ar = [], i = 0; i < arguments.length; i++) ar = ar.concat(__read(arguments[i]));
     return ar;
 };
+var __values = (this && this.__values) || function (o) {
+    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
+    if (m) return m.call(o);
+    return {
+        next: function () {
+            if (o && i >= o.length) o = void 0;
+            return { value: o && o[i++], done: !o };
+        }
+    };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 var Common_1 = require("../secure/Common");
 var UInt8_1 = require("../lib/UInt8");
@@ -64,6 +74,7 @@ var UInt512_1 = require("../lib/UInt512");
 var Numbers_1 = require("../lib/Numbers");
 var stream_1 = require("stream");
 var ipaddr = require("ipaddr.js");
+var ipaddr_js_1 = require("ipaddr.js");
 var IPAddress = /** @class */ (function () {
     function IPAddress(ipValue) {
         this.value = ipValue;
@@ -187,7 +198,7 @@ var MessageHeader = /** @class */ (function () {
         writableStream.write(this.versionUsing.asBuffer());
         writableStream.write(this.versionMin.asBuffer());
         writableStream.write(Buffer.from([this.messageType]));
-        writableStream.write(this.extensions.asBuffer());
+        writableStream.write(this.extensionsAsBuffer());
     };
     MessageHeader.from = function (readableStream, timeout) {
         return __awaiter(this, void 0, void 0, function () {
@@ -212,6 +223,9 @@ var MessageHeader = /** @class */ (function () {
     };
     MessageHeader.prototype.hasFlag = function (flagPosition) {
         return (this.extensions.asBuffer().readUInt16BE(0) & (1 << flagPosition)) !== 0;
+    };
+    MessageHeader.prototype.extensionsAsBuffer = function () {
+        return Buffer.from(this.extensions.asBuffer()).swap16();
     };
     MessageHeader.nodeIDHandshakeQueryFlagPosition = 0;
     MessageHeader.nodeIDHandshakeResponseFlagPosition = 1;
@@ -252,12 +266,30 @@ var ReadableMessageStream = /** @class */ (function () {
 exports.ReadableMessageStream = ReadableMessageStream;
 var KeepaliveMessage = /** @class */ (function () {
     function KeepaliveMessage(peers) {
-        this.messageHeader = new MessageHeader(MessageType.keepalive, new UInt16_1.default()); // FIXME
-        this.peers = peers;
-        throw 0; // FIXME messageHeader
+        this.messageHeader = new MessageHeader(MessageType.keepalive, new UInt16_1.default());
+        this.peers = new Set(Array.from({ length: 8 }).map(function () {
+            return new UDPEndpoint(new IPAddress(ipaddr_js_1.IPv6.parse("::")), 7075);
+        }));
     }
     KeepaliveMessage.prototype.serialize = function (stream) {
-        throw 0; // FIXME
+        var e_1, _a;
+        this.messageHeader.serialize(stream);
+        try {
+            for (var _b = __values(this.peers), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var peer = _c.value;
+                stream.write(Buffer.from(peer.address.value.toByteArray()));
+                var portBuffer = Buffer.alloc(2);
+                portBuffer.writeUInt16BE(peer.port, 0);
+                stream.write(portBuffer);
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
     };
     KeepaliveMessage.prototype.visit = function (messageVisitor) {
         throw 0; // FIXME
@@ -314,6 +346,9 @@ var NodeIDHandshakeMessage = /** @class */ (function () {
         this.query = query;
         this.response = response;
     }
+    NodeIDHandshakeMessage.fromCookie = function (cookie) {
+        return this.fromQuery(cookie.value);
+    };
     NodeIDHandshakeMessage.fromQuery = function (query) {
         var extensionsUInt = 1 << MessageHeader.nodeIDHandshakeQueryFlagPosition;
         var extensionsBuffer = Buffer.alloc(2);
@@ -405,7 +440,7 @@ var Constants;
 (function (Constants) {
     Constants.tcpRealtimeProtocolVersionMin = 0x11;
     Constants.protocolVersion = new UInt8_1.default({ octetArray: [0x11] });
-    Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x0d] });
+    Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x10] });
     Constants.blockProcessorBatchSize = 10000; // FIXME
     function getVersion() {
         return '1.0.0'; // FIXME
@@ -420,42 +455,44 @@ var MessageDecoder;
             var _this = this;
             return __generator(this, function (_a) {
                 return [2 /*return*/, new Promise(function (resolve, reject) { return __awaiter(_this, void 0, void 0, function () {
-                        var magicNumber, versionMax, versionUsing, versionMin, messageType, extensions, error_2;
-                        return __generator(this, function (_a) {
-                            switch (_a.label) {
+                        var magicNumber, versionMax, versionUsing, versionMin, messageType, extensions, _a, _b, error_2;
+                        return __generator(this, function (_c) {
+                            switch (_c.label) {
                                 case 0:
                                     if (timeoutMS) {
                                         setTimeout(function () { return reject(); }, timeoutMS);
                                     }
-                                    _a.label = 1;
+                                    _c.label = 1;
                                 case 1:
-                                    _a.trys.push([1, 8, , 9]);
+                                    _c.trys.push([1, 8, , 9]);
                                     return [4 /*yield*/, stream.readUInt(UInt16_1.default)];
                                 case 2:
-                                    magicNumber = _a.sent();
+                                    magicNumber = _c.sent();
                                     if (!magicNumber.equals(Common_1.NetworkParams.getHeaderMagicNumber())) {
                                         return [2 /*return*/, reject(new Error('Invalid magic number'))];
                                     }
                                     return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 3:
-                                    versionMax = _a.sent();
+                                    versionMax = _c.sent();
                                     return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 4:
-                                    versionUsing = _a.sent();
+                                    versionUsing = _c.sent();
                                     return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 5:
-                                    versionMin = _a.sent();
+                                    versionMin = _c.sent();
                                     return [4 /*yield*/, stream.readUInt(UInt8_1.default)];
                                 case 6:
-                                    messageType = (_a.sent()).asUint8Array()[0] // TODO: validate
+                                    messageType = (_c.sent()).asUint8Array()[0] // TODO: validate
                                     ;
+                                    _a = UInt16_1.default.bind;
+                                    _b = {};
                                     return [4 /*yield*/, stream.readUInt(UInt16_1.default)];
                                 case 7:
-                                    extensions = _a.sent();
+                                    extensions = new (_a.apply(UInt16_1.default, [void 0, (_b.buffer = (_c.sent()).asBuffer().swap16(), _b)]))();
                                     resolve(new MessageHeader(messageType, extensions, versionMax, versionUsing, versionMin));
                                     return [3 /*break*/, 9];
                                 case 8:
-                                    error_2 = _a.sent();
+                                    error_2 = _c.sent();
                                     reject(error_2);
                                     return [3 /*break*/, 9];
                                 case 9: return [2 /*return*/];

@@ -3,6 +3,7 @@ import version from './Version'
 import Daemon from '../src/nano_node/Daemon'
 import {NodeFlags} from '../src/node/NodeConfig'
 import Utility from '../src/secure/Utility'
+import {testSendKeepalive} from '../test-client/TestApi'
 const debug = require('debug')('CLI')
 
 //FIXME: wrong help text: Usage: www [options]
@@ -10,6 +11,7 @@ program
     .version(version, '-V, --version')
     .option('-d, --daemon', 'Start node daemon')
     .option('--account_create', 'Run in daemon mode')
+    .option('--_dev_debug', 'Run debug code')
     .parse(process.argv)
 
 export function handleCLI() {
@@ -19,6 +21,10 @@ export function handleCLI() {
     }
     if(program.account_create) {
         handleAccountCreate()
+        return
+    }
+    if(program._dev_debug) {
+        handleDevDebug()
         return
     }
     // FIXME
@@ -32,4 +38,9 @@ function startDaemon() {
 
 function handleAccountCreate() {
     console.log('handle account create')
+}
+
+function handleDevDebug() {
+    console.log('handle dev debug')
+    testSendKeepalive()
 }

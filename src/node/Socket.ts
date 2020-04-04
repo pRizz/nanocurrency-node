@@ -41,7 +41,7 @@ export class Socket {
     }
 
     private checkup() {
-        throw 0 // FIXME
+        // throw 0 // FIXME
     }
 
     async writeBuffer(buffer: Buffer): Promise<void> {
