@@ -1,15 +1,21 @@
 "use strict";
-var __values = (this && this.__values) || function (o) {
-    var m = typeof Symbol === "function" && o[Symbol.iterator], i = 0;
-    if (m) return m.call(o);
-    return {
-        next: function () {
-            if (o && i >= o.length) o = void 0;
-            return { value: o && o[i++], done: !o };
-        }
-    };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+// import {Listener} from '../WebSocket'
+var net = require("net");
+var AbstractTCPServer_1 = require("../../lib/AbstractTCPServer");
+// export interface Conn extends Reader, Writer, Closer {
+//     localAddr: Addr;
+//     remoteAddr: Addr;
+//     rid: number;
+//     closeRead(): void;
+//     closeWrite(): void;
+// }
+// should use the tcp library, which returns a listener
+// interface Listener {
+//     accept(): Promise<NanoConnection>
+//     close(): void
+//     address: Addr
+// }
 var NanoConnection = /** @class */ (function () {
     function NanoConnection() {
     }
@@ -19,35 +25,49 @@ var NanoConnection = /** @class */ (function () {
 }());
 // inspired by https://github.com/denoland/deno/blob/master/std/http/server.ts
 var NanoTCPServer = /** @class */ (function () {
-    function NanoTCPServer(listener) {
-        this.listener = listener;
-        this.closing = false;
+    function NanoTCPServer() {
+        var _this = this;
+        // private closing = false
         this.connections = [];
+        this.tcpServer = net.createServer({});
+        this.tcpServer.on('close', function () {
+            console.log(new Date().toISOString() + ": NanoTCPServer: got closed event");
+        });
+        this.tcpServer.on('connection', function (connection) {
+            console.log(new Date().toISOString() + ": NanoTCPServer: got connection event");
+            _this.connections.push(connection);
+        });
+        this.tcpServer.on('error', function (error) {
+            console.error(new Date().toISOString() + ": NanoTCPServer: got error event:", error);
+            // FIXME
+            if (error.code === 'EADDRINUSE') {
+                console.error(new Date().toISOString() + ": NanoTCPServer: address already in use");
+                _this.close();
+            }
+        });
+        this.tcpServer.on('listening', function () {
+            console.log(new Date().toISOString() + ": NanoTCPServer: got listening event");
+        });
+        this.tcpServer.listen({
+            port: 5555 // FIXME
+        });
     }
+    // private closeConnection(connection: net.Socket) {
+    //     connection.end()
+    // }
     NanoTCPServer.prototype.close = function () {
-        var e_1, _a;
-        this.closing = true;
-        this.listener.close();
-        try {
-            for (var _b = __values(this.connections), _c = _b.next(); !_c.done; _c = _b.next()) {
-                var connection = _c.value;
-                try {
-                    connection.close();
-                }
-                catch (e) {
-                    console.error(new Date().toISOString() + ": could not close connection: ", connection);
-                }
-            }
-        }
-        catch (e_1_1) { e_1 = { error: e_1_1 }; }
-        finally {
-            try {
-                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
-            }
-            finally { if (e_1) throw e_1.error; }
-        }
+        console.log(new Date().toISOString() + ": NanoTCPServer: close() called");
+        // this.closing = true
+        this.tcpServer.close();
+        // this.connections.forEach(this.closeConnection)
+        this.connections.forEach(net.Socket.prototype.end.bind); // TODO: test
+        // TODO: unref all sockets?
+        this.connections.splice(0, this.connections.length);
+        this.tcpServer.unref();
     };
     NanoTCPServer.prototype.stop = function () {
+        console.log(new Date().toISOString() + ": NanoTCPServer: stop() called");
+        this.close();
     };
     return NanoTCPServer;
 }());
@@ -63,4 +83,23 @@ function runServer() {
     };
 }
 exports.runServer = runServer;
+var NanoTCPServer2 = /** @class */ (function () {
+    function NanoTCPServer2() {
+        this.tcpServer = new AbstractTCPServer_1.AbstractTCPServer({
+            port: 5555,
+            messageDefinitions: [],
+            eventListener: this,
+        });
+    }
+    NanoTCPServer2.prototype.start = function () {
+        this.tcpServer.start();
+    };
+    NanoTCPServer2.prototype.stop = function () {
+        this.tcpServer.stop();
+    };
+    NanoTCPServer2.prototype.onError = function () {
+    };
+    return NanoTCPServer2;
+}());
+exports.NanoTCPServer2 = NanoTCPServer2;
 //# sourceMappingURL=NanoTCPServer.js.map
