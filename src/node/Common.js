@@ -200,12 +200,22 @@ var MessageHeader = /** @class */ (function () {
         writableStream.write(Buffer.from([this.messageType]));
         writableStream.write(this.extensionsAsBuffer());
     };
-    MessageHeader.from = function (readableStream, timeout) {
+    MessageHeader.fromStream = function (readableStream, timeout) {
         return __awaiter(this, void 0, void 0, function () {
             var messageStream;
             return __generator(this, function (_a) {
                 messageStream = new ReadableMessageStream(readableStream);
                 return [2 /*return*/, MessageDecoder.readMessageHeaderFromStream(messageStream, timeout)];
+            });
+        });
+    };
+    MessageHeader.fromBuffer = function (buffer) {
+        return __awaiter(this, void 0, void 0, function () {
+            var readableStream;
+            return __generator(this, function (_a) {
+                readableStream = new stream_1.PassThrough();
+                readableStream.write(buffer);
+                return [2 /*return*/, this.fromStream(readableStream)];
             });
         });
     };
@@ -378,7 +388,11 @@ var NodeIDHandshakeMessage = /** @class */ (function () {
         }
     };
     NodeIDHandshakeMessage.prototype.asBuffer = function () {
-        throw 0; // FIXME
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, bufferFromSerializable(this)];
+            });
+        });
     };
     NodeIDHandshakeMessage.prototype.visit = function (messageVisitor) {
     };

@@ -78,6 +78,6 @@ export class Socket {
 
     // FIXME: doesn't belong in this class
     async readMessageHeader(): Promise<MessageHeader> {
-        return MessageHeader.from(this.tcpSocket, 30000)
+        return MessageHeader.fromStream(this.tcpSocket, 30000)
     }
 }

@@ -148,7 +148,7 @@ export class TCPEndpoint implements Endpoint {
 export interface Message extends Serializable {
     visit(messageVisitor: MessageVisitor): void
     getMessageHeader(): MessageHeader
-    asBuffer(): Buffer
+    asBuffer(): Promise<Buffer>
 }
 
 export enum MessageType {
@@ -189,9 +189,15 @@ export class MessageHeader implements Serializable {
         writableStream.write(this.extensionsAsBuffer())
     }
 
-    static async from(readableStream: NodeJS.ReadableStream, timeout?: number): Promise<MessageHeader> {
+    static async fromStream(readableStream: NodeJS.ReadableStream, timeout?: number): Promise<MessageHeader> {
         const messageStream = new ReadableMessageStream(readableStream)
         return MessageDecoder.readMessageHeaderFromStream(messageStream, timeout)
+    }
+
+    static async fromBuffer(buffer: Buffer): Promise<MessageHeader> {
+        const readableStream = new PassThrough()
+        readableStream.write(buffer)
+        return this.fromStream(readableStream)
     }
 
     nodeIDHandshakeIsQuery(): boolean {
@@ -380,8 +386,8 @@ export class NodeIDHandshakeMessage implements Message {
         }
     }
 
-    asBuffer(): Buffer {
-        throw 0 // FIXME
+    async asBuffer(): Promise<Buffer> {
+        return bufferFromSerializable(this)
     }
 
     visit(messageVisitor: MessageVisitor): void {

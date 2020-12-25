@@ -42,12 +42,13 @@ var UInt8_1 = require("../src/lib/UInt8");
 var UInt16_1 = require("../src/lib/UInt16");
 var stream_1 = require("stream");
 var Common_2 = require("../src/secure/Common");
+var fs = require("fs");
 describe('MessageHeader', function () {
     describe('#serialize()', function () {
         it('should serialize the message header to the stream', function () { return __awaiter(_this, void 0, void 0, function () {
             var messageHeader, actualBuffer, writable, expectedBuffer;
             return __generator(this, function (_a) {
-                messageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
+                messageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x06, 0x05] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
                 actualBuffer = Buffer.alloc(0);
                 writable = new stream_1.Writable({
                     write: function (chunk, encoding, callback) {
@@ -73,11 +74,11 @@ describe('MessageHeader', function () {
                     case 0:
                         streamBuffer = Buffer.concat([
                             Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
-                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06])
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x06, 0x05])
                         ]);
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(streamBuffer);
-                        return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
+                        return [4 /*yield*/, Common_1.MessageHeader.fromStream(messageStream)];
                     case 1:
                         messageHeader = _a.sent();
                         expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
@@ -100,12 +101,12 @@ describe('MessageHeader', function () {
                             Buffer.from([0x01, 0x02, 0x03])
                         ]);
                         streamBuffer2 = Buffer.concat([
-                            Buffer.from([0x04, 0x05, 0x06])
+                            Buffer.from([0x04, 0x06, 0x05])
                         ]);
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(streamBuffer1);
                         setTimeout(function () { messageStream.write(streamBuffer2); }, 5);
-                        return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
+                        return [4 /*yield*/, Common_1.MessageHeader.fromStream(messageStream)];
                     case 1:
                         messageHeader = _a.sent();
                         expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
@@ -125,13 +126,13 @@ describe('MessageHeader', function () {
                     case 0:
                         streamBuffer1 = Buffer.concat([
                             Common_2.NetworkParams.getHeaderMagicNumber().asBuffer(),
-                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05])
+                            Buffer.from([0x01, 0x02, 0x03, 0x04, 0x06])
                         ]);
-                        streamBuffer2 = Buffer.from([0x06]);
+                        streamBuffer2 = Buffer.from([0x05]);
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(streamBuffer1);
                         setTimeout(function () { messageStream.write(streamBuffer2); }, 5);
-                        return [4 /*yield*/, Common_1.MessageHeader.from(messageStream)];
+                        return [4 /*yield*/, Common_1.MessageHeader.fromStream(messageStream)];
                     case 1:
                         messageHeader = _a.sent();
                         expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x05, 0x06] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
@@ -156,7 +157,7 @@ describe('MessageHeader', function () {
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(invalidStreamBuffer);
                         messageStream.end();
-                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.fromStream(messageStream))];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -176,7 +177,7 @@ describe('MessageHeader', function () {
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(streamBuffer1);
                         setTimeout(function () { messageStream.write(streamBuffer2); }, 20);
-                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream, 10))];
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.fromStream(messageStream, 10))];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -195,7 +196,7 @@ describe('MessageHeader', function () {
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(streamBuffer);
                         setTimeout(function () { messageStream.end(); }, 10);
-                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.fromStream(messageStream))];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -214,7 +215,7 @@ describe('MessageHeader', function () {
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(streamBuffer);
                         setTimeout(function () { messageStream.end(); }, 10);
-                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.fromStream(messageStream))];
                     case 1:
                         _a.sent();
                         return [2 /*return*/];
@@ -232,9 +233,53 @@ describe('MessageHeader', function () {
                         ]);
                         messageStream = new stream_1.PassThrough();
                         messageStream.write(invalidStreamBuffer);
-                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.from(messageStream))];
+                        return [4 /*yield*/, assert.rejects(Common_1.MessageHeader.fromStream(messageStream))];
                     case 1:
                         _a.sent();
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        // FIXME: Fragile: could break if magic number in header changes
+        it('should create the message header from binary stream', function () { return __awaiter(_this, void 0, void 0, function () {
+            var binaryFile, messageStream, messageHeader, expectedMessageHeader;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fs.promises.readFile('test/testFiles/2020-12-24T17:35:26.895Z.SendHandshakeTest.bin')];
+                    case 1:
+                        binaryFile = _a.sent();
+                        messageStream = new stream_1.PassThrough();
+                        messageStream.write(binaryFile);
+                        return [4 /*yield*/, Common_1.MessageHeader.fromStream(messageStream)];
+                    case 2:
+                        messageHeader = _a.sent();
+                        expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.node_id_handshake, new UInt16_1.default({ octetArray: [0x00, 0x03] }), new UInt8_1.default({ octetArray: [0x12] }), new UInt8_1.default({ octetArray: [0x12] }), new UInt8_1.default({ octetArray: [0x11] }));
+                        assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
+                        assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
+                        assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));
+                        assert.strictEqual(messageHeader.messageType, expectedMessageHeader.messageType);
+                        assert(messageHeader.extensions.equals(expectedMessageHeader.extensions));
+                        return [2 /*return*/];
+                }
+            });
+        }); });
+        // FIXME: Fragile: could break if magic number in header changes
+        it('should create the message header from a buffer', function () { return __awaiter(_this, void 0, void 0, function () {
+            var binaryFile, messageHeader, expectedMessageHeader;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, fs.promises.readFile('test/testFiles/2020-12-24T17:35:26.895Z.SendHandshakeTest.bin')];
+                    case 1:
+                        binaryFile = _a.sent();
+                        return [4 /*yield*/, Common_1.MessageHeader.fromBuffer(binaryFile)];
+                    case 2:
+                        messageHeader = _a.sent();
+                        expectedMessageHeader = new Common_1.MessageHeader(Common_1.MessageType.node_id_handshake, new UInt16_1.default({ octetArray: [0x00, 0x03] }), new UInt8_1.default({ octetArray: [0x12] }), new UInt8_1.default({ octetArray: [0x12] }), new UInt8_1.default({ octetArray: [0x11] }));
+                        assert(messageHeader.versionMax.equals(expectedMessageHeader.versionMax));
+                        assert(messageHeader.versionUsing.equals(expectedMessageHeader.versionUsing));
+                        assert(messageHeader.versionMin.equals(expectedMessageHeader.versionMin));
+                        assert.strictEqual(messageHeader.messageType, expectedMessageHeader.messageType);
+                        assert(messageHeader.extensions.equals(expectedMessageHeader.extensions));
                         return [2 /*return*/];
                 }
             });

@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "test": "mocha",
+    "test-handshake": "node test-client/SendHandshakeTest.js",
     "coverage": "nyc npm run test",
     "macCoverage": "npm run coverage; open coverage/index.html"
   },

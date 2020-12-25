@@ -1,6 +1,7 @@
 // import {Listener} from '../WebSocket'
 import * as net from 'net'
 import {AbstractTCPServer} from '../../lib/AbstractTCPServer'
+import {MessageHeader, MessageType} from '../Common'
 
 export interface NetAddr {
     transport: "tcp" | "udp";
@@ -40,13 +41,33 @@ interface INanoTCPServer {
     close(): void
 }
 
+interface OnKeepaliveReq {
+    readonly socket: net.Socket
+}
+interface OnKeepaliveRes {
+    write(): void
+}
+interface OnHandshakeReq {
+    readonly socket: net.Socket
+}
+interface OnHandshakeRes {
+    write(): void
+}
+
+interface NanoTCPServerConfig {
+    port: number
+    onKeepalive: (req: OnKeepaliveReq, res: OnKeepaliveRes) => void
+    onHandshake: (req: OnHandshakeReq, res: OnHandshakeRes) => void
+    // TODO: all the rest
+}
+
 // inspired by https://github.com/denoland/deno/blob/master/std/http/server.ts
 class NanoTCPServer {
     // private closing = false
     private readonly connections: net.Socket[] = []
     private readonly tcpServer: net.Server
 
-    constructor() {
+    constructor(private readonly nanoTCPServerConfig: NanoTCPServerConfig) {
         this.tcpServer = net.createServer({})
 
         this.tcpServer.on('close', () => {
@@ -56,6 +77,7 @@ class NanoTCPServer {
         this.tcpServer.on('connection', (connection) => {
             console.log(`${new Date().toISOString()}: NanoTCPServer: got connection event`)
             this.connections.push(connection)
+            this.connectionHandler(connection)
         })
 
         this.tcpServer.on('error', (error) => {
@@ -72,7 +94,18 @@ class NanoTCPServer {
         })
 
         this.tcpServer.listen({
-            port: 5555 // FIXME
+            port: nanoTCPServerConfig.port
+        })
+    }
+
+    private connectionHandler(connection: net.Socket) {
+        connection.setTimeout(3000, () => {
+            console.log(`${new Date().toISOString()}: connection on timeout`)
+        })
+        connection.on('data', async (data: Buffer) => {
+            console.log(`${new Date().toISOString()}: connection on data`)
+            const header = await MessageHeader.fromBuffer(data)
+            // TODO: check what kind of message this is and parse accordingly
         })
     }
 

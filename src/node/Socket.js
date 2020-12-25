@@ -126,7 +126,7 @@ var Socket = /** @class */ (function () {
     Socket.prototype.readMessageHeader = function () {
         return __awaiter(this, void 0, void 0, function () {
             return __generator(this, function (_a) {
-                return [2 /*return*/, Common_1.MessageHeader.from(this.tcpSocket, 30000)];
+                return [2 /*return*/, Common_1.MessageHeader.fromStream(this.tcpSocket, 30000)];
             });
         });
     };
