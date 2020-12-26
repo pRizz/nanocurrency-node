@@ -167,6 +167,7 @@ export enum MessageType {
 }
 
 export class MessageHeader implements Serializable {
+    static readonly messageHeaderByteCount = 2 + 1 + 1 + 1 + 1 + 2 // magic header + max version + using version + min version + message type + extensions
     static readonly nodeIDHandshakeQueryFlagPosition = 0
     static readonly nodeIDHandshakeResponseFlagPosition = 1
 

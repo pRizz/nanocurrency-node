@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleCLI = void 0;
 var program = require("commander");
 var Version_1 = require("./Version");
 var Daemon_1 = require("../src/nano_node/Daemon");

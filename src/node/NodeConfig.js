@@ -20,6 +20,7 @@ var __spread = (this && this.__spread) || function () {
     return ar;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.NodeConfig = exports.NodeFlags = void 0;
 var Config_1 = require("../lib/Config");
 var DiagnosticsConfig_1 = require("./DiagnosticsConfig");
 var moment = require("moment");

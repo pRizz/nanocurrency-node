@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -34,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert = require("assert");
 var Common_1 = require("../src/node/Common");
@@ -45,7 +45,7 @@ var Common_2 = require("../src/secure/Common");
 var fs = require("fs");
 describe('MessageHeader', function () {
     describe('#serialize()', function () {
-        it('should serialize the message header to the stream', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should serialize the message header to the stream', function () { return __awaiter(void 0, void 0, void 0, function () {
             var messageHeader, actualBuffer, writable, expectedBuffer;
             return __generator(this, function (_a) {
                 messageHeader = new Common_1.MessageHeader(Common_1.MessageType.confirm_req, new UInt16_1.default({ octetArray: [0x06, 0x05] }), new UInt8_1.default({ octetArray: [0x01] }), new UInt8_1.default({ octetArray: [0x02] }), new UInt8_1.default({ octetArray: [0x03] }));
@@ -67,7 +67,7 @@ describe('MessageHeader', function () {
         }); });
     });
     describe('#from()', function () {
-        it('should create the message header from the stream', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create the message header from the stream', function () { return __awaiter(void 0, void 0, void 0, function () {
             var streamBuffer, messageStream, messageHeader, expectedMessageHeader;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -91,7 +91,7 @@ describe('MessageHeader', function () {
                 }
             });
         }); });
-        it('should create the message header from the stream asynchronously on UInt8 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create the message header from the stream asynchronously on UInt8 boundary', function () { return __awaiter(void 0, void 0, void 0, function () {
             var streamBuffer1, streamBuffer2, messageStream, messageHeader, expectedMessageHeader;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -119,7 +119,7 @@ describe('MessageHeader', function () {
                 }
             });
         }); });
-        it('should create the message header from the stream asynchronously on UInt16 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create the message header from the stream asynchronously on UInt16 boundary', function () { return __awaiter(void 0, void 0, void 0, function () {
             var streamBuffer1, streamBuffer2, messageStream, messageHeader, expectedMessageHeader;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -145,7 +145,7 @@ describe('MessageHeader', function () {
                 }
             });
         }); });
-        it('should not create the message header from a short stream at UInt16 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should not create the message header from a short stream at UInt16 boundary', function () { return __awaiter(void 0, void 0, void 0, function () {
             var invalidStreamBuffer, messageStream;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -164,7 +164,7 @@ describe('MessageHeader', function () {
                 }
             });
         }); });
-        it('should not create the message header after a timeout', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should not create the message header after a timeout', function () { return __awaiter(void 0, void 0, void 0, function () {
             var streamBuffer1, streamBuffer2, messageStream;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -184,7 +184,7 @@ describe('MessageHeader', function () {
                 }
             });
         }); });
-        it('should not create the message header after stream ends unexpectedly on UInt16 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should not create the message header after stream ends unexpectedly on UInt16 boundary', function () { return __awaiter(void 0, void 0, void 0, function () {
             var streamBuffer, messageStream;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -203,7 +203,7 @@ describe('MessageHeader', function () {
                 }
             });
         }); });
-        it('should not create the message header after stream ends unexpectedly on UInt8 boundary', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should not create the message header after stream ends unexpectedly on UInt8 boundary', function () { return __awaiter(void 0, void 0, void 0, function () {
             var streamBuffer, messageStream;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -222,7 +222,7 @@ describe('MessageHeader', function () {
                 }
             });
         }); });
-        it('should not create the message header from an invalid magic number', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should not create the message header from an invalid magic number', function () { return __awaiter(void 0, void 0, void 0, function () {
             var invalidStreamBuffer, messageStream;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -241,7 +241,7 @@ describe('MessageHeader', function () {
             });
         }); });
         // FIXME: Fragile: could break if magic number in header changes
-        it('should create the message header from binary stream', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create the message header from binary stream', function () { return __awaiter(void 0, void 0, void 0, function () {
             var binaryFile, messageStream, messageHeader, expectedMessageHeader;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -264,7 +264,7 @@ describe('MessageHeader', function () {
             });
         }); });
         // FIXME: Fragile: could break if magic number in header changes
-        it('should create the message header from a buffer', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create the message header from a buffer', function () { return __awaiter(void 0, void 0, void 0, function () {
             var binaryFile, messageHeader, expectedMessageHeader;
             return __generator(this, function (_a) {
                 switch (_a.label) {

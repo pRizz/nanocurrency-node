@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.MDBTXNTracker = void 0;
 var MDBTXNTracker = /** @class */ (function () {
     function MDBTXNTracker(txnTrackingConfig, blockProcessorBatchMaxDuration) {
         this.txnTrackingConfig = txnTrackingConfig;

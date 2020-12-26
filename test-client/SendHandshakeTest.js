@@ -4,6 +4,7 @@ var net = require("net");
 var Common_1 = require("../src/node/Common");
 var UInt256_1 = require("../src/lib/UInt256");
 var fs = require("fs");
+var NanoSocketClient_1 = require("../src/node/NanoProtocol/NanoSocketClient");
 function testSendHandshake() {
     console.log("starting handshake test");
     var testNanoNodeIP = process.env.TEST_NANO_NODE_IP;
@@ -52,5 +53,32 @@ function testSendHandshake() {
         console.log(new Date().toISOString() + ": clientSocket.on('timeout')");
     });
 }
-testSendHandshake();
+function testSendHandshakeWithClient() {
+    console.log("starting testSendHandshakeWithClient, ", process.env.TEST_NANO_NODE_IP);
+    var client = new NanoSocketClient_1.default({
+        remoteHost: process.env.TEST_NANO_NODE_IP || '',
+        onConnect: function () {
+            var query = new UInt256_1.default();
+            var handshakeMessage = Common_1.NodeIDHandshakeMessage.fromQuery(query);
+            handshakeMessage.asBuffer().then(function (buffer) {
+                console.log(buffer);
+                client.write(buffer);
+            });
+            // or
+            // handshakeMessage.serialize(client.asWritable())
+        },
+        messageEventListener: {
+            onKeepalive: function (keepaliveMessage) {
+                console.log(new Date().toISOString() + ": onKeepalive");
+                console.log(keepaliveMessage);
+            },
+            onHandshake: function (handshakeMessage) {
+                console.log(new Date().toISOString() + ": onHandshake");
+                console.log(handshakeMessage);
+            }
+        }
+    });
+}
+// testSendHandshake()
+testSendHandshakeWithClient();
 //# sourceMappingURL=SendHandshakeTest.js.map

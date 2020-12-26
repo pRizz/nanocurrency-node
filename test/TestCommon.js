@@ -1,9 +1,10 @@
 "use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -34,14 +35,13 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var assert = require("assert");
 var Common_1 = require("../src/node/Common");
 var ipaddr = require("ipaddr.js");
 describe('Common', function () {
     describe('#bufferFromSerializable()', function () {
-        it('should create a buffer from a serializable', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create a buffer from a serializable', function () { return __awaiter(void 0, void 0, void 0, function () {
             var inputBuffer, serializable, outputBuffer;
             return __generator(this, function (_a) {
                 switch (_a.label) {
@@ -62,7 +62,7 @@ describe('Common', function () {
         }); });
     });
     describe('UDPEndpoint#toDBBuffer()', function () {
-        it('should create a DB buffer from a UDPEndpoint', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create a DB buffer from a UDPEndpoint', function () { return __awaiter(void 0, void 0, void 0, function () {
             var ipv6, ip, udpEndpoint, udpDBBuffer;
             return __generator(this, function (_a) {
                 ipv6 = ipaddr.IPv6.parse('1::1');
@@ -75,7 +75,7 @@ describe('Common', function () {
         }); });
     });
     describe('UDPEndpoint#fromDB()', function () {
-        it('should create a UDPEndpoint from a DB buffer', function () { return __awaiter(_this, void 0, void 0, function () {
+        it('should create a UDPEndpoint from a DB buffer', function () { return __awaiter(void 0, void 0, void 0, function () {
             var udpEndpoint, ipv6, ip, expectedUDPEndpoint;
             return __generator(this, function (_a) {
                 udpEndpoint = Common_1.UDPEndpoint.fromDB(Buffer.from('00ff00000000000000000000000000ab0019', 'hex'));

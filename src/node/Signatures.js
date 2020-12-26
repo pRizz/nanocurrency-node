@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SignatureChecker = void 0;
 var SignatureVerifier_1 = require("../lib/SignatureVerifier");
 var SignatureChecker = /** @class */ (function () {
     function SignatureChecker(signatureCheckerThreads) {

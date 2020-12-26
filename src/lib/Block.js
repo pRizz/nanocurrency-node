@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.SendBlock = exports.BlockType = void 0;
 var BlockHash_1 = require("./BlockHash");
 var UInt256_1 = require("./UInt256");
 var blakejs = require('blakejs');

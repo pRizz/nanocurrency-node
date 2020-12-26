@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.WriteDatabaseQueue = void 0;
 var WriteDatabaseQueue = /** @class */ (function () {
     function WriteDatabaseQueue() {
     }

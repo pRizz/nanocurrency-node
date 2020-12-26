@@ -1,7 +1,8 @@
 // import {Listener} from '../WebSocket'
 import * as net from 'net'
 import {AbstractTCPServer} from '../../lib/AbstractTCPServer'
-import {MessageHeader, MessageType} from '../Common'
+import {KeepaliveMessage, MessageHeader, MessageType, NodeIDHandshakeMessage} from '../Common'
+import {MessageParser} from '../../lib/MessageParser'
 
 export interface NetAddr {
     transport: "tcp" | "udp";
@@ -56,15 +57,21 @@ interface OnHandshakeRes {
 
 interface NanoTCPServerConfig {
     port: number
-    onKeepalive: (req: OnKeepaliveReq, res: OnKeepaliveRes) => void
-    onHandshake: (req: OnHandshakeReq, res: OnHandshakeRes) => void
+    // onKeepalive: (req: OnKeepaliveReq, res: OnKeepaliveRes) => void
+    // onHandshake: (req: OnHandshakeReq, res: OnHandshakeRes) => void
     // TODO: all the rest
+}
+
+interface ConnectionAndMessageParser {
+    readonly connection: net.Socket
+    readonly messageParser: MessageParser
 }
 
 // inspired by https://github.com/denoland/deno/blob/master/std/http/server.ts
 class NanoTCPServer {
     // private closing = false
-    private readonly connections: net.Socket[] = []
+    // private readonly connections: net.Socket[] = []
+    private readonly connectionsAndParsers: ConnectionAndMessageParser[] = []
     private readonly tcpServer: net.Server
 
     constructor(private readonly nanoTCPServerConfig: NanoTCPServerConfig) {
@@ -76,7 +83,6 @@ class NanoTCPServer {
 
         this.tcpServer.on('connection', (connection) => {
             console.log(`${new Date().toISOString()}: NanoTCPServer: got connection event`)
-            this.connections.push(connection)
             this.connectionHandler(connection)
         })
 
@@ -99,14 +105,18 @@ class NanoTCPServer {
     }
 
     private connectionHandler(connection: net.Socket) {
+        const messageParser = new MessageParser(connection, {
+            onHandshake(handshakeMessage: NodeIDHandshakeMessage){
+                console.log(`${new Date().toISOString()}: ${connection.remoteAddress}:${connection.remotePort}: onHandshake()`)
+            },
+            onKeepalive(keepaliveMessage: KeepaliveMessage){
+                console.log(`${new Date().toISOString()}: ${connection.remoteAddress}:${connection.remotePort}: onKeepalive()`)
+            },
+        })
         connection.setTimeout(3000, () => {
             console.log(`${new Date().toISOString()}: connection on timeout`)
         })
-        connection.on('data', async (data: Buffer) => {
-            console.log(`${new Date().toISOString()}: connection on data`)
-            const header = await MessageHeader.fromBuffer(data)
-            // TODO: check what kind of message this is and parse accordingly
-        })
+        this.connectionsAndParsers.push({connection, messageParser})
     }
 
     // private closeConnection(connection: net.Socket) {
@@ -118,9 +128,9 @@ class NanoTCPServer {
         // this.closing = true
         this.tcpServer.close()
         // this.connections.forEach(this.closeConnection)
-        this.connections.forEach(net.Socket.prototype.end.bind) // TODO: test
+        this.connectionsAndParsers.map(cAP => cAP.connection).forEach(net.Socket.prototype.end.bind) // TODO: test
         // TODO: unref all sockets?
-        this.connections.splice(0, this.connections.length)
+        this.connectionsAndParsers.splice(0, this.connectionsAndParsers.length)
         this.tcpServer.unref()
     }
 
@@ -130,11 +140,15 @@ class NanoTCPServer {
     }
 }
 
-// inspiration from https://github.com/http-kit/http-kit/blob/master/src/org/httpkit/server.clj
+// inspiration from
+// https://github.com/http-kit/http-kit/blob/master/src/org/httpkit/server.clj
 // https://github.com/http-kit/http-kit/blob/master/src/java/org/httpkit/server/HttpServer.java
 
 export function runServer(): {stop: () => Boolean} {
-    const server = new NanoTCPServer()
+    const serverConfig: NanoTCPServerConfig = {
+        port: 7075,
+    }
+    const server = new NanoTCPServer(serverConfig)
 
     return {
         stop() {

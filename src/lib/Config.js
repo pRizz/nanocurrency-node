@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.NetworkConstants = exports.NANONetwork = void 0;
 var UInt64_1 = require("./UInt64");
 var publishTestThresholdHex = 'ff00000000000000';
 var publishFullThresholdHex = 'ffffffc000000000';

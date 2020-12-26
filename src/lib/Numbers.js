@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.RawKey = exports.PublicKey = exports.QualifiedRoot = exports.Signature = void 0;
 var Signature = /** @class */ (function () {
     function Signature(value) {
         this.value = value;

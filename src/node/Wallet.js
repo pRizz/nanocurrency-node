@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Wallets = exports.WorkWatcher = void 0;
 var WorkWatcher = /** @class */ (function () {
     function WorkWatcher() {
     }

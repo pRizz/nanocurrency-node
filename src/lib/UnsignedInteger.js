@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.UnsignedIntegerImpl = exports.UnsignedIntegerProps = void 0;
 var UnsignedIntegerProps = /** @class */ (function () {
     function UnsignedIntegerProps() {
     }

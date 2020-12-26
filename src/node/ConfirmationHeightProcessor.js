@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ConfirmationHeightProcessor = void 0;
 var ConfirmationHeightProcessor = /** @class */ (function () {
     function ConfirmationHeightProcessor() {
     }

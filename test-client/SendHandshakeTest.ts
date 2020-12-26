@@ -3,6 +3,7 @@ import {MessageHeader, MessageType, NodeIDHandshakeMessage, NodeIDHandshakeMessa
 import UInt16 from '../src/lib/UInt16'
 import UInt256 from '../src/lib/UInt256'
 import * as fs from 'fs'
+import NanoSocketClient from '../src/node/NanoProtocol/NanoSocketClient'
 
 function testSendHandshake() {
     console.log(`starting handshake test`)
@@ -67,4 +68,34 @@ function testSendHandshake() {
 
 }
 
-testSendHandshake()
+function testSendHandshakeWithClient() {
+    console.log(`starting testSendHandshakeWithClient, `, process.env.TEST_NANO_NODE_IP)
+
+    const client = new NanoSocketClient({
+        remoteHost: process.env.TEST_NANO_NODE_IP || '',
+        onConnect() {
+            const query = new UInt256()
+            const handshakeMessage = NodeIDHandshakeMessage.fromQuery(query)
+
+            handshakeMessage.asBuffer().then(buffer => {
+                console.log(buffer)
+                client.write(buffer)
+            })
+            // or
+            // handshakeMessage.serialize(client.asWritable())
+        },
+        messageEventListener: {
+            onKeepalive(keepaliveMessage) {
+                console.log(`${new Date().toISOString()}: onKeepalive`)
+                console.log(keepaliveMessage)
+            },
+            onHandshake(handshakeMessage) {
+                console.log(`${new Date().toISOString()}: onHandshake`)
+                console.log(handshakeMessage)
+            }
+        }
+    })
+}
+
+// testSendHandshake()
+testSendHandshakeWithClient()

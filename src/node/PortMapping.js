@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PortMapping = exports.MappingProtocol = void 0;
 var Common_1 = require("./Common");
 var ipaddr = require("ipaddr.js");
 var MappingProtocol = /** @class */ (function () {

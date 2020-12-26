@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.VotesCache = exports.VoteGenerator = void 0;
 var VoteGenerator = /** @class */ (function () {
     function VoteGenerator() {
     }
