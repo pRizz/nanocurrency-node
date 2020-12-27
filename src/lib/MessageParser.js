@@ -38,10 +38,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.MessageParser = void 0;
 var Common_1 = require("../node/Common");
-var stream_1 = require("stream");
 var debugging_1 = require("../debugging");
-var UInt256_1 = require("./UInt256");
-var Signatures_1 = require("../node/Signatures");
 // It is the caller's responsibility to use a stream in the valid state. For example, if the stream closes or
 // receives an error, the caller must properly handle this, remove the message parser, and make a
 // new one on a new connection/stream.
@@ -50,16 +47,15 @@ var MessageParser = /** @class */ (function () {
         var _this = this;
         this.messageEventListener = messageEventListener;
         stream.on('data', function (data) { return __awaiter(_this, void 0, void 0, function () {
-            var header, _a, messageBuffer, messageStream, readableMessageStream, handshakeMessage, isSignatureVerified, e_1;
-            var _b, _c;
-            return __generator(this, function (_d) {
-                switch (_d.label) {
+            var header, _a, messageBuffer, handshakeMessage, e_1;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         console.log(new Date().toISOString() + ": connection on data");
                         debugging_1.logToFile(data);
                         return [4 /*yield*/, Common_1.MessageHeader.fromBuffer(data)];
                     case 1:
-                        header = _d.sent();
+                        header = _b.sent();
                         console.log(new Date().toISOString() + ": parsed MessageHeader: " + header);
                         console.log("" + header);
                         _a = header.messageType;
@@ -106,39 +102,17 @@ var MessageParser = /** @class */ (function () {
                         return [3 /*break*/, 17];
                     case 11:
                         console.log(new Date().toISOString() + ": MessageType.node_id_handshake");
-                        _d.label = 12;
+                        _b.label = 12;
                     case 12:
-                        _d.trys.push([12, 14, , 15]);
+                        _b.trys.push([12, 14, , 15]);
                         messageBuffer = data.slice(8);
-                        messageStream = new stream_1.PassThrough();
-                        messageStream.write(messageBuffer);
-                        debugging_1.logToFile(messageBuffer);
-                        readableMessageStream = new Common_1.ReadableMessageStream(messageStream);
-                        return [4 /*yield*/, Common_1.NodeIDHandshakeMessage.from(header, readableMessageStream)];
+                        return [4 /*yield*/, Common_1.NodeIDHandshakeMessage.fromBuffer(header, messageBuffer)];
                     case 13:
-                        handshakeMessage = _d.sent();
-                        console.log(handshakeMessage);
-                        console.log("handshakeMessage.query");
-                        console.log(handshakeMessage.query);
-                        console.log("handshakeMessage.response");
-                        console.log(handshakeMessage.response);
-                        console.log((_b = handshakeMessage.response) === null || _b === void 0 ? void 0 : _b.account.toNANOAddress());
-                        console.log("handshakeMessage.response?.signature.value.asBuffer().toString('hex')");
-                        console.log((_c = handshakeMessage.response) === null || _c === void 0 ? void 0 : _c.signature.value.asBuffer().toString('hex'));
-                        // verify
-                        if (handshakeMessage.response) {
-                            isSignatureVerified = Signatures_1.SignatureChecker.verifyHandshakeResponse(new UInt256_1.default(), handshakeMessage.response);
-                            console.log("isSignatureVerified");
-                            console.log(isSignatureVerified);
-                            // FIXME: handle verification
-                        }
-                        else {
-                            console.log("no response");
-                        }
+                        handshakeMessage = _b.sent();
                         messageEventListener.onHandshake(handshakeMessage);
                         return [3 /*break*/, 15];
                     case 14:
-                        e_1 = _d.sent();
+                        e_1 = _b.sent();
                         console.log(new Date().toISOString() + ": error while parsing node_id_handshake");
                         return [3 /*break*/, 15];
                     case 15: return [3 /*break*/, 17];

@@ -408,6 +408,23 @@ var NodeIDHandshakeMessage = /** @class */ (function () {
     };
     NodeIDHandshakeMessage.prototype.visit = function (messageVisitor) {
     };
+    NodeIDHandshakeMessage.fromBuffer = function (header, messageBuffer, timeoutMS) {
+        return __awaiter(this, void 0, void 0, function () {
+            var readableStream;
+            return __generator(this, function (_a) {
+                readableStream = new stream_1.PassThrough();
+                readableStream.write(messageBuffer);
+                return [2 /*return*/, this.fromNodeJSStream(header, readableStream, timeoutMS)];
+            });
+        });
+    };
+    NodeIDHandshakeMessage.fromNodeJSStream = function (header, stream, timeoutMS) {
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, this.from(header, new ReadableMessageStream(stream), timeoutMS)];
+            });
+        });
+    };
     NodeIDHandshakeMessage.from = function (header, stream, timeoutMS) {
         return __awaiter(this, void 0, void 0, function () {
             var _this = this;

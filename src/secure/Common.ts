@@ -5,7 +5,7 @@ import UInt16 from '../lib/UInt16'
 import {Moment} from 'moment'
 import {NANONetwork, NetworkConstants} from '../lib/Config'
 import {PublicKey, RawKey} from '../lib/Numbers'
-import * as nacl from 'tweetnacl'
+import * as nacl from 'tweetnacl-blake2b'
 import UInt256 from '../lib/UInt256'
 import UInt512 from '../lib/UInt512'
 
@@ -64,20 +64,23 @@ export enum SignatureVerification {
 export class KeyPair {
     readonly publicKey: PublicKey
 
-    constructor(readonly privateKey: RawKey, publicKey?: PublicKey) {
-        if(publicKey) {
-            this.publicKey = publicKey
-        } else {
-            this.publicKey = new PublicKey(new UInt256({
-                uint8Array: nacl.sign.keyPair.fromSecretKey(privateKey.value.asUint8Array()).publicKey
-            }))
-        }
+    constructor(readonly privateKey: RawKey) {
+        this.publicKey = new PublicKey(new UInt256({
+            uint8Array: nacl.sign.keyPair.fromSecretKey(privateKey.value.asUint8Array()).publicKey
+        }))
     }
 
+    // from legacy nano node; not quite sure why this is needed
     static createZeroKeyPair() {
         const rawKey = new RawKey(new UInt512({
             buffer: Buffer.alloc(64)
         }))
+        return new KeyPair(rawKey)
+    }
+
+    static createRandomKeyPair(): KeyPair {
+        const {secretKey} = nacl.sign.keyPair()
+        const rawKey = new RawKey(new UInt512({uint8Array: secretKey}))
         return new KeyPair(rawKey)
     }
 }

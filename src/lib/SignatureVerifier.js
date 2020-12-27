@@ -11,6 +11,14 @@ var SignatureVerifier;
         return nacl.sign.detached.verify(message, signature.asUint8Array(), publicKey.asUint8Array());
     }
     SignatureVerifier.verify = verify;
+    function verifyHandshakeResponse(sentChallengeQuery, handshakeResponse) {
+        return this.verify({
+            message: sentChallengeQuery.asUint8Array(),
+            signature: handshakeResponse.signature,
+            publicKey: handshakeResponse.account.publicKey
+        });
+    }
+    SignatureVerifier.verifyHandshakeResponse = verifyHandshakeResponse;
 })(SignatureVerifier || (SignatureVerifier = {}));
 exports.default = SignatureVerifier;
 //# sourceMappingURL=SignatureVerifier.js.map

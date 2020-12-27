@@ -10,9 +10,10 @@ export interface SignatureVerifiable {
     publicKey: UInt256
 }
 
+// FIXME: consolidate this class and SignatureVerifier
 export class SignatureChecker {
     static verify(signatureVerifiable: SignatureVerifiable): boolean {
-        return SignatureVerifier.verify(signatureVerifiable.message, signatureVerifiable.signature.value.asUint8Array(), signatureVerifiable.publicKey)
+        return SignatureVerifier.verify(signatureVerifiable.message, signatureVerifiable.signature, signatureVerifiable.publicKey)
     }
 
     static verifyHandshakeResponse(sentChallengeQuery: UInt256, handshakeResponse: NodeIDHandshakeMessageResponse): boolean {

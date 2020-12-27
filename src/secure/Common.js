@@ -5,7 +5,7 @@ var Account_1 = require("../lib/Account");
 var UInt16_1 = require("../lib/UInt16");
 var Config_1 = require("../lib/Config");
 var Numbers_1 = require("../lib/Numbers");
-var nacl = require("tweetnacl");
+var nacl = require("tweetnacl-blake2b");
 var UInt256_1 = require("../lib/UInt256");
 var UInt512_1 = require("../lib/UInt512");
 var UncheckedInfo = /** @class */ (function () {
@@ -47,21 +47,22 @@ var SignatureVerification;
     SignatureVerification[SignatureVerification["valid_epoch"] = 3] = "valid_epoch"; // Valid for epoch blocks
 })(SignatureVerification = exports.SignatureVerification || (exports.SignatureVerification = {}));
 var KeyPair = /** @class */ (function () {
-    function KeyPair(privateKey, publicKey) {
+    function KeyPair(privateKey) {
         this.privateKey = privateKey;
-        if (publicKey) {
-            this.publicKey = publicKey;
-        }
-        else {
-            this.publicKey = new Numbers_1.PublicKey(new UInt256_1.default({
-                uint8Array: nacl.sign.keyPair.fromSecretKey(privateKey.value.asUint8Array()).publicKey
-            }));
-        }
+        this.publicKey = new Numbers_1.PublicKey(new UInt256_1.default({
+            uint8Array: nacl.sign.keyPair.fromSecretKey(privateKey.value.asUint8Array()).publicKey
+        }));
     }
+    // from legacy nano node; not quite sure why this is needed
     KeyPair.createZeroKeyPair = function () {
         var rawKey = new Numbers_1.RawKey(new UInt512_1.default({
             buffer: Buffer.alloc(64)
         }));
+        return new KeyPair(rawKey);
+    };
+    KeyPair.createRandomKeyPair = function () {
+        var secretKey = nacl.sign.keyPair().secretKey;
+        var rawKey = new Numbers_1.RawKey(new UInt512_1.default({ uint8Array: secretKey }));
         return new KeyPair(rawKey);
     };
     return KeyPair;

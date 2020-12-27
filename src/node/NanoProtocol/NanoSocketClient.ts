@@ -1,10 +1,11 @@
 import {EventEmitter} from 'events'
-import {ConfirmReqMessage, KeepaliveMessage, NodeIDHandshakeMessage} from '../Common'
+import {ConfirmReqMessage, KeepaliveMessage, Message, NodeIDHandshakeMessage} from '../Common'
 import * as net from "net"
 import UInt256 from '../../lib/UInt256'
 import * as fs from "fs"
 import {MessageEventListener, MessageParser} from '../../lib/MessageParser'
 import {Writable} from 'stream'
+import * as buffer from 'buffer'
 
 // modeled after a WebSocket, but handles Nano-protocol specific messages
 // export interface NanoSocketDelegate {
@@ -23,6 +24,8 @@ export interface NanoSocketClientConfig {
 
 export default class NanoSocketClient {
     private readonly clientSocket: net.Socket
+    private readonly messageParser: MessageParser
+
     constructor(private readonly nanoSocketClientConfig: NanoSocketClientConfig) {
         // TODO: check if remoteHost is an ip or hostname
 
@@ -34,7 +37,7 @@ export default class NanoSocketClient {
             timeout: 10_000,
         })
 
-        const messageParser = new MessageParser(this.clientSocket, nanoSocketClientConfig.messageEventListener)
+        this.messageParser = new MessageParser(this.clientSocket, nanoSocketClientConfig.messageEventListener)
 
         this.clientSocket.on('lookup', (err, address, family, host) => {
             console.log(`${new Date().toISOString()}: clientSocket.on('lookup'): ${{err, address, family, host}}`)
@@ -66,11 +69,7 @@ export default class NanoSocketClient {
         })
     }
 
-    asWritable(): NodeJS.WritableStream {
-        return this.clientSocket
-    }
-
-    write(buffer: Buffer): boolean {
-        return this.clientSocket.write(buffer)
+    sendMessage(message: Message) {
+        message.serialize(this.clientSocket)
     }
 }

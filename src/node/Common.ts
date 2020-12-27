@@ -394,6 +394,16 @@ export class NodeIDHandshakeMessage implements Message {
     visit(messageVisitor: MessageVisitor): void {
     }
 
+    static async fromBuffer(header: MessageHeader, messageBuffer: Buffer, timeoutMS?: number): Promise<NodeIDHandshakeMessage> {
+        const readableStream = new PassThrough()
+        readableStream.write(messageBuffer)
+        return this.fromNodeJSStream(header, readableStream, timeoutMS)
+    }
+
+    static async fromNodeJSStream(header: MessageHeader, stream: NodeJS.ReadableStream, timeoutMS?: number): Promise<NodeIDHandshakeMessage> {
+        return this.from(header, new ReadableMessageStream(stream), timeoutMS)
+    }
+
     static async from(header: MessageHeader, stream: ReadableMessageStream, timeoutMS?: number): Promise<NodeIDHandshakeMessage> {
         if(header.messageType !== MessageType.node_id_handshake) {
             return Promise.reject(new Error(`Unexpected message header`))

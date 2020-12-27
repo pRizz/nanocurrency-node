@@ -2,8 +2,11 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.logToFile = void 0;
 var fs = require("fs");
-function logToFile(data) {
+function logToFile(data, filenameSuffix) {
     var filename = new Date().toISOString().replace(/:/g, '-');
+    if (filenameSuffix) {
+        filename = filename + "." + filenameSuffix;
+    }
     var filePath = "logs/" + filename + ".log";
     fs.writeFile(filePath, data, function (err) {
         if (err)

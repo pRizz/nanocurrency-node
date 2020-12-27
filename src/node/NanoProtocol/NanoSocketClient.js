@@ -12,7 +12,7 @@ var NanoSocketClient = /** @class */ (function () {
             port: syncPort,
             timeout: 10000,
         });
-        var messageParser = new MessageParser_1.MessageParser(this.clientSocket, nanoSocketClientConfig.messageEventListener);
+        this.messageParser = new MessageParser_1.MessageParser(this.clientSocket, nanoSocketClientConfig.messageEventListener);
         this.clientSocket.on('lookup', function (err, address, family, host) {
             console.log(new Date().toISOString() + ": clientSocket.on('lookup'): " + { err: err, address: address, family: family, host: host });
         });
@@ -36,11 +36,8 @@ var NanoSocketClient = /** @class */ (function () {
             console.log(new Date().toISOString() + ": clientSocket.on('timeout')");
         });
     }
-    NanoSocketClient.prototype.asWritable = function () {
-        return this.clientSocket;
-    };
-    NanoSocketClient.prototype.write = function (buffer) {
-        return this.clientSocket.write(buffer);
+    NanoSocketClient.prototype.sendMessage = function (message) {
+        message.serialize(this.clientSocket);
     };
     return NanoSocketClient;
 }());

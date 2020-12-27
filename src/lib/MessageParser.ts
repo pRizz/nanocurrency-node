@@ -29,6 +29,8 @@ export class MessageParser {
             const header = await MessageHeader.fromBuffer(data)
             console.log(`${new Date().toISOString()}: parsed MessageHeader: ${header}`)
             console.log(`${header}`)
+            // TODO: audit; could be a source of bugs if multiple messages were sent and they are consumed at once; we might have to unshift unconsumed data, etc.
+            // stream.unshift()
 
             switch (header.messageType) {
                 case MessageType.invalid:
@@ -62,29 +64,7 @@ export class MessageParser {
                     console.log(`${new Date().toISOString()}: MessageType.node_id_handshake`)
                     try {
                         const messageBuffer = data.slice(8)
-                        const messageStream = new PassThrough()
-                        messageStream.write(messageBuffer)
-                        logToFile(messageBuffer)
-                        const readableMessageStream = new ReadableMessageStream(messageStream)
-                        const handshakeMessage = await NodeIDHandshakeMessage.from(header, readableMessageStream)
-                        console.log(handshakeMessage)
-                        console.log(`handshakeMessage.query`)
-                        console.log(handshakeMessage.query)
-                        console.log(`handshakeMessage.response`)
-                        console.log(handshakeMessage.response)
-                        console.log(handshakeMessage.response?.account.toNANOAddress())
-                        console.log(`handshakeMessage.response?.signature.value.asBuffer().toString('hex')`)
-                        console.log(handshakeMessage.response?.signature.value.asBuffer().toString('hex'))
-                        // verify
-                        if(handshakeMessage.response) {
-                            // FIXME: should use the actual challenge sent which will be a random filled SYNCookie
-                            const isSignatureVerified = SignatureChecker.verifyHandshakeResponse(new UInt256(), handshakeMessage.response)
-                            console.log(`isSignatureVerified`)
-                            console.log(isSignatureVerified)
-                            // FIXME: handle verification
-                        } else {
-                            console.log(`no response`)
-                        }
+                        const handshakeMessage = await NodeIDHandshakeMessage.fromBuffer(header, messageBuffer)
                         messageEventListener.onHandshake(handshakeMessage)
                     } catch (e) {
                         console.log(`${new Date().toISOString()}: error while parsing node_id_handshake`)
