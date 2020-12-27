@@ -110,6 +110,7 @@ var SYNCookieInfo = /** @class */ (function () {
 }());
 exports.SYNCookieInfo = SYNCookieInfo;
 // TODO: audit
+// TODO: much of this logic will probably be replaced by newer code
 var Network = /** @class */ (function () {
     function Network(disableUDP, port, udpChannelsDelegate, tcpChannelsDelegate) {
         this.disableUDP = disableUDP;

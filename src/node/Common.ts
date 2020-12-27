@@ -292,8 +292,8 @@ export class KeepaliveMessage implements Message {
         return this.messageHeader
     }
 
-    asBuffer(): Buffer {
-        throw 0 // FIXME
+    async asBuffer(): Promise<Buffer> {
+        return bufferFromSerializable(this)
     }
 }
 
@@ -302,8 +302,8 @@ export class ConfirmReqMessage implements Message {
 
     // TODO
 
-    asBuffer(): Buffer {
-        throw 0 // FIXME
+    async asBuffer(): Promise<Buffer> {
+        return bufferFromSerializable(this)
     }
 
     getMessageHeader(): MessageHeader {

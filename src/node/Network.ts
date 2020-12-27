@@ -76,6 +76,7 @@ export interface NetworkDelegate {
 }
 
 // TODO: audit
+// TODO: much of this logic will probably be replaced by newer code
 export class Network {
     private cleanupInterval: Timeout | null
     private synCookieCleanupInterval: Timeout | null

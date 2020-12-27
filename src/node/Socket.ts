@@ -7,7 +7,7 @@ export enum SocketConcurrency {
 }
 
 export interface Serializable {
-    serialize(stream: NodeJS.WritableStream): void // TODO: consider returning a Promise for asynchonous serialization
+    serialize(stream: NodeJS.WritableStream): void // TODO: consider returning a Promise for asynchronous serialization
 }
 
 export class Socket {

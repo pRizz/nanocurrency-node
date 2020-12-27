@@ -1,6 +1,7 @@
 import UInt512 from "./UInt512"
 import {Signature} from './Numbers'
-const nacl = require('tweetnacl')
+import UInt256 from './UInt256'
+const nacl = require('tweetnacl-blake2b')
 
 namespace MessageSigner {
     // FIXME: use blake2b as hashing for signing

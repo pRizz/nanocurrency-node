@@ -61,6 +61,7 @@ function testSendHandshakeWithClient() {
             var query = new UInt256_1.default();
             var handshakeMessage = Common_1.NodeIDHandshakeMessage.fromQuery(query);
             handshakeMessage.asBuffer().then(function (buffer) {
+                console.log("query buffer:");
                 console.log(buffer);
                 client.write(buffer);
             });

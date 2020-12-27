@@ -315,7 +315,11 @@ var KeepaliveMessage = /** @class */ (function () {
         return this.messageHeader;
     };
     KeepaliveMessage.prototype.asBuffer = function () {
-        throw 0; // FIXME
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, bufferFromSerializable(this)];
+            });
+        });
     };
     return KeepaliveMessage;
 }());
@@ -326,7 +330,11 @@ var ConfirmReqMessage = /** @class */ (function () {
     }
     // TODO
     ConfirmReqMessage.prototype.asBuffer = function () {
-        throw 0; // FIXME
+        return __awaiter(this, void 0, void 0, function () {
+            return __generator(this, function (_a) {
+                return [2 /*return*/, bufferFromSerializable(this)];
+            });
+        });
     };
     ConfirmReqMessage.prototype.getMessageHeader = function () {
         // FIXME

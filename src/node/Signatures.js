@@ -9,6 +9,13 @@ var SignatureChecker = /** @class */ (function () {
     SignatureChecker.verify = function (signatureVerifiable) {
         return SignatureVerifier_1.default.verify(signatureVerifiable.message, signatureVerifiable.signature.value.asUint8Array(), signatureVerifiable.publicKey);
     };
+    SignatureChecker.verifyHandshakeResponse = function (sentChallengeQuery, handshakeResponse) {
+        return this.verify({
+            message: sentChallengeQuery.asUint8Array(),
+            signature: handshakeResponse.signature,
+            publicKey: handshakeResponse.account.publicKey
+        });
+    };
     SignatureChecker.prototype.stop = function () {
         throw 0; // FIXME
     };

@@ -7,6 +7,11 @@ import {
 } from '../node/Common'
 import {PassThrough} from 'stream'
 import {logToFile} from '../debugging'
+import SignatureVerifier from './SignatureVerifier'
+import verify = SignatureVerifier.verify
+import UInt256 from './UInt256'
+import UInt512 from './UInt512'
+import {SignatureChecker} from '../node/Signatures'
 
 export interface MessageEventListener {
     onKeepalive: (keepaliveMessage: KeepaliveMessage) => void
@@ -63,11 +68,23 @@ export class MessageParser {
                         const readableMessageStream = new ReadableMessageStream(messageStream)
                         const handshakeMessage = await NodeIDHandshakeMessage.from(header, readableMessageStream)
                         console.log(handshakeMessage)
+                        console.log(`handshakeMessage.query`)
+                        console.log(handshakeMessage.query)
+                        console.log(`handshakeMessage.response`)
                         console.log(handshakeMessage.response)
-                        console.log(handshakeMessage.response?.account)
                         console.log(handshakeMessage.response?.account.toNANOAddress())
-                        console.log(handshakeMessage.response?.signature)
+                        console.log(`handshakeMessage.response?.signature.value.asBuffer().toString('hex')`)
                         console.log(handshakeMessage.response?.signature.value.asBuffer().toString('hex'))
+                        // verify
+                        if(handshakeMessage.response) {
+                            // FIXME: should use the actual challenge sent which will be a random filled SYNCookie
+                            const isSignatureVerified = SignatureChecker.verifyHandshakeResponse(new UInt256(), handshakeMessage.response)
+                            console.log(`isSignatureVerified`)
+                            console.log(isSignatureVerified)
+                            // FIXME: handle verification
+                        } else {
+                            console.log(`no response`)
+                        }
                         messageEventListener.onHandshake(handshakeMessage)
                     } catch (e) {
                         console.log(`${new Date().toISOString()}: error while parsing node_id_handshake`)

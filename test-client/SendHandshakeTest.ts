@@ -78,6 +78,7 @@ function testSendHandshakeWithClient() {
             const handshakeMessage = NodeIDHandshakeMessage.fromQuery(query)
 
             handshakeMessage.asBuffer().then(buffer => {
+                console.log(`query buffer:`)
                 console.log(buffer)
                 client.write(buffer)
             })

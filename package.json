@@ -19,7 +19,7 @@
     "moment": "^2.24.0",
     "morgan": "~1.9.1",
     "node-lmdb": "^0.7.0",
-    "tweetnacl": "^1.0.1"
+    "tweetnacl-blake2b": "^1.0.1"
   },
   "devDependencies": {
     "@types/mocha": "^5.2.7",
