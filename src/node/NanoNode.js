@@ -56,8 +56,6 @@ var NodeConfig_1 = require("./NodeConfig");
 var Common_1 = require("./Common");
 var ipaddr_js_1 = require("ipaddr.js");
 var RepCrawler_1 = require("./RepCrawler");
-var LMDB_1 = require("./LMDB");
-var path = require("path");
 var Bootstrap_1 = require("./Bootstrap");
 var PortMapping_1 = require("./PortMapping");
 var VoteProcessor_1 = require("./VoteProcessor");
@@ -68,6 +66,7 @@ var Signatures_1 = require("./Signatures");
 var WriteDatabaseQueue_1 = require("./WriteDatabaseQueue");
 var Config_1 = require("../lib/Config");
 var moment = require("moment");
+var SQLiteBlockStore_1 = require("./blockStore/SQLiteBlockStore");
 var BlockArrival = /** @class */ (function () {
     function BlockArrival() {
     }
@@ -112,7 +111,7 @@ var NanoNode = /** @class */ (function () {
             var blockStore;
             return __generator(this, function (_a) {
                 switch (_a.label) {
-                    case 0: return [4 /*yield*/, LMDB_1.MDBStore.create(path.join(applicationPath, 'data.ldb'), nodeConfig.maxDBs, nodeConfig.diagnosticsConfig.txnTrackingConfig, nodeConfig.blockProcessorBatchMaxTime)];
+                    case 0: return [4 /*yield*/, SQLiteBlockStore_1.SQLiteBlockStore.from({})];
                     case 1:
                         blockStore = _a.sent();
                         return [2 /*return*/, new NanoNode(applicationPath, flags, blockStore, nodeConfig)];

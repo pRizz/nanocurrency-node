@@ -126,10 +126,12 @@ function testSendKeepalive() {
                 case 0:
                     handshakeMessage = createHandshakeMessage();
                     keepaliveMessage = new Common_1.KeepaliveMessage(new Set());
-                    return [4 /*yield*/, Common_1.bufferFromSerializable(keepaliveMessage)];
+                    return [4 /*yield*/, Common_1.bufferFromSerializable(keepaliveMessage)
+                        // console.log(`${new Date().toISOString()}: send keepaliveMessage.getPeers().size `, keepaliveMessage.getPeers().size)
+                    ];
                 case 1:
                     keepaliveMessageBuffer = _a.sent();
-                    console.log(new Date().toISOString() + ": send keepaliveMessage.getPeers().size ", keepaliveMessage.getPeers().size);
+                    // console.log(`${new Date().toISOString()}: send keepaliveMessage.getPeers().size `, keepaliveMessage.getPeers().size)
                     console.log(new Date().toISOString() + ": send keepaliveMessageBuffer.length ", keepaliveMessageBuffer.length);
                     console.log(new Date().toISOString() + ": send keepaliveMessageBuffer ", keepaliveMessageBuffer);
                     return [2 /*return*/];

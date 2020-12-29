@@ -1,9 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NanoTCPServer2 = exports.runServer = void 0;
+exports.NanoTCPServer = void 0;
 // import {Listener} from '../WebSocket'
 var net = require("net");
-var AbstractTCPServer_1 = require("../../lib/AbstractTCPServer");
 var MessageParser_1 = require("../../lib/MessageParser");
 // export interface Conn extends Reader, Writer, Closer {
 //     localAddr: Addr;
@@ -52,10 +51,17 @@ var NanoTCPServer = /** @class */ (function () {
         this.tcpServer.on('listening', function () {
             console.log(new Date().toISOString() + ": NanoTCPServer: got listening event");
         });
-        this.tcpServer.listen({
-            port: nanoTCPServerConfig.port
-        });
+        this.start();
     }
+    NanoTCPServer.prototype.start = function () {
+        if (this.tcpServer.listening) {
+            console.warn(new Date().toISOString() + ": NanoTCPServer: the server is already listening");
+            return;
+        }
+        this.tcpServer.listen({
+            port: this.nanoTCPServerConfig.port
+        });
+    };
     NanoTCPServer.prototype.connectionHandler = function (connection) {
         var messageParser = new MessageParser_1.MessageParser(connection, {
             onHandshake: function (handshakeMessage) {
@@ -89,39 +95,5 @@ var NanoTCPServer = /** @class */ (function () {
     };
     return NanoTCPServer;
 }());
-// inspiration from
-// https://github.com/http-kit/http-kit/blob/master/src/org/httpkit/server.clj
-// https://github.com/http-kit/http-kit/blob/master/src/java/org/httpkit/server/HttpServer.java
-function runServer() {
-    var serverConfig = {
-        port: 7075,
-    };
-    var server = new NanoTCPServer(serverConfig);
-    return {
-        stop: function () {
-            server.stop();
-            return true;
-        }
-    };
-}
-exports.runServer = runServer;
-var NanoTCPServer2 = /** @class */ (function () {
-    function NanoTCPServer2() {
-        this.tcpServer = new AbstractTCPServer_1.AbstractTCPServer({
-            port: 5555,
-            messageDefinitions: [],
-            eventListener: this,
-        });
-    }
-    NanoTCPServer2.prototype.start = function () {
-        this.tcpServer.start();
-    };
-    NanoTCPServer2.prototype.stop = function () {
-        this.tcpServer.stop();
-    };
-    NanoTCPServer2.prototype.onError = function () {
-    };
-    return NanoTCPServer2;
-}());
-exports.NanoTCPServer2 = NanoTCPServer2;
+exports.NanoTCPServer = NanoTCPServer;
 //# sourceMappingURL=NanoTCPServer.js.map

@@ -258,16 +258,11 @@ export interface MessageVisitor {
 
 export class KeepaliveMessage implements Message {
     private messageHeader = new MessageHeader(MessageType.keepalive, new UInt16())
-    private readonly peers: Set<UDPEndpoint>
 
-    constructor(peers: Set<UDPEndpoint>) {
-        this.peers = new Set(Array.from({length: 8}).map(() =>
-            new UDPEndpoint(
-                new IPAddress(
-                    IPv6.parse("::")
-                ), 7075
-            )
-        ))
+    constructor(readonly peers: Set<TCPEndpoint>) {
+        if(peers.size !== 8) {
+            throw `Invalid peer size: expected 8 but was ${peers.size}`
+        }
     }
 
     serialize(stream: NodeJS.WritableStream): void {
@@ -282,10 +277,6 @@ export class KeepaliveMessage implements Message {
 
     visit(messageVisitor: MessageVisitor): void {
         throw 0 // FIXME
-    }
-
-    getPeers(): Set<UDPEndpoint> {
-        return this.peers
     }
 
     getMessageHeader(): MessageHeader {

@@ -29,6 +29,8 @@ import {Stat} from '../lib/Stats'
 import {WriteDatabaseQueue} from './WriteDatabaseQueue'
 import {NANONetwork, NetworkConstants} from '../lib/Config'
 import moment = require('moment')
+import {SyncService} from './SyncService'
+import {SQLiteBlockStore} from './blockStore/SQLiteBlockStore'
 
 class BlockArrival {
     add(block: Block): boolean {
@@ -55,14 +57,10 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
     private readonly signatureChecker: SignatureChecker
     private readonly stats: Stat
     private readonly writeDatabaseQueue = new WriteDatabaseQueue()
+    private readonly syncService: SyncService
 
     static async create(applicationPath: string, flags: NodeFlags = new NodeFlags(), nodeConfig: NodeConfig): Promise<NanoNode> {
-        const blockStore = await MDBStore.create(
-            path.join(applicationPath, 'data.ldb'),
-            nodeConfig.maxDBs,
-            nodeConfig.diagnosticsConfig.txnTrackingConfig,
-            nodeConfig.blockProcessorBatchMaxTime
-        )
+        const blockStore = await SQLiteBlockStore.from({})
         return new NanoNode(applicationPath, flags, blockStore, nodeConfig)
     }
 
@@ -129,6 +127,7 @@ export default class NanoNode implements BlockProcessorDelegate, UDPChannelsDele
         if(this.nodeConfig.externalAddress.range() !== 'unspecified' && this.nodeConfig.externalPort !== 0) {
             this.portMapping.start()
         }
+
     }
 
     stop() {

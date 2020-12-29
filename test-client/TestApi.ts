@@ -123,7 +123,7 @@ export function testSendKeepalive() {
         const keepaliveMessageBuffer = await bufferFromSerializable(keepaliveMessage)
 
 
-        console.log(`${new Date().toISOString()}: send keepaliveMessage.getPeers().size `, keepaliveMessage.getPeers().size)
+        // console.log(`${new Date().toISOString()}: send keepaliveMessage.getPeers().size `, keepaliveMessage.getPeers().size)
         console.log(`${new Date().toISOString()}: send keepaliveMessageBuffer.length `, keepaliveMessageBuffer.length)
         console.log(`${new Date().toISOString()}: send keepaliveMessageBuffer `, keepaliveMessageBuffer)
         // console.log(`${new Date().toISOString()}: send handshakeMessageBuffer `, handshakeMessageBuffer)

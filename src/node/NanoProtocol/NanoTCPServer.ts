@@ -55,20 +55,20 @@ interface OnHandshakeRes {
     write(): void
 }
 
-interface NanoTCPServerConfig {
+export interface NanoTCPServerConfig {
     port: number
     // onKeepalive: (req: OnKeepaliveReq, res: OnKeepaliveRes) => void
     // onHandshake: (req: OnHandshakeReq, res: OnHandshakeRes) => void
     // TODO: all the rest
 }
 
-interface ConnectionAndMessageParser {
+export interface ConnectionAndMessageParser {
     readonly connection: net.Socket
     readonly messageParser: MessageParser
 }
 
 // inspired by https://github.com/denoland/deno/blob/master/std/http/server.ts
-class NanoTCPServer {
+export class NanoTCPServer {
     // private closing = false
     // private readonly connections: net.Socket[] = []
     private readonly connectionsAndParsers: ConnectionAndMessageParser[] = []
@@ -99,8 +99,17 @@ class NanoTCPServer {
             console.log(`${new Date().toISOString()}: NanoTCPServer: got listening event`)
         })
 
+        this.start()
+    }
+
+    start() {
+        if(this.tcpServer.listening) {
+            console.warn(`${new Date().toISOString()}: NanoTCPServer: the server is already listening`)
+            return
+        }
+
         this.tcpServer.listen({
-            port: nanoTCPServerConfig.port
+            port: this.nanoTCPServerConfig.port
         })
     }
 
@@ -137,46 +146,5 @@ class NanoTCPServer {
     stop() {
         console.log(`${new Date().toISOString()}: NanoTCPServer: stop() called`)
         this.close()
-    }
-}
-
-// inspiration from
-// https://github.com/http-kit/http-kit/blob/master/src/org/httpkit/server.clj
-// https://github.com/http-kit/http-kit/blob/master/src/java/org/httpkit/server/HttpServer.java
-
-export function runServer(): {stop: () => Boolean} {
-    const serverConfig: NanoTCPServerConfig = {
-        port: 7075,
-    }
-    const server = new NanoTCPServer(serverConfig)
-
-    return {
-        stop() {
-            server.stop()
-            return true
-        }
-    }
-}
-
-export class NanoTCPServer2 {
-    private readonly tcpServer = new AbstractTCPServer({
-        port: 5555,
-        messageDefinitions: [],
-        eventListener: this,
-    })
-
-    constructor() {
-    }
-
-    start() {
-        this.tcpServer.start()
-    }
-
-    stop() {
-        this.tcpServer.stop()
-    }
-
-    onError() {
-
     }
 }

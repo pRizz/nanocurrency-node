@@ -77,7 +77,6 @@ var UInt512_1 = require("../lib/UInt512");
 var Numbers_1 = require("../lib/Numbers");
 var stream_1 = require("stream");
 var ipaddr = require("ipaddr.js");
-var ipaddr_js_1 = require("ipaddr.js");
 var IPAddress = /** @class */ (function () {
     function IPAddress(ipValue) {
         this.value = ipValue;
@@ -280,10 +279,11 @@ var ReadableMessageStream = /** @class */ (function () {
 exports.ReadableMessageStream = ReadableMessageStream;
 var KeepaliveMessage = /** @class */ (function () {
     function KeepaliveMessage(peers) {
+        this.peers = peers;
         this.messageHeader = new MessageHeader(MessageType.keepalive, new UInt16_1.default());
-        this.peers = new Set(Array.from({ length: 8 }).map(function () {
-            return new UDPEndpoint(new IPAddress(ipaddr_js_1.IPv6.parse("::")), 7075);
-        }));
+        if (peers.size !== 8) {
+            throw "Invalid peer size: expected 8 but was " + peers.size;
+        }
     }
     KeepaliveMessage.prototype.serialize = function (stream) {
         var e_1, _a;
@@ -307,9 +307,6 @@ var KeepaliveMessage = /** @class */ (function () {
     };
     KeepaliveMessage.prototype.visit = function (messageVisitor) {
         throw 0; // FIXME
-    };
-    KeepaliveMessage.prototype.getPeers = function () {
-        return this.peers;
     };
     KeepaliveMessage.prototype.getMessageHeader = function () {
         return this.messageHeader;
