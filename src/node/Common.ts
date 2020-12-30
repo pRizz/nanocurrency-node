@@ -13,6 +13,7 @@ import {MDBValueInterface} from './LMDB'
 import Block from '../lib/Block'
 import {SYNCookie} from './Network'
 import {IPv6} from 'ipaddr.js'
+import BlockHash from '../lib/BlockHash'
 
 export interface Equatable<Self> {
     equals(other: Self): boolean
@@ -170,6 +171,7 @@ export class MessageHeader implements Serializable {
     static readonly messageHeaderByteCount = 2 + 1 + 1 + 1 + 1 + 2 // magic header + max version + using version + min version + message type + extensions
     static readonly nodeIDHandshakeQueryFlagPosition = 0
     static readonly nodeIDHandshakeResponseFlagPosition = 1
+    static readonly bulkPullCountPresentFlagPosition = 0
 
     readonly versionMax: UInt8
     readonly versionUsing: UInt8
@@ -213,6 +215,13 @@ export class MessageHeader implements Serializable {
             return false
         }
         return this.hasFlag(MessageHeader.nodeIDHandshakeResponseFlagPosition)
+    }
+
+    isBulkPullAndCountPresent(): boolean {
+        if(this.messageType !== MessageType.bulk_pull) {
+            return false
+        }
+        return this.hasFlag(MessageHeader.bulkPullCountPresentFlagPosition)
     }
 
     private hasFlag(flagPosition: number): boolean {
@@ -426,8 +435,49 @@ export class NodeIDHandshakeMessage implements Message {
     }
 }
 
+export class BulkPullMessage implements Message {
+    constructor(
+        readonly messageHeader: MessageHeader,
+        readonly start: BlockHash | Account,
+        readonly end: BlockHash,
+        readonly count: Buffer // uint32
+    ) {}
+
+    isCountPresent(): boolean {
+        return this.messageHeader.isBulkPullAndCountPresent()
+    }
+
+    asBuffer(): Promise<Buffer> {
+        return bufferFromSerializable(this)
+    }
+
+    getMessageHeader(): MessageHeader {
+        return this.messageHeader
+    }
+
+    serialize(stream: NodeJS.WritableStream): void {
+        this.messageHeader.serialize(stream)
+        const startUInt256 = this.start instanceof BlockHash ? this.start.value : this.start.publicKey
+        stream.write(startUInt256.asBuffer())
+        stream.write(this.end.asBuffer())
+        if(this.isCountPresent()) {
+            // const extendedParameters =
+            const countBuffer = Buffer.alloc(8)
+
+            // TODO: audit; taken from official node code
+            countBuffer.writeUInt32LE(this.count.readUInt32BE(0), 1)
+
+            stream.write(countBuffer)
+        }
+    }
+
+    visit(messageVisitor: MessageVisitor): void {
+    }
+}
+
 namespace Constants {
     export const tcpRealtimeProtocolVersionMin = 0x11
+    // FIXME: correct?
     export const protocolVersion = new UInt8({ octetArray: [0x11] })
     export const protocolVersionMin = new UInt8({ octetArray: [0x10] })
     export const blockProcessorBatchSize = 10000 // FIXME

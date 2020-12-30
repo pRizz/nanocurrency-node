@@ -67,7 +67,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bufferFromSerializable = exports.NodeIDHandshakeMessage = exports.NodeIDHandshakeMessageResponse = exports.ConfirmReqMessage = exports.KeepaliveMessage = exports.ReadableMessageStream = exports.MessageHeader = exports.MessageType = exports.TCPEndpoint = exports.UDPEndpoint = exports.IPAddress = void 0;
+exports.bufferFromSerializable = exports.BulkPullMessage = exports.NodeIDHandshakeMessage = exports.NodeIDHandshakeMessageResponse = exports.ConfirmReqMessage = exports.KeepaliveMessage = exports.ReadableMessageStream = exports.MessageHeader = exports.MessageType = exports.TCPEndpoint = exports.UDPEndpoint = exports.IPAddress = void 0;
 var Common_1 = require("../secure/Common");
 var UInt8_1 = require("../lib/UInt8");
 var UInt16_1 = require("../lib/UInt16");
@@ -77,6 +77,7 @@ var UInt512_1 = require("../lib/UInt512");
 var Numbers_1 = require("../lib/Numbers");
 var stream_1 = require("stream");
 var ipaddr = require("ipaddr.js");
+var BlockHash_1 = require("../lib/BlockHash");
 var IPAddress = /** @class */ (function () {
     function IPAddress(ipValue) {
         this.value = ipValue;
@@ -233,6 +234,12 @@ var MessageHeader = /** @class */ (function () {
         }
         return this.hasFlag(MessageHeader.nodeIDHandshakeResponseFlagPosition);
     };
+    MessageHeader.prototype.isBulkPullAndCountPresent = function () {
+        if (this.messageType !== MessageType.bulk_pull) {
+            return false;
+        }
+        return this.hasFlag(MessageHeader.bulkPullCountPresentFlagPosition);
+    };
     MessageHeader.prototype.hasFlag = function (flagPosition) {
         return (this.extensions.asBuffer().readUInt16BE(0) & (1 << flagPosition)) !== 0;
     };
@@ -242,6 +249,7 @@ var MessageHeader = /** @class */ (function () {
     MessageHeader.messageHeaderByteCount = 2 + 1 + 1 + 1 + 1 + 2; // magic header + max version + using version + min version + message type + extensions
     MessageHeader.nodeIDHandshakeQueryFlagPosition = 0;
     MessageHeader.nodeIDHandshakeResponseFlagPosition = 1;
+    MessageHeader.bulkPullCountPresentFlagPosition = 0;
     return MessageHeader;
 }());
 exports.MessageHeader = MessageHeader;
@@ -476,9 +484,45 @@ var NodeIDHandshakeMessage = /** @class */ (function () {
     return NodeIDHandshakeMessage;
 }());
 exports.NodeIDHandshakeMessage = NodeIDHandshakeMessage;
+var BulkPullMessage = /** @class */ (function () {
+    function BulkPullMessage(messageHeader, start, end, count // uint32
+    ) {
+        this.messageHeader = messageHeader;
+        this.start = start;
+        this.end = end;
+        this.count = count;
+    }
+    BulkPullMessage.prototype.isCountPresent = function () {
+        return this.messageHeader.isBulkPullAndCountPresent();
+    };
+    BulkPullMessage.prototype.asBuffer = function () {
+        return bufferFromSerializable(this);
+    };
+    BulkPullMessage.prototype.getMessageHeader = function () {
+        return this.messageHeader;
+    };
+    BulkPullMessage.prototype.serialize = function (stream) {
+        this.messageHeader.serialize(stream);
+        var startUInt256 = this.start instanceof BlockHash_1.default ? this.start.value : this.start.publicKey;
+        stream.write(startUInt256.asBuffer());
+        stream.write(this.end.asBuffer());
+        if (this.isCountPresent()) {
+            // const extendedParameters =
+            var countBuffer = Buffer.alloc(8);
+            // TODO: audit; taken from official node code
+            countBuffer.writeUInt32LE(this.count.readUInt32BE(0), 1);
+            stream.write(countBuffer);
+        }
+    };
+    BulkPullMessage.prototype.visit = function (messageVisitor) {
+    };
+    return BulkPullMessage;
+}());
+exports.BulkPullMessage = BulkPullMessage;
 var Constants;
 (function (Constants) {
     Constants.tcpRealtimeProtocolVersionMin = 0x11;
+    // FIXME: correct?
     Constants.protocolVersion = new UInt8_1.default({ octetArray: [0x11] });
     Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x10] });
     Constants.blockProcessorBatchSize = 10000; // FIXME
