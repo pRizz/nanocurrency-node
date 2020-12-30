@@ -10,6 +10,7 @@ var debugging_1 = require("../src/debugging");
 var Common_2 = require("../src/secure/Common");
 var Account_1 = require("../src/lib/Account");
 var MessageSigner_1 = require("../src/lib/MessageSigner");
+var ipaddr_js_1 = require("ipaddr.js");
 function testSendHandshake() {
     console.log("starting handshake test");
     var testNanoNodeIP = process.env.TEST_NANO_NODE_IP;
@@ -68,11 +69,15 @@ function testSendHandshakeWithClient() {
         onConnect: function () {
             var query = new UInt256_1.default();
             var handshakeMessage = Common_1.NodeIDHandshakeMessage.fromQuery(query);
-            handshakeMessage.asBuffer().then(function (buffer) {
-                console.log("query buffer:");
-                console.log(buffer);
-                client.sendMessage(handshakeMessage);
-            });
+            client.sendMessage(handshakeMessage);
+            setInterval(function () {
+                var peers = new Set(Array.from({ length: 8 }).map(function () {
+                    return new Common_1.TCPEndpoint(new Common_1.IPAddress(ipaddr_js_1.IPv6.parse("::") // unspecified address
+                    ), 7075);
+                }));
+                var keepaliveMessage = new Common_1.KeepaliveMessage(peers);
+                client.sendMessage(keepaliveMessage);
+            }, 5000);
         },
         messageEventListener: {
             onKeepalive: function (keepaliveMessage) {

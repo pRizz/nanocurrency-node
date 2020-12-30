@@ -37,6 +37,7 @@ var NanoSocketClient = /** @class */ (function () {
         });
     }
     NanoSocketClient.prototype.sendMessage = function (message) {
+        console.log(new Date().toISOString() + ": clientSocket.sendMessage()", typeof message);
         message.serialize(this.clientSocket);
     };
     return NanoSocketClient;

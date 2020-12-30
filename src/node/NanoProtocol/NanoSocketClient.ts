@@ -70,6 +70,7 @@ export default class NanoSocketClient {
     }
 
     sendMessage(message: Message) {
+        console.log(`${new Date().toISOString()}: clientSocket.sendMessage()`, typeof message)
         message.serialize(this.clientSocket)
     }
 }

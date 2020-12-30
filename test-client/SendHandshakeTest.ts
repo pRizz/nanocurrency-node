@@ -1,5 +1,12 @@
 import * as net from 'net'
-import {MessageHeader, MessageType, NodeIDHandshakeMessage, NodeIDHandshakeMessageResponse} from '../src/node/Common'
+import {
+    IPAddress, KeepaliveMessage,
+    MessageHeader,
+    MessageType,
+    NodeIDHandshakeMessage,
+    NodeIDHandshakeMessageResponse,
+    TCPEndpoint
+} from '../src/node/Common'
 import UInt16 from '../src/lib/UInt16'
 import UInt256 from '../src/lib/UInt256'
 import * as fs from 'fs'
@@ -11,6 +18,7 @@ import {KeyPair} from '../src/secure/Common'
 import Account from '../src/lib/Account'
 import MessageSigner from '../src/lib/MessageSigner'
 import UInt512 from '../src/lib/UInt512'
+import {IPv6} from 'ipaddr.js'
 
 function testSendHandshake() {
     console.log(`starting handshake test`)
@@ -87,12 +95,18 @@ function testSendHandshakeWithClient() {
         onConnect() {
             const query = new UInt256()
             const handshakeMessage = NodeIDHandshakeMessage.fromQuery(query)
-
-            handshakeMessage.asBuffer().then(buffer => {
-                console.log(`query buffer:`)
-                console.log(buffer)
-                client.sendMessage(handshakeMessage)
-            })
+            client.sendMessage(handshakeMessage)
+            setInterval(() => {
+                const peers = new Set(Array.from({length: 8}).map(() =>
+                    new TCPEndpoint(
+                        new IPAddress(
+                            IPv6.parse("::") // unspecified address
+                        ), 7075
+                    )
+                ))
+                const keepaliveMessage = new KeepaliveMessage(peers)
+                client.sendMessage(keepaliveMessage)
+            }, 5000)
         },
         messageEventListener: {
             onKeepalive(keepaliveMessage) {
