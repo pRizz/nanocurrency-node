@@ -10,6 +10,7 @@ var debugging_1 = require("../src/debugging");
 var Signatures_1 = require("../src/node/Signatures");
 var UInt16_1 = require("../src/lib/UInt16");
 var BlockHash_1 = require("../src/lib/BlockHash");
+var UInt32_1 = require("../src/lib/UInt32");
 function testBulkPull() {
     console.log("starting testBulkPull, ", process.env.TEST_NANO_NODE_IP);
     var randomKeyPair = Common_1.KeyPair.createRandomKeyPair();
@@ -28,7 +29,6 @@ function testBulkPull() {
                 console.log(keepaliveMessage);
             },
             onHandshake: function (handshakeMessage) {
-                var _a, _b, _c;
                 console.log(new Date().toISOString() + ": onHandshake");
                 console.log(handshakeMessage);
                 if (handshakeMessage.query) {
@@ -53,21 +53,19 @@ function testBulkPull() {
                     console.log("isSignatureVerified");
                     console.log(isSignatureVerified);
                     if (isSignatureVerified) {
-                        var extensions = new UInt16_1.default();
-                        var bulkPullMessageHeader = new Common_2.MessageHeader(Common_2.MessageType.bulk_pull, extensions);
-                        var start = new Account_1.default(new UInt256_1.default());
-                        var end = new BlockHash_1.default(new UInt256_1.default());
-                        var bulkPullMessage = new Common_2.BulkPullMessage(bulkPullMessageHeader, start, end, Buffer.alloc(4));
-                        console.log(new Date().toISOString() + ": sending bulkPullMessage");
-                        client.sendMessage(bulkPullMessage);
+                        console.log(new Date().toISOString() + ": sending createFrontierReqMessage soon");
+                        setTimeout(function () {
+                            console.log(new Date().toISOString() + ": sending createFrontierReqMessage");
+                            client.sendMessage(createFrontierReqMessage());
+                        }, 2000);
                     }
                     else {
                         throw 'isSignatureVerified was false';
                     }
-                    handshakeMessage.asBuffer().then(function (data) { debugging_1.logToFile(data, "handshakeMessage"); });
-                    debugging_1.logToFile(((_a = handshakeMessage.query) === null || _a === void 0 ? void 0 : _a.asBuffer()) || '', "query");
-                    debugging_1.logToFile(((_b = handshakeMessage.response) === null || _b === void 0 ? void 0 : _b.account.publicKey.asBuffer()) || '', "handshakeMessage.response.account");
-                    debugging_1.logToFile(((_c = handshakeMessage.response) === null || _c === void 0 ? void 0 : _c.signature.value.asBuffer()) || '', "handshakeMessage.response.signature");
+                    // handshakeMessage.asBuffer().then(data => {logToFile(data, `handshakeMessage`)})
+                    // logToFile(handshakeMessage.query?.asBuffer() || '', `query`)
+                    // logToFile(handshakeMessage.response?.account.publicKey.asBuffer() || '', `handshakeMessage.response.account`)
+                    // logToFile(handshakeMessage.response?.signature.value.asBuffer() || '', `handshakeMessage.response.signature`)
                 }
                 else {
                     console.log("no response");
@@ -75,6 +73,30 @@ function testBulkPull() {
             }
         }
     });
+}
+function createBulkPullMessage() {
+    var extensions = new UInt16_1.default();
+    var bulkPullMessageHeader = new Common_2.MessageHeader(Common_2.MessageType.bulk_pull, extensions);
+    var start = new Account_1.default(new UInt256_1.default());
+    var end = new BlockHash_1.default(new UInt256_1.default());
+    var bulkPullMessage = new Common_2.BulkPullMessage(bulkPullMessageHeader, start, end, Buffer.alloc(4));
+    return bulkPullMessage;
+}
+function createFrontierReqMessage() {
+    var extensions = new UInt16_1.default();
+    var messageHeader = new Common_2.MessageHeader(Common_2.MessageType.frontier_req, extensions);
+    var start = Common_1.LedgerConstants.nanoLiveGenesisAccount;
+    var age = new UInt32_1.default({ octetArray: [0xee, 0, 0, 0x10] });
+    var count = new UInt32_1.default({ octetArray: [0, 0, 0, 0x10] });
+    var frontierReqMessage = new Common_2.FrontierReqMessage(messageHeader, start, age, count);
+    return frontierReqMessage;
+}
+function testParseFrontierResponse() {
+    // const fileBuffer = fs.readFileSync(`/Users/peterryszkiewicz/Repos/nanocurrency-node/logs/2021-01-03T00-40-56.884Z.MessageParser.log`)
+    // const passthrough = new PassThrough()
+    // passthrough.write(fileBuffer)
+    //
+    // console.log()
 }
 testBulkPull();
 //# sourceMappingURL=SendBulkPullTest.js.map

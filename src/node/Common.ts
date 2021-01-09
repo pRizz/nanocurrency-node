@@ -14,6 +14,7 @@ import Block from '../lib/Block'
 import {SYNCookie} from './Network'
 import {IPv6} from 'ipaddr.js'
 import BlockHash from '../lib/BlockHash'
+import UInt32 from '../lib/UInt32'
 
 export interface Equatable<Self> {
     equals(other: Self): boolean
@@ -475,11 +476,38 @@ export class BulkPullMessage implements Message {
     }
 }
 
+export class FrontierReqMessage implements Message {
+    constructor(
+        readonly messageHeader: MessageHeader,
+        readonly start: Account,
+        readonly age: UInt32,
+        readonly count: UInt32
+    ) {}
+
+    asBuffer(): Promise<Buffer> {
+        return bufferFromSerializable(this)
+    }
+
+    getMessageHeader(): MessageHeader {
+        return this.messageHeader
+    }
+
+    serialize(stream: NodeJS.WritableStream): void {
+        stream.write(this.start.publicKey.asBuffer())
+        stream.write(this.age.asBuffer())
+        stream.write(this.count.asBuffer())
+    }
+
+    visit(messageVisitor: MessageVisitor): void {
+        // FIXME
+    }
+}
+
 namespace Constants {
-    export const tcpRealtimeProtocolVersionMin = 0x11
+    export const tcpRealtimeProtocolVersionMin = 0x12
     // FIXME: correct?
-    export const protocolVersion = new UInt8({ octetArray: [0x11] })
-    export const protocolVersionMin = new UInt8({ octetArray: [0x10] })
+    export const protocolVersion = new UInt8({ octetArray: [0x12] })
+    export const protocolVersionMin = new UInt8({ octetArray: [0x12] })
     export const blockProcessorBatchSize = 10000 // FIXME
 
     export function getVersion(): string {

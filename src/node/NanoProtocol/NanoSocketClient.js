@@ -14,30 +14,30 @@ var NanoSocketClient = /** @class */ (function () {
         });
         this.messageParser = new MessageParser_1.MessageParser(this.clientSocket, nanoSocketClientConfig.messageEventListener);
         this.clientSocket.on('lookup', function (err, address, family, host) {
-            console.log(new Date().toISOString() + ": clientSocket.on('lookup'): " + { err: err, address: address, family: family, host: host });
+            console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.on('lookup'): " + { err: err, address: address, family: family, host: host });
         });
         this.clientSocket.on('connect', function () {
-            console.log(new Date().toISOString() + ": clientSocket.on('connect')");
+            console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.on('connect')");
             nanoSocketClientConfig.onConnect();
         });
         this.clientSocket.on('data', function (data) {
-            console.log(new Date().toISOString() + ": clientSocket.on('data'), " + data.length + ", " + data);
+            console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.on('data'), " + data.length + ", " + data);
         });
         this.clientSocket.on('close', function (had_error) {
-            console.log(new Date().toISOString() + ": clientSocket.on('close'): had_error: " + had_error);
+            console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.on('close'): had_error: " + had_error);
         });
         this.clientSocket.on('error', function (err) {
-            console.log(new Date().toISOString() + ": clientSocket.on('error'): err: " + err);
+            console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.on('error'): err: " + err);
         });
         this.clientSocket.on('end', function () {
-            console.log(new Date().toISOString() + ": clientSocket.on('end')");
+            console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.on('end')");
         });
         this.clientSocket.on('timeout', function () {
-            console.log(new Date().toISOString() + ": clientSocket.on('timeout')");
+            console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.on('timeout')");
         });
     }
     NanoSocketClient.prototype.sendMessage = function (message) {
-        console.log(new Date().toISOString() + ": clientSocket.sendMessage()", typeof message);
+        console.log(new Date().toISOString() + ": NanoSocketClient: clientSocket.sendMessage()", typeof message);
         message.serialize(this.clientSocket);
     };
     return NanoSocketClient;

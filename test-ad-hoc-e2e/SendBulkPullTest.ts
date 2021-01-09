@@ -1,9 +1,9 @@
-import {KeyPair} from '../src/secure/Common'
+import {KeyPair, LedgerConstants} from '../src/secure/Common'
 import Account from '../src/lib/Account'
 import NanoSocketClient from '../src/node/NanoProtocol/NanoSocketClient'
 import UInt256 from '../src/lib/UInt256'
 import {
-    BulkPullMessage,
+    BulkPullMessage, FrontierReqMessage,
     MessageHeader,
     MessageType,
     NodeIDHandshakeMessage,
@@ -14,6 +14,10 @@ import {logToFile} from '../src/debugging'
 import {SignatureChecker} from '../src/node/Signatures'
 import UInt16 from '../src/lib/UInt16'
 import BlockHash from '../src/lib/BlockHash'
+import UInt32 from '../src/lib/UInt32'
+import Ledger from '../src/secure/Ledger'
+import * as fs from 'fs'
+import {PassThrough} from 'stream'
 
 
 function testBulkPull() {
@@ -63,21 +67,19 @@ function testBulkPull() {
                     console.log(isSignatureVerified)
 
                     if(isSignatureVerified) {
-                        const extensions = new UInt16()
-                        const bulkPullMessageHeader = new MessageHeader(MessageType.bulk_pull, extensions)
-                        const start = new Account(new UInt256())
-                        const end = new BlockHash(new UInt256())
-                        const bulkPullMessage = new BulkPullMessage(bulkPullMessageHeader, start, end, Buffer.alloc(4))
-                        console.log(`${new Date().toISOString()}: sending bulkPullMessage`)
-                        client.sendMessage(bulkPullMessage)
+                        console.log(`${new Date().toISOString()}: sending createFrontierReqMessage soon`)
+                        setTimeout(() => {
+                        console.log(`${new Date().toISOString()}: sending createFrontierReqMessage`)
+                            client.sendMessage(createFrontierReqMessage())
+                        }, 2000)
                     } else {
                         throw 'isSignatureVerified was false'
                     }
 
-                    handshakeMessage.asBuffer().then(data => {logToFile(data, `handshakeMessage`)})
-                    logToFile(handshakeMessage.query?.asBuffer() || '', `query`)
-                    logToFile(handshakeMessage.response?.account.publicKey.asBuffer() || '', `handshakeMessage.response.account`)
-                    logToFile(handshakeMessage.response?.signature.value.asBuffer() || '', `handshakeMessage.response.signature`)
+                    // handshakeMessage.asBuffer().then(data => {logToFile(data, `handshakeMessage`)})
+                    // logToFile(handshakeMessage.query?.asBuffer() || '', `query`)
+                    // logToFile(handshakeMessage.response?.account.publicKey.asBuffer() || '', `handshakeMessage.response.account`)
+                    // logToFile(handshakeMessage.response?.signature.value.asBuffer() || '', `handshakeMessage.response.signature`)
                 } else {
                     console.log(`no response`)
                 }
@@ -86,4 +88,33 @@ function testBulkPull() {
     })
 }
 
+function createBulkPullMessage(): BulkPullMessage {
+    const extensions = new UInt16()
+    const bulkPullMessageHeader = new MessageHeader(MessageType.bulk_pull, extensions)
+    const start = new Account(new UInt256())
+    const end = new BlockHash(new UInt256())
+    const bulkPullMessage = new BulkPullMessage(bulkPullMessageHeader, start, end, Buffer.alloc(4))
+    return bulkPullMessage
+}
+
+function createFrontierReqMessage() {
+    const extensions = new UInt16()
+    const messageHeader = new MessageHeader(MessageType.frontier_req, extensions)
+    const start = LedgerConstants.nanoLiveGenesisAccount
+    const age = new UInt32({octetArray: [0xee, 0, 0, 0x10]})
+    const count = new UInt32({octetArray: [0, 0, 0, 0x10]})
+
+    const frontierReqMessage = new FrontierReqMessage(messageHeader, start, age, count)
+    return frontierReqMessage
+}
+
+function testParseFrontierResponse() {
+    // const fileBuffer = fs.readFileSync(`/Users/peterryszkiewicz/Repos/nanocurrency-node/logs/2021-01-03T00-40-56.884Z.MessageParser.log`)
+    // const passthrough = new PassThrough()
+    // passthrough.write(fileBuffer)
+    //
+    // console.log()
+}
+
 testBulkPull()
+

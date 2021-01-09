@@ -84,14 +84,16 @@ var LedgerConstants = /** @class */ (function () {
     * */
     LedgerConstants.genesisAccountForNANONetwork = function (nanoNetwork) {
         switch (nanoNetwork) {
-            case Config_1.NANONetwork.nanoLiveNetwork: return LedgerConstants.nanoLiveAccount;
-            case Config_1.NANONetwork.nanoBetaNetwork: return LedgerConstants.nanoBetaAccount;
-            case Config_1.NANONetwork.nanoTestNetwork: return LedgerConstants.nanoTestAccount;
+            case Config_1.NANONetwork.nanoLiveNetwork: return LedgerConstants.nanoLiveGenesisAccount;
+            case Config_1.NANONetwork.nanoBetaNetwork: return LedgerConstants.nanoBetaGenesisAccount;
+            case Config_1.NANONetwork.nanoTestNetwork: return LedgerConstants.nanoTestGenesisAccount;
         }
     };
-    LedgerConstants.nanoLiveAccount = Account_1.default.fromPublicKeyHex('E89208DD038FBB269987689621D52292AE9C35941A7484756ECCED92A65093BA');
-    LedgerConstants.nanoBetaAccount = Account_1.default.fromPublicKeyHex('A59A47CC4F593E75AE9AD653FDA9358E2F7898D9ACC8C60E80D0495CE20FBA9F');
-    LedgerConstants.nanoTestAccount = Account_1.default.fromPublicKeyHex('B0311EA55708D6A53C75CDBF88300259C6D018522FE3D4D0A242E431F9E8B6D0');
+    // from https://docs.nano.org/protocol-design/distribution-and-units/
+    LedgerConstants.nanoLiveGenesisAccount = Account_1.default.fromPublicKeyHex('E89208DD038FBB269987689621D52292AE9C35941A7484756ECCED92A65093BA'); // nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3
+    LedgerConstants.nanoLiveGenesisAccountOpenBlockHash = '991CF190094C00F0B68E2E5F75F6BEE95A2E0BD93CEAA4A6734DB9F19B728948'; // https://nanocrawler.cc/explorer/block/991CF190094C00F0B68E2E5F75F6BEE95A2E0BD93CEAA4A6734DB9F19B728948
+    LedgerConstants.nanoBetaGenesisAccount = Account_1.default.fromPublicKeyHex('A59A47CC4F593E75AE9AD653FDA9358E2F7898D9ACC8C60E80D0495CE20FBA9F');
+    LedgerConstants.nanoTestGenesisAccount = Account_1.default.fromPublicKeyHex('B0311EA55708D6A53C75CDBF88300259C6D018522FE3D4D0A242E431F9E8B6D0');
     LedgerConstants.burnAccount = Account_1.default.fromPublicKeyHex('0000000000000000000000000000000000000000000000000000000000000000');
     LedgerConstants.zeroKey = KeyPair.createZeroKeyPair();
     return LedgerConstants;

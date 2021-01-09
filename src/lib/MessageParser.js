@@ -36,9 +36,12 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MessageParser = void 0;
+exports.MessageParser = exports.parseFrontierReqResponse = void 0;
 var Common_1 = require("../node/Common");
 var debugging_1 = require("../debugging");
+function parseFrontierReqResponse() {
+}
+exports.parseFrontierReqResponse = parseFrontierReqResponse;
 // It is the caller's responsibility to use a stream in the valid state. For example, if the stream closes or
 // receives an error, the caller must properly handle this, remove the message parser, and make a
 // new one on a new connection/stream.
@@ -51,8 +54,8 @@ var MessageParser = /** @class */ (function () {
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        console.log(new Date().toISOString() + ": connection on data");
-                        debugging_1.logToFile(data);
+                        console.log(new Date().toISOString() + ": MessageParser on data");
+                        debugging_1.logToFile(data, "MessageParser.onData");
                         return [4 /*yield*/, Common_1.MessageHeader.fromBuffer(data)];
                     case 1:
                         header = _b.sent();
@@ -113,7 +116,9 @@ var MessageParser = /** @class */ (function () {
                         return [3 /*break*/, 15];
                     case 14:
                         e_1 = _b.sent();
-                        console.log(new Date().toISOString() + ": error while parsing node_id_handshake");
+                        console.log(new Date().toISOString() + ": error while parsing node_id_handshake: " + e_1);
+                        console.log(new Date().toISOString() + ": error, ", e_1);
+                        debugging_1.logToFile(data, "error-while-parsing-handshake");
                         return [3 /*break*/, 15];
                     case 15: return [3 /*break*/, 17];
                     case 16:

@@ -18,14 +18,18 @@ export interface MessageEventListener {
     onHandshake: (handshakeMessage: NodeIDHandshakeMessage) => void
 }
 
+export function parseFrontierReqResponse() {
+
+}
+
 // It is the caller's responsibility to use a stream in the valid state. For example, if the stream closes or
 // receives an error, the caller must properly handle this, remove the message parser, and make a
 // new one on a new connection/stream.
 export class MessageParser {
     constructor(stream: NodeJS.ReadableStream, private readonly messageEventListener: MessageEventListener) {
         stream.on('data', async (data: Buffer) => {
-            console.log(`${new Date().toISOString()}: connection on data`)
-            logToFile(data)
+            console.log(`${new Date().toISOString()}: MessageParser on data`)
+            logToFile(data, `MessageParser.onData`)
             const header = await MessageHeader.fromBuffer(data)
             console.log(`${new Date().toISOString()}: parsed MessageHeader: ${header}`)
             console.log(`${header}`)
@@ -67,7 +71,9 @@ export class MessageParser {
                         const handshakeMessage = await NodeIDHandshakeMessage.fromBuffer(header, messageBuffer)
                         messageEventListener.onHandshake(handshakeMessage)
                     } catch (e) {
-                        console.log(`${new Date().toISOString()}: error while parsing node_id_handshake`)
+                        console.log(`${new Date().toISOString()}: error while parsing node_id_handshake: ${e}`)
+                        console.log(`${new Date().toISOString()}: error, `, e)
+                        logToFile(data, `error-while-parsing-handshake`)
                     }
                     break;
                 case MessageType.bulk_pull_account:

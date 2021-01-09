@@ -86,10 +86,11 @@ export class KeyPair {
 }
 
 export class LedgerConstants {
-
-    static readonly nanoLiveAccount = Account.fromPublicKeyHex('E89208DD038FBB269987689621D52292AE9C35941A7484756ECCED92A65093BA')
-    static readonly nanoBetaAccount = Account.fromPublicKeyHex('A59A47CC4F593E75AE9AD653FDA9358E2F7898D9ACC8C60E80D0495CE20FBA9F')
-    static readonly nanoTestAccount = Account.fromPublicKeyHex('B0311EA55708D6A53C75CDBF88300259C6D018522FE3D4D0A242E431F9E8B6D0')
+    // from https://docs.nano.org/protocol-design/distribution-and-units/
+    static readonly nanoLiveGenesisAccount = Account.fromPublicKeyHex('E89208DD038FBB269987689621D52292AE9C35941A7484756ECCED92A65093BA') // nano_3t6k35gi95xu6tergt6p69ck76ogmitsa8mnijtpxm9fkcm736xtoncuohr3
+    static readonly nanoLiveGenesisAccountOpenBlockHash = '991CF190094C00F0B68E2E5F75F6BEE95A2E0BD93CEAA4A6734DB9F19B728948' // https://nanocrawler.cc/explorer/block/991CF190094C00F0B68E2E5F75F6BEE95A2E0BD93CEAA4A6734DB9F19B728948
+    static readonly nanoBetaGenesisAccount = Account.fromPublicKeyHex('A59A47CC4F593E75AE9AD653FDA9358E2F7898D9ACC8C60E80D0495CE20FBA9F')
+    static readonly nanoTestGenesisAccount = Account.fromPublicKeyHex('B0311EA55708D6A53C75CDBF88300259C6D018522FE3D4D0A242E431F9E8B6D0')
     static readonly burnAccount = Account.fromPublicKeyHex('0000000000000000000000000000000000000000000000000000000000000000')
 
     static readonly zeroKey = KeyPair.createZeroKeyPair()
@@ -109,9 +110,9 @@ export class LedgerConstants {
 
     private static genesisAccountForNANONetwork(nanoNetwork: NANONetwork): Account {
         switch (nanoNetwork) {
-            case NANONetwork.nanoLiveNetwork: return LedgerConstants.nanoLiveAccount
-            case NANONetwork.nanoBetaNetwork: return LedgerConstants.nanoBetaAccount
-            case NANONetwork.nanoTestNetwork: return LedgerConstants.nanoTestAccount
+            case NANONetwork.nanoLiveNetwork: return LedgerConstants.nanoLiveGenesisAccount
+            case NANONetwork.nanoBetaNetwork: return LedgerConstants.nanoBetaGenesisAccount
+            case NANONetwork.nanoTestNetwork: return LedgerConstants.nanoTestGenesisAccount
         }
     }
 

@@ -38,6 +38,34 @@ The nodes transmit messages between each other in a more-or-less request-respons
 analogous to an application specific HTTP session. The NANO protocol is on the same level on the OSI stack as HTTP,
 being on top of TCP/UDP.
 
+### Handshake
+
+When a client finds a peer's IP address, it can start a Nano level connection with the handshake message. It starts this by sending a "query" which consists of a random 256 bit blob challenge which will also be assigned as the cookie for the remote node if it passes the signing challenge. The server receives this challenge blob, signs it with its private key, and sends it in the "response" portion of the handshake, while attaching a query/cookie/challenge of its own. The client verifies the signature of its cookie and if valid, adds it to its cookie store and continues further requests. The client should then also respond with the signed cookie to complete the handshake. 
+
+### Bulk Pull
+
+The bulk pull request consists of requesting a starting block hash, and ending block hash, and an optional count to limit the number of blocks received in this pull session. An "expected" block is cached in memory to signify what block should be received by the server next. Then the socket is read for incoming bytes. The first byte is expected to be the type of the incoming block. Then depending on the block type, that number of more bytes is read from the stream to be deserialized to a block. The official node does not seem to gracefully handle unhandled block types; it just logs it and ignore it. There is some business logic that occurs after receiving a block:
+- check if work is valid
+- check if the block was expected; if so, point `expected` to the previous block, otherwise increment an `unexpected_block` count
+- receive and listen for next block if there are < 16k unexpected blocks
+
+The `bulk_pull_client` is made in `bootstrap_connections.cpp` in `bootstrap_connections::request_pull`.
+
+One simple algorithm to get all blocks on the network is:
+- starting with the genesis account, pull all blocks from it
+- add all accounts from the blocks to a queue/set of accounts to pull from
+- repeat until all blocks are received and the queue is empty (also keep track of accounts that were fully fetched)
+
+Of course, there are a few things to keep in mind here:
+- the state of the ledger will have changed by the time the sync is done. This probably requires some sort of lite refreshing of the ledger state until fully synced
+- these are all unconfirmed. There will have to be another pass on all the blocks until we get everything confirmed from all the representatives.
+- the api seems like it would only return the pending blocks, not all blocks
+
+Probably need to start with a `frontier_req` on the genesis account.
+
+### Bulk Pull Account
+
+
 ## Quorum
 
 A major element of NANO's consensus protocol is to achieve a quorum on blocks, which means that

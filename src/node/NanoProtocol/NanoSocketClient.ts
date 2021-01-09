@@ -40,37 +40,37 @@ export default class NanoSocketClient {
         this.messageParser = new MessageParser(this.clientSocket, nanoSocketClientConfig.messageEventListener)
 
         this.clientSocket.on('lookup', (err, address, family, host) => {
-            console.log(`${new Date().toISOString()}: clientSocket.on('lookup'): ${{err, address, family, host}}`)
+            console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.on('lookup'): ${{err, address, family, host}}`)
         })
 
         this.clientSocket.on('connect', () => {
-            console.log(`${new Date().toISOString()}: clientSocket.on('connect')`)
+            console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.on('connect')`)
             nanoSocketClientConfig.onConnect()
         })
 
         this.clientSocket.on('data', (data: Buffer) => {
-            console.log(`${new Date().toISOString()}: clientSocket.on('data'), ${data.length}, ${data}`)
+            console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.on('data'), ${data.length}, ${data}`)
         })
 
         this.clientSocket.on('close', had_error => {
-            console.log(`${new Date().toISOString()}: clientSocket.on('close'): had_error: ${had_error}`)
+            console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.on('close'): had_error: ${had_error}`)
         })
 
         this.clientSocket.on('error', (err: Error) => {
-            console.log(`${new Date().toISOString()}: clientSocket.on('error'): err: ${err}`)
+            console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.on('error'): err: ${err}`)
         })
 
         this.clientSocket.on('end', () => {
-            console.log(`${new Date().toISOString()}: clientSocket.on('end')`)
+            console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.on('end')`)
         })
 
         this.clientSocket.on('timeout', () => {
-            console.log(`${new Date().toISOString()}: clientSocket.on('timeout')`)
+            console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.on('timeout')`)
         })
     }
 
     sendMessage(message: Message) {
-        console.log(`${new Date().toISOString()}: clientSocket.sendMessage()`, typeof message)
+        console.log(`${new Date().toISOString()}: NanoSocketClient: clientSocket.sendMessage()`, typeof message)
         message.serialize(this.clientSocket)
     }
 }

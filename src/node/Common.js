@@ -67,7 +67,7 @@ var __values = (this && this.__values) || function(o) {
     throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.bufferFromSerializable = exports.BulkPullMessage = exports.NodeIDHandshakeMessage = exports.NodeIDHandshakeMessageResponse = exports.ConfirmReqMessage = exports.KeepaliveMessage = exports.ReadableMessageStream = exports.MessageHeader = exports.MessageType = exports.TCPEndpoint = exports.UDPEndpoint = exports.IPAddress = void 0;
+exports.bufferFromSerializable = exports.FrontierReqMessage = exports.BulkPullMessage = exports.NodeIDHandshakeMessage = exports.NodeIDHandshakeMessageResponse = exports.ConfirmReqMessage = exports.KeepaliveMessage = exports.ReadableMessageStream = exports.MessageHeader = exports.MessageType = exports.TCPEndpoint = exports.UDPEndpoint = exports.IPAddress = void 0;
 var Common_1 = require("../secure/Common");
 var UInt8_1 = require("../lib/UInt8");
 var UInt16_1 = require("../lib/UInt16");
@@ -519,12 +519,36 @@ var BulkPullMessage = /** @class */ (function () {
     return BulkPullMessage;
 }());
 exports.BulkPullMessage = BulkPullMessage;
+var FrontierReqMessage = /** @class */ (function () {
+    function FrontierReqMessage(messageHeader, start, age, count) {
+        this.messageHeader = messageHeader;
+        this.start = start;
+        this.age = age;
+        this.count = count;
+    }
+    FrontierReqMessage.prototype.asBuffer = function () {
+        return bufferFromSerializable(this);
+    };
+    FrontierReqMessage.prototype.getMessageHeader = function () {
+        return this.messageHeader;
+    };
+    FrontierReqMessage.prototype.serialize = function (stream) {
+        stream.write(this.start.publicKey.asBuffer());
+        stream.write(this.age.asBuffer());
+        stream.write(this.count.asBuffer());
+    };
+    FrontierReqMessage.prototype.visit = function (messageVisitor) {
+        // FIXME
+    };
+    return FrontierReqMessage;
+}());
+exports.FrontierReqMessage = FrontierReqMessage;
 var Constants;
 (function (Constants) {
-    Constants.tcpRealtimeProtocolVersionMin = 0x11;
+    Constants.tcpRealtimeProtocolVersionMin = 0x12;
     // FIXME: correct?
-    Constants.protocolVersion = new UInt8_1.default({ octetArray: [0x11] });
-    Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x10] });
+    Constants.protocolVersion = new UInt8_1.default({ octetArray: [0x12] });
+    Constants.protocolVersionMin = new UInt8_1.default({ octetArray: [0x12] });
     Constants.blockProcessorBatchSize = 10000; // FIXME
     function getVersion() {
         return '1.0.0'; // FIXME
