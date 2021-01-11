@@ -6,7 +6,7 @@ var Version_1 = require("./Version");
 var Daemon_1 = require("../src/nano_node/Daemon");
 var NodeConfig_1 = require("../src/node/NodeConfig");
 var Utility_1 = require("../src/secure/Utility");
-var TestApi_1 = require("../test-ad-hoc-e2e/TestApi");
+var TestApi_1 = require("../test-ad-hoc/TestApi");
 var debug = require('debug')('CLI');
 //FIXME: wrong help text: Usage: www [options]
 program

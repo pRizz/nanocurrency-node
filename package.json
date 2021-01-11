@@ -5,9 +5,9 @@
   "scripts": {
     "start": "node ./bin/www",
     "test": "mocha",
-    "test-handshake": "node test-ad-hoc-e2e/SendHandshakeTest.js",
-    "test-keepalive": "node test-ad-hoc-e2e/SendKeepaliveTest.js",
-    "test-bulkpull": "node test-ad-hoc-e2e/SendBulkPullTest.js",
+    "test-handshake": "node test-ad-hoc/SendHandshakeTest.js",
+    "test-keepalive": "node test-ad-hoc/SendKeepaliveTest.js",
+    "test-bulkpull": "node test-ad-hoc/SendBulkPullTest.js",
     "coverage": "nyc npm run test",
     "macCoverage": "npm run coverage; open coverage/index.html"
   },

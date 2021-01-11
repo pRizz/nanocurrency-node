@@ -3,7 +3,7 @@ import version from './Version'
 import Daemon from '../src/nano_node/Daemon'
 import {NodeFlags} from '../src/node/NodeConfig'
 import Utility from '../src/secure/Utility'
-import {testSendKeepalive} from '../test-ad-hoc-e2e/TestApi'
+import {testSendKeepalive} from '../test-ad-hoc/TestApi'
 const debug = require('debug')('CLI')
 
 //FIXME: wrong help text: Usage: www [options]
