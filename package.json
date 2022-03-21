@@ -21,7 +21,7 @@
     "ipaddr.js": "^1.9.1",
     "moment": "^2.24.0",
     "morgan": "~1.9.1",
-    "node-lmdb": "^0.7.0",
+    "node-lmdb": "^0.9.7",
     "sequelize": "^6.3.5",
     "tweetnacl-blake2b": "^1.0.1"
   },
