@@ -19,7 +19,7 @@
     "debug": "^4.1.1",
     "env-paths": "^2.2.0",
     "ipaddr.js": "^1.9.1",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "morgan": "~1.9.1",
     "node-lmdb": "^0.7.0",
     "sequelize": "^6.3.5",
